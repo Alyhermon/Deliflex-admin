@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import styles from "./stores.module.css";
 import AdminLayout from "../components/layout/adminLayout";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEdit, faStar } from "@fortawesome/free-solid-svg-icons";
+import { useRouter } from "next/navigation";
 
 type Store = {
   id: string;
@@ -16,6 +19,9 @@ type Store = {
 };
 
 export default function StoresPage() {
+
+  const router = useRouter();
+
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,6 +45,10 @@ export default function StoresPage() {
     loadStores();
   }, []);
 
+  const handleCreate = () => {
+    router.push('/stores/register')
+  }
+
   return (
     <AdminLayout>
 
@@ -53,7 +63,9 @@ export default function StoresPage() {
               </p>
             </div>
 
-            <button className={styles.btnCreate}>+ Crear negocio</button>
+            <button className={styles.btnCreate}
+            onClick={handleCreate}
+            >+ Crear negocio</button>
           </div>
 
           {/* Filtros */}
@@ -110,7 +122,7 @@ export default function StoresPage() {
 
                       {/* Rating */}
                       <div className={styles.ratingBadge}>
-                        ⭐ {store.rating || 4.5}
+                        <FontAwesomeIcon color="#ddb936" icon={faStar} /> {store.rating || 4.5}
                       </div>
                     </div>
 
@@ -137,7 +149,10 @@ export default function StoresPage() {
 
                     {/* Acciones */}
                     <div className={styles.actions}>
-                      <button className={styles.secondaryBtn}>Editar</button>
+                      <button className={styles.secondaryBtn}>
+                        <FontAwesomeIcon color="#747474" icon={faEdit}/>
+                          Editar
+                        </button>
 
                       <button className={styles.primaryBtn}>
                         Ver detalle →

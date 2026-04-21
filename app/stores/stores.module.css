@@ -1,11 +1,9 @@
-/* ===== LAYOUT ===== */
 .layout {
   display: flex;
   height: 100vh;
   font-family: "Inter", Arial, sans-serif;
 }
 
-/* ===== MAIN ===== */
 .main {
   flex: 1;
   padding: 24px;
@@ -13,7 +11,6 @@
   overflow-y: auto;
 }
 
-/* ===== HEADER ===== */
 .header {
   display: flex;
   justify-content: space-between;
@@ -27,7 +24,6 @@
   color: #666;
 }
 
-/* ===== BUTTON ===== */
 .btnCreate {
   background: #ff6b00;
   color: white;
@@ -43,7 +39,6 @@
   background: #e65c00;
 }
 
-/* ===== FILTERS ===== */
 .filters {
   display: flex;
   gap: 10px;
@@ -59,21 +54,18 @@
   color: #000;
 }
 
-/* ===== EMPTY STATE ===== */
 .empty {
   text-align: center;
   margin-top: 60px;
   color: #666;
 }
 
-/* ===== GRID ===== */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 18px;
 }
 
-/* ===== CARD ===== */
 .card {
   background: white;
   border-radius: 18px;
@@ -88,7 +80,6 @@
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
 }
 
-/* ===== BANNER ===== */
 .banner {
   position: relative;
   height: 180px;
@@ -105,7 +96,6 @@
   transform: scale(1.08);
 }
 
-/* ===== OVERLAY ===== */
 .overlay {
   position: absolute;
   inset: 0;
@@ -117,7 +107,6 @@
   );
 }
 
-/* ===== CONTENT OVER BANNER ===== */
 .bannerContent {
   position: absolute;
   bottom: 14px;
@@ -141,17 +130,22 @@
   opacity: 0.85;
 }
 
-/* ===== RATING BADGE ===== */
 .ratingBadge {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  gap: 0.5rem;
   background: white;
   color: black;
   font-size: 12px;
   padding: 4px 8px;
+  width: 3.5rem;
   border-radius: 8px;
   font-weight: 600;
 }
 
-/* ===== LOGO ===== */
 .logo {
   position: absolute;
   bottom: -30px;
@@ -167,12 +161,10 @@
   border-radius: 10px;
 }
 
-/* ===== BODY ===== */
 .cardBody {
   padding: 36px 14px 14px;
 }
 
-/* ===== STATUS ===== */
 .statusRow {
   margin-bottom: 10px;
 }
@@ -185,7 +177,6 @@
   border-radius: 20px;
 }
 
-/* ===== ACTIONS ===== */
 .actions {
   display: flex;
   justify-content: space-between;
@@ -207,10 +198,11 @@
 }
 
 .secondaryBtn {
+  display: flex;
   background: #f1f1f1;
   border: none;
   color: #000;
-  padding: 6px 12px;
+  padding: 6px 1rem;
   border-radius: 20px;
   cursor: pointer;
   font-size: 12px;
