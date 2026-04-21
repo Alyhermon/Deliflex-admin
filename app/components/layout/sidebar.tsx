@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEnvelope, faBarcode, faShop, faChartLine, faCalculator, faChartColumn, faGear } from "@fortawesome/free-solid-svg-icons";
 import { ReactNode } from "react";
 
 interface MenuItem {
@@ -13,17 +15,37 @@ const menuItems: MenuItem[] = [
   {
     name: "Dashboard",
     path: "/dashboard",
-    icon: <span>🏠</span>,
+    icon: <FontAwesomeIcon  icon={faChartColumn} />,
   },
   {
     name: "Negocios",
     path: "/stores",
-    icon: <span>🍔</span>,
+    icon: <FontAwesomeIcon  icon={faShop} />,
   },
   {
     name: "Menú",
     path: "/menu",
-    icon: <span>🍔</span>,
+    icon: <FontAwesomeIcon  icon={faBarcode} />,
+  },
+    {
+    name: "Operaciones",
+    path: "/operaciones",
+    icon: <FontAwesomeIcon  icon={faChartLine} />,
+  },
+      {
+    name: "Finanzas",
+    path: "/finanzas",
+    icon: <FontAwesomeIcon  icon={faCalculator} />,
+  },
+      {
+    name: "Configuraciones",
+    path: "/configuracion",
+    icon: <FontAwesomeIcon  icon={faGear} />,
+  },
+    {
+    name: "Login",
+    path: "core/login",
+    icon: <FontAwesomeIcon  icon={faEnvelope} />,
   },
 ];
 
@@ -44,10 +66,7 @@ export default function Sidebar() {
               pathname === item.path ? "bg-orange-500" : "hover:bg-gray-700"
             }`}
           >
-            {/* 👇 ICONO */}
             {item.icon}
-
-            {/* 👇 TEXTO */}
             {item.name}
           </div>
         ))}

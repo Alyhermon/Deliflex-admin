@@ -49,7 +49,7 @@ export default function StoresPage() {
             <div>
               <h1>Mis Negocios</h1>
               <p className={styles.subtitle}>
-                Administra todos tus restaurantes
+                Administra todos tus negocios
               </p>
             </div>
 
