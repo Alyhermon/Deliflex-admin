@@ -1,11 +1,14 @@
 "use client";
 
 import styles from "./register.module.css";
+import ToggleButton from "../../components/components-items/togglebutton";
 
 export default function CrearNegocio() {
+  const handleChange = (state: boolean) => {
+    console.log("Estado:", state);
+  };
   return (
     <div className={styles.container}>
-      
       {/* HEADER */}
       <div className={styles.header}>
         <h1>Crear Negocio</h1>
@@ -22,30 +25,36 @@ export default function CrearNegocio() {
 
       {/* CARD PRINCIPAL */}
       <div className={styles.card}>
-
         {/* INFO */}
         <div className={styles.infoBox}>
           <h3>Configura cuándo está abierto tu negocio</h3>
-          <p>Puedes establecer horarios diferentes por día o usar el mismo para todos.</p>
+          <p>
+            Puedes establecer horarios diferentes por día o usar el mismo para
+            todos.
+          </p>
         </div>
-
-        {/* TOGGLE */}
         <div className={styles.rowBetween}>
           <div>
             <h4>Mismo horario todos los días</h4>
             <p>Ahorra tiempo aplicando el mismo horario.</p>
           </div>
-          <div className={styles.switch}></div>
+          <ToggleButton
+            initialState={true}
+            onChange={handleChange}
+            labelOn="Abierto"
+            labelOff="Cerrado"
+            size="md"
+          />
         </div>
 
         {/* INPUTS GENERALES */}
         <div className={styles.grid2}>
-          <div>
+          <div className={styles.dateOpen}>
             <label>Hora de apertura</label>
             <input type="time" />
           </div>
 
-          <div>
+          <div className={styles.dateClosed}>
             <label>Hora de cierre</label>
             <input type="time" />
           </div>
@@ -55,7 +64,7 @@ export default function CrearNegocio() {
         <div className={styles.table}>
           <div className={styles.tableHeader}>
             <span>Día</span>
-            <span>Activo</span>
+            <span className={styles.activeDay}>Activo</span>
             <span>Apertura</span>
             <span>Cierre</span>
           </div>
@@ -71,7 +80,12 @@ export default function CrearNegocio() {
           ].map((day) => (
             <div key={day} className={styles.tableRow}>
               <span>{day}</span>
-              <div className={styles.switchSmall}></div>
+              <ToggleButton
+                initialState={true}
+                onChange={handleChange}
+                label={false}
+                size="sm"
+              />
               <input type="time" />
               <input type="time" />
             </div>
@@ -83,7 +97,6 @@ export default function CrearNegocio() {
           <button className={styles.btnBack}>Atrás</button>
           <button className={styles.btnNext}>Continuar</button>
         </div>
-
       </div>
     </div>
   );

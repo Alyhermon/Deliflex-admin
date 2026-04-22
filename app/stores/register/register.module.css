@@ -42,7 +42,7 @@
   background: #fff;
   border-radius: 16px;
   padding: 25px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
 .infoBox {
@@ -89,7 +89,7 @@
 .tableRow {
   display: grid;
   grid-template-columns: 1fr 80px 1fr 1fr;
-  gap: 10px;
+  gap: 50px;
   align-items: center;
   padding: 10px 0;
 }
@@ -139,4 +139,15 @@
   background: linear-gradient(90deg, #ff7a00, #ffb347);
   color: white;
   font-weight: 600;
+}
+
+.activeDay {
+  display: flex;
+  justify-content: center;
+}
+
+.dateClosed, .dateOpen {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
