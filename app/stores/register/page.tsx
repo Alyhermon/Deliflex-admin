@@ -57,7 +57,7 @@ export default function CrearNegocio() {
 
           <div className={styles.dateClosed}>
             <label>Hora de cierre</label>
-            <input type="time" />
+            <TimePicker onChange={(time) => console.log(time)} />
           </div>
         </div>
 
@@ -87,8 +87,8 @@ export default function CrearNegocio() {
                 label={false}
                 size="sm"
               />
-              <input type="time" />
-              <input type="time" />
+            <TimePicker onChange={(time) => console.log(time)} />
+            <TimePicker onChange={(time) => console.log(time)} />
             </div>
           ))}
         </div>
