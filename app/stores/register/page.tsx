@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "./register.module.css";
+import styles from "./schedule.module.css";
 import ToggleButton from "../../components/components-items/togglebutton";
 
 export default function CrearNegocio() {
