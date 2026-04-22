@@ -2,6 +2,7 @@
 
 import styles from "./schedule.module.css";
 import ToggleButton from "../../components/components-items/togglebutton";
+import TimePicker from "@/app/components/components-items/timepicker";
 
 export default function CrearNegocio() {
   const handleChange = (state: boolean) => {
@@ -51,7 +52,7 @@ export default function CrearNegocio() {
         <div className={styles.grid2}>
           <div className={styles.dateOpen}>
             <label>Hora de apertura</label>
-            <input type="time" />
+            <TimePicker onChange={(time) => console.log(time)} />
           </div>
 
           <div className={styles.dateClosed}>

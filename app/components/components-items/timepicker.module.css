@@ -1,0 +1,80 @@
+.wrapper {
+  position: relative;
+  width: 200px;
+  font-family: sans-serif;
+}
+
+.input {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #111;
+}
+
+.dropdown {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  display: flex;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px;
+  z-index: 10;
+}
+
+.column {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.item {
+  padding: 8px 10px;
+  text-align: center;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+  color: #111;
+}
+
+.item:hover {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+
+.active {
+  background: #f97316;
+  color: white;
+  font-weight: 500;
+}
+
+.column {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.145) transparent;
+}
+
+.column::-webkit-scrollbar {
+  width: 6px;
+}
+
+.column::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.column::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
+.column:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(249, 115, 22, 0.6);
+}
