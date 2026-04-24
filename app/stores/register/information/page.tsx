@@ -17,6 +17,8 @@ export default function CreateStorePage() {
     closeMin: "",
   });
 
+  //TODO: implementar mejor el stepper
+
   const handleChange = (e: any) => {
     setForm({
       ...form,
@@ -32,7 +34,7 @@ export default function CreateStorePage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Crear Negocio</h1>
+        <h1 className={styles.title}>Crear Negocio si o si</h1>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.row}>
