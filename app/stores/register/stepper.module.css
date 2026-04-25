@@ -1,0 +1,107 @@
+.wrapper {
+  background: #f7f8fa;
+  min-height: 100vh;
+  color: #000000;
+}
+
+/* HEADER */
+.header {
+  padding: 30px 40px;
+  background: white;
+  border-bottom: 1px solid #eee;
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+/* STEP */
+.stepContainer {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.stepCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #555;
+}
+
+.stepCircle.active {
+  background: #ff7a00;
+  color: white;
+}
+
+.stepLabel {
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+/* LINE BETWEEN STEPS */
+.line {
+  width: 60px;
+  height: 2px;
+  background: #ddd;
+  margin-left: 15px;
+}
+
+.activeLine {
+  background: #ff7a00;
+}
+
+/* CONTENT */
+.contentWrapper {
+  padding: 40px;
+}
+
+.card {
+  margin: 0 auto;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+/* BUTTONS */
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+/* .primary {
+  background: #ff7a00;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+} */
+
+.secondary {
+  background: transparent;
+  border: 1px solid #ddd;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btnNext {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg, #ff7a00, #ffb347);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}

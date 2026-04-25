@@ -10,19 +10,6 @@ export default function CrearNegocio() {
   };
   return (
     <div className={styles.container}>
-      {/* HEADER */}
-      <div className={styles.header}>
-        <h1>Crear Negocio</h1>
-        <p>Completa la información para registrar tu negocio en DeliFlex.</p>
-      </div>
-
-      {/* STEPPER */}
-      <div className={styles.stepper}>
-        <div className={styles.stepActive}>1 Información</div>
-        <div className={styles.stepActive}>2 Horarios</div>
-        <div className={styles.step}>3 Servicios</div>
-        <div className={styles.step}>4 Confirmación</div>
-      </div>
 
       {/* CARD PRINCIPAL */}
       <div className={styles.card}>
@@ -91,12 +78,6 @@ export default function CrearNegocio() {
             <TimePicker onChange={(time) => console.log(time)} />
             </div>
           ))}
-        </div>
-
-        {/* BOTONES */}
-        <div className={styles.actions}>
-          <button className={styles.btnBack}>Atrás</button>
-          <button className={styles.btnNext}>Continuar</button>
         </div>
       </div>
     </div>

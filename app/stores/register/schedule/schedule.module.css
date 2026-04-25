@@ -1,7 +1,7 @@
 .container {
-  padding: 30px;
+  padding: 10px;
   background: #f5f6fa;
-  min-height: 100vh;
+  min-height: 80vh;
   color: #000;
 }
 
@@ -130,15 +130,6 @@
   border-radius: 10px;
   border: none;
   background: #eee;
-}
-
-.btnNext {
-  padding: 10px 18px;
-  border-radius: 10px;
-  border: none;
-  background: linear-gradient(90deg, #ff7a00, #ffb347);
-  color: white;
-  font-weight: 600;
 }
 
 .activeDay {

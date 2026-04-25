@@ -2,8 +2,11 @@
 
 import React, { useState } from "react";
 import styles from "./information.module.css";
+import DFInput from "../../../components/components-items/input";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
-export default function CreateStorePage() {
+export default function InformationPage() {
   const [form, setForm] = useState({
     name: "",
     category: "",
@@ -40,95 +43,76 @@ export default function CreateStorePage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Crear Negocio si o si</h1>
+  <div className={styles.card}>
+    <h1 className={styles.title}>Crear Negocio</h1>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.row}>
-            <div className={styles.inputGroup}>
-              <label>Nombre del negocio</label>
-              <input name="name" onChange={handleChange} required />
-            </div>
+    <form onSubmit={handleSubmit} className={styles.form}>
 
-            <div className={styles.inputGroup}>
-              <label>Categoría</label>
-              <select name="category" onChange={handleChange}>
-                <option value="">Seleccionar</option>
-                <option value="restaurant">Restaurante</option>
-                <option value="cafe">Cafetería</option>
-                <option value="bakery">Panadería</option>
-              </select>
-            </div>
-          </div>
+      {/* SECCIÓN 1 */}
+      <div className={styles.section}>
+        <h2>Información básica</h2>
 
-          <div className={styles.row}>
-            <div className={styles.inputGroup}>
-              <label>Teléfono</label>
-              <input name="phone" onChange={handleChange} />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label>Email</label>
-              <input name="email" type="email" onChange={handleChange} />
-            </div>
+        <div className={styles.grid2}>
+          <div className={styles.inputGroup}>
+          <DFInput
+            placeholder="ejemplo@email.com"
+            icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
+          />
           </div>
 
           <div className={styles.inputGroup}>
-            <label>Dirección</label>
-            <input name="address" onChange={handleChange} />
+            <label>Categoría</label>
+            <select name="category" onChange={handleChange}>
+              <option value="">Seleccionar</option>
+              <option value="restaurant">Restaurante</option>
+              <option value="cafe">Cafetería</option>
+              <option value="bakery">Panadería</option>
+            </select>
           </div>
-
-          <div className={styles.inputGroup}>
-            <label>Descripción</label>
-            <textarea name="description" onChange={handleChange} />
-          </div>
-
-          {/* HORARIO */}
-          <div className={styles.schedule}>
-            <label>Horario</label>
-
-            <div className={styles.scheduleRow}>
-              <span>Apertura</span>
-
-              <select name="openHour" onChange={handleChange}>
-                {Array.from({ length: 24 }, (_, i) => (
-                  <option key={i} value={i}>
-                    {i.toString().padStart(2, "0")}
-                  </option>
-                ))}
-              </select>
-
-              <span>:</span>
-
-              <select name="openMin" onChange={handleChange}>
-                <option value="00">00</option>
-                <option value="30">30</option>
-              </select>
-            </div>
-
-            <div className={styles.scheduleRow}>
-              <span>Cierre</span>
-
-              <select name="closeHour" onChange={handleChange}>
-                {Array.from({ length: 24 }, (_, i) => (
-                  <option key={i} value={i}>
-                    {i.toString().padStart(2, "0")}
-                  </option>
-                ))}
-              </select>
-
-              <span>:</span>
-
-              <select name="closeMin" onChange={handleChange}>
-                <option value="00">00</option>
-                <option value="30">30</option>
-              </select>
-            </div>
-          </div>
-
-          <button className={styles.button}>Guardar negocio</button>
-        </form>
+        </div>
       </div>
-    </div>
+
+      {/* SECCIÓN 2 */}
+      <div className={styles.section}>
+        <h2>Contacto</h2>
+
+        <div className={styles.grid2}>
+          <div className={styles.inputGroup}>
+          <DFInput
+            placeholder="ejemplo@email.com"
+            icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
+          />
+          </div>
+
+          <div className={styles.inputGroup}>
+          <DFInput
+            placeholder="ejemplo@email.com"
+            icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
+          />
+          </div>
+        </div>
+      </div>
+
+      {/* SECCIÓN 3 */}
+      <div className={styles.section}>
+        <h2>Ubicación</h2>
+
+        <div className={styles.inputGroup}>
+          <DFInput
+            placeholder="ejemplo@email.com"
+            icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
+          />
+        </div>
+
+        <div className={styles.inputGroup}>
+          <DFInput
+            placeholder="ejemplo@email.com"
+            icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
+          />
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
   );
 }
