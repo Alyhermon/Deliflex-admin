@@ -46,7 +46,7 @@ export default function StoresPage() {
   }, []);
 
   const handleCreate = () => {
-    router.push('/stores/register')
+    router.push('/stores/register/stepper');
   }
 
   return (

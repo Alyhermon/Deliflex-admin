@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./schedule.module.css";
-import ToggleButton from "../../components/components-items/togglebutton";
+import ToggleButton from "../../../components/components-items/togglebutton";
 import TimePicker from "@/app/components/components-items/timepicker";
 
 export default function CrearNegocio() {

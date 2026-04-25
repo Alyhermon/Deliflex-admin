@@ -45,7 +45,7 @@
   color: #555;
 }
 
-.inputGroup input,
+/* .inputGroup input,
 .inputGroup select,
 .inputGroup textarea {
   padding: 10px;
@@ -53,18 +53,18 @@
   border: 1px solid #ddd;
   outline: none;
   transition: 0.2s;
-}
+} */
 
-.inputGroup input:focus,
+/* .inputGroup input:focus,
 .inputGroup select:focus,
 .inputGroup textarea:focus {
   border-color: #ff7a00;
-}
-
+} */
+/* 
 textarea {
   resize: none;
   height: 80px;
-}
+} */
 
 /* HORARIO */
 .schedule {

@@ -38,11 +38,11 @@
   gap: 15px;
 }
 
-input, select {
+/* input, select {
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #ddd;
-}
+} */
 
 /* BUTTONS */
 .buttons {
