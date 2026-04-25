@@ -6,7 +6,9 @@ import styles from "./stepper.module.css";
 
 const steps = [
   { path: "/stores/register/information", label: "Información" },
-  { path: "/stores/register/schedule", label: "Horario" },
+  { path: "/stores/register/schedule", label: "Horarios" },
+  { path: "/stores/register/services-stores", label: "Servicios" },
+  { path: "/stores/register/confirmation", label: "Confirmación" },
 ];
 
 export default function CreateLayout({ children }: { children: React.ReactNode }) {
@@ -78,7 +80,7 @@ export default function CreateLayout({ children }: { children: React.ReactNode }
                 Siguiente
               </button>
             ) : (
-          <button className={styles.btnNext}>Continuar</button>
+          <button className={styles.btnNext}>Finalizar</button>
             )}
           </div>
         </div>

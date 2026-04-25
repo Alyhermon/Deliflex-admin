@@ -29,13 +29,14 @@ export default function CrearNegocio() {
           <ToggleButton
             initialState={true}
             onChange={handleChange}
-            labelOn="Abierto"
-            labelOff="Cerrado"
+            labelOn="Activo"
+            labelOff="Desactivado"
             size="md"
           />
         </div>
 
         {/* INPUTS GENERALES */}
+        
         <div className={styles.grid2}>
           <div className={styles.dateOpen}>
             <label>Hora de apertura</label>

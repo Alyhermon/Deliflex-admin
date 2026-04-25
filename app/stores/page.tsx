@@ -29,7 +29,7 @@ export default function StoresPage() {
     const loadStores = async () => {
       try {
         const res = await fetch(
-          "http://localhost:3001/register-business/owner/f4fbf456-4a9a-44d5-8584-ca90c720fbb5",
+          "http://localhost:3002/register-business/owner/f4fbf456-4a9a-44d5-8584-ca90c720fbb5",
         );
         const data = await res.json();
 

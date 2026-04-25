@@ -1,0 +1,112 @@
+.container {
+  padding: 20px;
+  background: #f6f7fb;
+  min-height: 100vh;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* STEP */
+.stepper {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.step,
+.stepActive,
+.stepCurrent {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ddd;
+}
+
+.stepActive {
+  background: #ff5a00;
+  color: white;
+}
+
+.stepCurrent {
+  background: #ff5a00;
+  color: white;
+  border: 3px solid #ffa366;
+}
+
+/* INFO */
+.infoBox {
+  background: #fff3e6;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* CARD */
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+}
+
+/* OPTIONS */
+.options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+.option {
+  padding: 12px 16px;
+  border: 2px solid #eee;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.option:hover {
+  border-color: #ff5a00;
+}
+
+.active {
+  border-color: #ff5a00;
+  background: #fff3e6;
+}
+
+/* FOOTER */
+.footer {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.btnBack {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #ddd;
+  cursor: pointer;
+}
+
+.btnNext {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #ff5a00;
+  color: white;
+  cursor: pointer;
+}
