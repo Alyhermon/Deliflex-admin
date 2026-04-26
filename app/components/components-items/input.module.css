@@ -16,9 +16,10 @@
 .inputWrapper {
   display: flex;
   align-items: center;
-  background: #f5f6f8;
+  background: #ffffff;
   border-radius: 12px;
   padding: 0 12px;
+  box-shadow: 0 1px 3px rgba(50, 50, 50, 0.1);
   border: 1px solid transparent;
   transition: all 0.2s ease;
 }
