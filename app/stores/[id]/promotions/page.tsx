@@ -4,6 +4,7 @@ import styles from "./promotion.module.css";
 import { useState } from "react";
 import Breadcrumb from "../../../components/components-items/breadcrumb/breadcrumb";
 import AdminLayout from "../../../components/layout/adminLayout";
+import TimePicker from "@/app/components/components-items/timepicker";
 
 export default function StoreDetailPage({
   params,
@@ -106,8 +107,14 @@ export default function StoreDetailPage({
                 </div>
 
                 <div className={styles.row}>
-                  <input type="date" />
-                  <input type="date" />
+                  <div className={styles.dateOpen}>
+                    <label>Valido desde</label>
+                    <TimePicker onChange={(time) => console.log(time)} />
+                  </div>
+                  <div className={styles.dateOpen}>
+                    <label>Valido hasta</label>
+                    <TimePicker onChange={(time) => console.log(time)} />
+                  </div>
                 </div>
               </section>
 
