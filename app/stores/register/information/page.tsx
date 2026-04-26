@@ -5,7 +5,12 @@ import styles from "./information.module.css";
 import DFInput from "../../../components/components-items/input";
 import Dropdown from "../../../components/components-items/dropdown";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import {
+  faContactBook,
+  faEnvelope,
+  faShop,
+  faStore,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function InformationPage() {
   const [businessType, setBusinessType] = useState("");
@@ -62,10 +67,25 @@ export default function InformationPage() {
             <div className={styles.grid2}>
               <div className={styles.inputGroup}>
                 <DFInput
-                  placeholder="ejemplo@email.com"
-                  icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
+                  placeholder="Nombre del negocio"
+                  icon={<FontAwesomeIcon color="#ed7b17" icon={faShop} />}
                 />
+                <DFInput
+                  placeholder="Nombre del propietario"
+                  icon={
+                    <FontAwesomeIcon color="#ed7b17" icon={faContactBook} />
+                  }
+                />
+                <DFInput
+                placeholder="Cantidad de sucursales"
+                icon={<FontAwesomeIcon color="#ed7b17" icon={faStore} />}
+              />
               </div>
+              <DFInput
+                placeholder="Apellido del propietario"
+                icon={<FontAwesomeIcon color="#ed7b17" icon={faContactBook} />}
+              />
+            
 
               <Dropdown
                 options={options}
@@ -73,6 +93,7 @@ export default function InformationPage() {
                 onChange={setBusinessType}
                 placeholder="Tipo de negocio"
               />
+              
             </div>
           </div>
 
@@ -90,7 +111,13 @@ export default function InformationPage() {
 
               <div className={styles.inputGroup}>
                 <DFInput
-                  placeholder="ejemplo@email.com"
+                  placeholder="Telefono de contacto"
+                  icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
+                />
+              </div>
+              <div className={styles.inputGroup}>
+                <DFInput
+                  placeholder="Telefono del negocio"
                   icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
                 />
               </div>
@@ -103,15 +130,15 @@ export default function InformationPage() {
 
             <div className={styles.inputGroup}>
               <DFInput
-                placeholder="ejemplo@email.com"
-                icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
+                placeholder="Direccion del negocio"
+                icon={<FontAwesomeIcon color="#ed7b17" icon={faStore} />}
               />
             </div>
 
             <div className={styles.inputGroup}>
               <DFInput
-                placeholder="ejemplo@email.com"
-                icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
+                placeholder="Es a la calle"
+                icon={<FontAwesomeIcon color="#ed7b17" icon={faStore} />}
               />
             </div>
           </div>
