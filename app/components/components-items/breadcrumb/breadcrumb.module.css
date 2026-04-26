@@ -1,0 +1,32 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.link {
+  text-decoration: none;
+  color: #6b7280;
+  transition: 0.2s;
+}
+
+.link:hover {
+  color: #f97316; /* naranja DeliFlex */
+}
+
+.current {
+  font-weight: 500;
+  color: #111827;
+}
+
+.separator {
+  color: #9ca3af;
+}
