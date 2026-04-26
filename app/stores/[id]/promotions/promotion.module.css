@@ -39,7 +39,7 @@
   margin-bottom: 15px;
 }
 
-.section span {
+.section .step, .step {
   background: #ff5a00;
   color: white;
   padding: 4px 10px;

@@ -4,6 +4,7 @@ import styles from "./promotion.module.css";
 import { useState } from "react";
 import Breadcrumb from "../../../components/components-items/breadcrumb/breadcrumb";
 import AdminLayout from "../../../components/layout/adminLayout";
+import Dropdown from "../../../components/components-items/dropdown";
 import TimePicker from "@/app/components/components-items/timepicker";
 
 export default function StoreDetailPage({
@@ -12,7 +13,15 @@ export default function StoreDetailPage({
   params: { id: string };
 }) {
   const [type, setType] = useState("discount");
+  const [promotionType, setPromotionType] = useState("");
   const { id } = params;
+
+  const options = [
+    "Todos los productos",
+    "Pizzas",
+    "Bebidas",
+    "Postres",
+  ];
 
   return (
     <AdminLayout>
@@ -40,7 +49,7 @@ export default function StoreDetailPage({
               {/* 1. Tipo */}
               <section className={styles.section}>
                 <h3>
-                  <span>1</span> Tipo de promoción
+                  <span className={styles.step}>1</span> Tipo de promoción
                 </h3>
 
                 <div className={styles.grid}>
@@ -79,7 +88,7 @@ export default function StoreDetailPage({
               {/* 2. Detalles */}
               <section className={styles.section}>
                 <h3>
-                  <span>2</span> Detalles de la promoción
+                  <span className={styles.step}>2</span> Detalles de la promoción
                 </h3>
 
                 <div className={styles.row}>
@@ -89,16 +98,19 @@ export default function StoreDetailPage({
 
                 <div className={styles.row}>
                   <input placeholder="Valor (%)" />
-                  <select>
-                    <option>Todo el menú</option>
-                  </select>
+                  <Dropdown
+                    options={options}
+                    value={promotionType}
+                    onChange={setPromotionType}
+                    placeholder="Seleccionar Menu"
+                  />
                 </div>
               </section>
 
               {/* 3. Condiciones */}
               <section className={styles.section}>
                 <h3>
-                  <span>3</span> Condiciones
+                  <span className={styles.step}>3</span> Condiciones
                 </h3>
 
                 <div className={styles.row}>
@@ -121,7 +133,7 @@ export default function StoreDetailPage({
               {/* 4. Visibilidad */}
               <section className={styles.section}>
                 <h3>
-                  <span>4</span> Visibilidad
+                  <span className={styles.step}>4</span> Visibilidad
                 </h3>
 
                 <div className={styles.checks}>
@@ -140,7 +152,7 @@ export default function StoreDetailPage({
               {/* 5. Imagen */}
               <section className={styles.section}>
                 <h3>
-                  <span>5</span> Imagen
+                  <span className={styles.step}>5</span> Imagen
                 </h3>
 
                 <div className={styles.upload}>
