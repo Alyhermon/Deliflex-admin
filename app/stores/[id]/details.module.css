@@ -1,0 +1,123 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: black;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: gray;
+}
+
+.status {
+  background: #fff3e0;
+  color: #f97316;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 16px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.tabs span {
+  cursor: pointer;
+  color: gray;
+}
+
+.activeTab {
+  color: #f97316;
+  font-weight: 600;
+}
+
+/* METRICS */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+.chart, .orders {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.chartBox {
+  height: 150px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ORDERS */
+.orderItem {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.price {
+  color: #f97316;
+  font-weight: 500;
+}
+
+/* CTA */
+.cta {
+  background: #f97316;
+  color: white;
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cta button {
+  background: white;
+  color: #f97316;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* CARDS */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* PRODUCTS */
+.products {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+}
