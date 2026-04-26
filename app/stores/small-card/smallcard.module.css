@@ -1,0 +1,14 @@
+.card {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.title {
+  font-size: 12px;
+  color: gray;
+}
+
+.value {
+  font-weight: 500;
+}
