@@ -155,7 +155,7 @@ export default function StoresPage() {
                       Editar
                     </button>
 
-                    <button className={styles.primaryBtn}>Ver detalle →</button>
+                    <button className={styles.primaryBtn} onClick={() => router.push(`/stores/${store.id}`)}>Ver detalle →</button>
                   </div>
                 </div>
               </div>
