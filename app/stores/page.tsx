@@ -7,7 +7,11 @@ import AdminLayout from "../components/layout/adminLayout";
 import Dropdown from "../components/components-items/dropdown";
 import DFInput from "../components/components-items/input";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faMagnifyingGlass, faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEdit,
+  faMagnifyingGlass,
+  faStar,
+} from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 
 type Store = {
@@ -54,12 +58,10 @@ export default function StoresPage() {
 
   return (
     <AdminLayout>
-      {/* Main */}
       <main className={styles.main}>
-        {/* Header */}
         <div className={styles.header}>
           <div>
-            <h1>Mis Negocios</h1>
+            <span className={styles.title}>Mis Negocios</span>
             <p className={styles.subtitle}>Administra todos tus negocios</p>
           </div>
 
@@ -68,9 +70,7 @@ export default function StoresPage() {
           </button>
         </div>
 
-        {/* Filtros */}
         <div className={styles.filters}>
-
           <DFInput
             placeholder="Buscar Negocio"
             icon={<FontAwesomeIcon color="#ed7b17" icon={faMagnifyingGlass} />}
@@ -100,7 +100,6 @@ export default function StoresPage() {
           <div className={styles.grid}>
             {stores.map((store) => (
               <div key={store.id} className={styles.card}>
-                {/* Banner */}
                 <div className={styles.banner}>
                   <Image
                     src={store.banner_url || "/assets/no-image.png"}
@@ -109,53 +108,49 @@ export default function StoresPage() {
                     className={styles.bannerImg}
                   />
 
-                  {/* Overlay */}
                   <div className={styles.overlay}></div>
 
-                  {/* Contenido del banner */}
-                  <div className={styles.bannerContent}>
+                  <span className={styles.statusBadge}>
+                    <span className={styles.dot}></span>
+                    {store.status || "Activo"}
+                  </span>
+                </div>
+
+                {/* Contenido elegante */}
+                <div className={styles.cardBody}>
+                  {/* Header */}
+                  <div className={styles.header}>
                     <div>
                       <h3 className={styles.title}>{store.name}</h3>
                       <p className={styles.category}>
                         {store.category || "Restaurante"}
+                        <div className={styles.ratingBadge}>
+                          <FontAwesomeIcon icon={faStar} />
+                          <span className={styles.ratingValue}>{store.rating || 4.5}</span>
+                        </div>
                       </p>
                     </div>
 
-                    {/* Rating */}
-                    <div className={styles.ratingBadge}>
-                      <FontAwesomeIcon color="#ddb936" icon={faStar} />{" "}
-                      {store.rating || 4.5}
-                    </div>
-                  </div>
-
-                  {/* Logo
-                    <div className={styles.logo}>
-                      <Image
-                        src={store.logo_url || "/assets/no-image.png"}
-                        alt="logo"
-                        width={60}
-                        height={60}
-                      />
-                    </div> */}
-                </div>
-
-                {/* Body */}
-                <div className={styles.cardBody}>
-                  {/* Estado */}
-                  <div className={styles.statusRow}>
-                    <span className={styles.status}>
+                    {/* <span className={styles.status}>
+                      <span className={styles.dot}></span>
                       {store.status || "Activo"}
-                    </span>
+                    </span> */}
                   </div>
 
-                  {/* Acciones */}
+                  <div className={styles.divider}></div>
+
                   <div className={styles.actions}>
                     <button className={styles.secondaryBtn}>
-                      <FontAwesomeIcon color="#747474" icon={faEdit} />
+                      <FontAwesomeIcon icon={faEdit} />
                       Editar
                     </button>
 
-                    <button className={styles.primaryBtn} onClick={() => router.push(`/stores/${store.id}`)}>Ver detalle →</button>
+                    <button
+                      className={styles.primaryBtn}
+                      onClick={() => router.push(`/stores/${store.id}`)}
+                    >
+                      Ver detalle →
+                    </button>
                   </div>
                 </div>
               </div>
