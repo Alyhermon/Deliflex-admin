@@ -29,8 +29,13 @@ export default function StoresPage() {
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [businessType, setBusinessType] = useState("");
-
+  const [search, setSearch] = useState("");
   const options = ["Todos", "Abiertos", "Cerrados"];
+
+  const normalizeText = (text: string) =>
+    text.toLowerCase().replace(/\s+/g, " ").trim();
+
+  const normalizedSearch = normalizeText(search);
 
   useEffect(() => {
     const loadStores = async () => {
@@ -52,6 +57,13 @@ export default function StoresPage() {
     loadStores();
   }, []);
 
+  const filteredStores =
+    normalizedSearch.length >= 3
+      ? stores.filter((store) =>
+          normalizeText(store.name).includes(normalizedSearch),
+        )
+      : stores;
+
   const handleCreate = () => {
     router.push("/stores/register");
   };
@@ -72,6 +84,8 @@ export default function StoresPage() {
 
         <div className={styles.filters}>
           <DFInput
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar Negocio"
             icon={<FontAwesomeIcon color="#ed7b17" icon={faMagnifyingGlass} />}
           />
@@ -84,7 +98,6 @@ export default function StoresPage() {
           />
         </div>
 
-        {/* Contenido */}
         {loading ? (
           <div className={styles.empty}>
             <p>Cargando negocios...</p>
@@ -97,65 +110,73 @@ export default function StoresPage() {
             <button className={styles.btnCreate}>Crear negocio</button>
           </div>
         ) : (
-          <div className={styles.grid}>
-            {stores.map((store) => (
-              <div key={store.id} className={styles.card}>
-                <div className={styles.banner}>
-                  <Image
-                    src={store.banner_url || "/assets/no-image.png"}
-                    alt="banner"
-                    fill
-                    className={styles.bannerImg}
-                  />
+          filteredStores.length === 0 && search.trim().length >= 3 ? (
+            <div className={styles.noResultsWrapper}>
+              <p className={styles.noResults}>
+                No se encontraron resultados para
+                <span className={styles.searchTerm}>{` ${search} `}</span>
+              </p>
+            </div>
+          ) : (
+            <div className={styles.grid}>
+              {filteredStores.map((store) => (
+                <div key={store.id} className={styles.card}>
+                  <div className={styles.banner}>
+                    <Image
+                      src={store.banner_url || "/assets/no-image.png"}
+                      alt="banner"
+                      fill
+                      className={styles.bannerImg}
+                    />
 
-                  <div className={styles.overlay}></div>
+                    <div className={styles.overlay}></div>
 
-                  <span className={styles.statusBadge}>
-                    <span className={styles.dot}></span>
-                    {store.status || "Activo"}
-                  </span>
-                </div>
-
-                {/* Contenido elegante */}
-                <div className={styles.cardBody}>
-                  {/* Header */}
-                  <div className={styles.header}>
-                    <div>
-                      <h3 className={styles.title}>{store.name}</h3>
-                      <p className={styles.category}>
-                        {store.category || "Restaurante"}
-                        <div className={styles.ratingBadge}>
-                          <FontAwesomeIcon icon={faStar} />
-                          <span className={styles.ratingValue}>{store.rating || 4.5}</span>
-                        </div>
-                      </p>
-                    </div>
-
-                    {/* <span className={styles.status}>
+                    <span className={styles.statusBadge}>
                       <span className={styles.dot}></span>
                       {store.status || "Activo"}
-                    </span> */}
+                    </span>
                   </div>
 
-                  <div className={styles.divider}></div>
+                  <div className={styles.cardBody}>
+                    <div className={styles.header}>
+                      <div>
+                        <h3 className={styles.title}>{store.name}</h3>
 
-                  <div className={styles.actions}>
-                    <button className={styles.secondaryBtn}>
-                      <FontAwesomeIcon icon={faEdit} />
-                      Editar
-                    </button>
+                        <div className={styles.categoryRow}>
+                          <p className={styles.category}>
+                            {store.category || "Restaurante"}
+                          </p>
 
-                    <button
-                      className={styles.primaryBtn}
-                      onClick={() => router.push(`/stores/${store.id}`)}
-                    >
-                      Ver detalle →
-                    </button>
+                          <div className={styles.ratingBadge}>
+                            <FontAwesomeIcon icon={faStar} />
+                            <span className={styles.ratingValue}>
+                              {store.rating || 4.5}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.divider}></div>
+
+                    <div className={styles.actions}>
+                      <button className={styles.secondaryBtn}>
+                        <FontAwesomeIcon icon={faEdit} />
+                        Editar
+                      </button>
+
+                      <button
+                        className={styles.primaryBtn}
+                        onClick={() => router.push(`/stores/${store.id}`)}
+                      >
+                        Ver detalle →
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         )}
       </main>
     </AdminLayout>
