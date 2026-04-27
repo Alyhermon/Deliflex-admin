@@ -1,9 +1,11 @@
 import StoreDetailClient from "./store-details-client";
 
-export default function StoreDetailPage({
+export default async function StoreDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  return <StoreDetailClient id={params.id} />;
+  const { id } = await params;
+
+  return <StoreDetailClient id={id} />;
 }

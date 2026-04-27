@@ -7,19 +7,56 @@ import SmallCard from "../small-card/page";
 import Product from "../product/page";
 import Breadcrumb from "../../components/components-items/breadcrumb/breadcrumb";
 import AdminLayout from "../../components/layout/adminLayout";
+import { useEffect, useState } from "react";
 
-export default function StoreDetailPage({ id }: { id: string }) {
-    const router = useRouter();
+export default function StoreDetailPage({id}: {id: string}) {
+  const router = useRouter();
+  const [store, setStore] = useState<{
+    id: string;
+    name: string;
+    category: string | null;
+    banner_url: string;
+    logo_url: string;
+    rating?: number;
+    status?: string;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+ useEffect(() => {
+  const loadStore = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:3001/register-business/${id}`,
+      );
+
+      const data = await res.json();
+
+      const stores = Array.isArray(data) ? data : data.data || [];
+
+      const foundStore = stores.find((store: { id: string }) => store.id === id);
+
+      setStore(foundStore);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (id) loadStore();
+}, [id]);
+
+  if (loading) return <p>Cargando...oleeeeee</p>;
+  if (!store) return <p>No encontrado</p>;
 
   return (
     <AdminLayout>
       <div className={styles.container}>
         <Breadcrumb
-          items={[{ label: "Tiendas", href: "/stores" }, { label: "Cocorao" }]}
+          items={[{ label: "Tiendas", href: "/stores" }, { label: store.name }]}
         />
         <div className={styles.header}>
           <div>
-            <h1 className={styles.title}>Cocorao</h1>
+            <h1 className={styles.title}>{store.name}</h1>
             <span className={styles.subtitle}>ID: #{id}</span>
           </div>
 
