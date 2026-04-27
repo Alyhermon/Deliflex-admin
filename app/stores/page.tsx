@@ -11,6 +11,7 @@ import {
   faEdit,
   faMagnifyingGlass,
   faStar,
+  faStoreSlash,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 
@@ -113,8 +114,9 @@ export default function StoresPage() {
           filteredStores.length === 0 && search.trim().length >= 3 ? (
             <div className={styles.noResultsWrapper}>
               <p className={styles.noResults}>
-                No se encontraron resultados para
-                <span className={styles.searchTerm}>{` ${search} `}</span>
+                <FontAwesomeIcon icon={faStoreSlash} color="#ff6b00"/>
+                <div className={styles.noResultsText}>No se encontraron resultados para
+                <span className={styles.searchTerm}>{` ${search} `}</span></div>
               </p>
             </div>
           ) : (
@@ -144,7 +146,7 @@ export default function StoresPage() {
 
                         <div className={styles.categoryRow}>
                           <p className={styles.category}>
-                            {store.category || "Restaurante"}
+                            {store.category || "Negocio sin categoría"}
                           </p>
 
                           <div className={styles.ratingBadge}>

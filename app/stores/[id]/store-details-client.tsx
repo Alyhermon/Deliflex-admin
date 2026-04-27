@@ -45,7 +45,7 @@ export default function StoreDetailPage({id}: {id: string}) {
   if (id) loadStore();
 }, [id]);
 
-  if (loading) return <p>Cargando...oleeeeee</p>;
+  if (loading) return <p>Cargando...</p>;
   if (!store) return <p>No encontrado</p>;
 
   return (

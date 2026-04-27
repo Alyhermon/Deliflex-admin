@@ -229,13 +229,13 @@
   z-index: 3;
 }
 
-.noResults{
+.noResults {
   text-align: center;
   margin-top: 60px;
   color: #666;
 }
 
-.noResultsWrapper{
+.noResultsWrapper {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -243,7 +243,26 @@
   padding: 48px 12px;
 }
 
-.searchTerm{
+.noResults {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 3rem;
+  justify-content: center;
+  align-content: center;
+}
+
+.noResultsText {
+  display: flex;
+  flex-direction: row;
+  font-size: 1.5rem;
+  font-weight: 700;
+  gap: 2px;
+  align-items: center;
+}
+
+.searchTerm {
   display: inline-block;
   margin-left: 8px;
   background: #fff8e6;
