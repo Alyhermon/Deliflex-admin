@@ -154,10 +154,24 @@
   font-weight: 500;
 }
 
-.dot {
+.dotActive {
   width: 6px;
   height: 6px;
   background: #10b981;
+  border-radius: 50%;
+}
+
+.dotPending {
+  width: 6px;
+  height: 6px;
+  background: #b6810f;
+  border-radius: 50%;
+}
+
+.dotInactive {
+  width: 6px;
+  height: 6px;
+  background: #b91010;
   border-radius: 50%;
 }
 
@@ -211,7 +225,7 @@
   transform: scale(1.05);
 }
 
-.statusBadge {
+.statusActive {
   position: absolute;
   top: 14px;
   left: 14px;
@@ -221,6 +235,60 @@
   font-size: 12px;
   background: #c3e9dd;
   color: #059669;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 500;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 3;
+}
+
+.statusInactive {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  background: #e9c3c3;
+  color: #960505;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 500;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 3;
+}
+
+.statusBadge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  background: #c3c8e9;
+  color: #053896;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 500;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 3;
+}
+
+.pending {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  background: #ffd57a;
+  color: #8b6002;
   padding: 6px 10px;
   border-radius: 999px;
   font-weight: 500;
