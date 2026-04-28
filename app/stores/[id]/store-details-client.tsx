@@ -67,7 +67,7 @@ export default function StoreDetailPage({ id }: { id: string }) {
 
   const TAB_COMPONENTS: Record<TabKey, JSX.Element> = {
     resumen: <ResumeTab id={id} />,
-    menu: <MenuTab />,
+    menu: <MenuTab id={id} />,
     pedidos: <OrderTab />,
     estadisticas: <StatisticsTab />,
   };
@@ -90,7 +90,6 @@ export default function StoreDetailPage({ id }: { id: string }) {
           <span className={styles.status}>Abierto</span>
         </div>
 
-        {/* 🔥 TABS */}
         <div className={styles.tabs}>
           {tabs.map((tab) => (
             <button
@@ -105,8 +104,6 @@ export default function StoreDetailPage({ id }: { id: string }) {
             </button>
           ))}
         </div>
-
-        {/* 🔥 CONTENIDO */}
         <div className={styles.tabContent}>
           {TAB_COMPONENTS[activeTab]}
         </div>
