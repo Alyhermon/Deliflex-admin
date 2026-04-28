@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import Breadcrumb from "../../components/components-items/breadcrumb/breadcrumb";
 import AdminLayout from "../../components/layout/adminLayout";
 import { JSX, useEffect, useState } from "react";
-
-// Tabs components
-import ResumeTab from "./store-tabs/resume";
+import ResumeTab from "./store-tabs/resume/resume";
 import MenuTab from "./store-tabs/menu";
 import OrderTab from "./store-tabs/orders";
 import StatisticsTab from "./store-tabs/statistics";

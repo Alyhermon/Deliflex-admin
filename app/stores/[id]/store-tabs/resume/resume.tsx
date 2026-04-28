@@ -2,10 +2,9 @@
 
 import styles from "./resume.module.css";
 import { useRouter } from "next/navigation";
-import Metric from "../../metric/page";
-import SmallCard from "../../small-card/page";
-import Product from "../../product/page";
-import AdminLayout from "../../../components/layout/adminLayout";
+import Metric from "../resume/metric/page";
+import SmallCard from "../resume/small-card/page";
+import Product from "../resume/product/page";
 import { useEffect, useState } from "react";
 
 export default function ResumeTab({ id }: { id: string }) {

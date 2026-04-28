@@ -164,7 +164,7 @@
 .dotPending {
   width: 6px;
   height: 6px;
-  background: #b6810f;
+  background: #f97316;
   border-radius: 50%;
 }
 
@@ -287,8 +287,8 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  background: #ffd57a;
-  color: #8b6002;
+  background: #fff3e0;
+  color: #f97316;
   padding: 6px 10px;
   border-radius: 999px;
   font-weight: 500;
