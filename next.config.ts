@@ -15,7 +15,19 @@ const nextConfig: NextConfig = {
       "img.freepik.com",
       "is1-ssl.mzstatic.com",
       "en.spey.com.ru",
-      "www.logoestilo.com"
+      "www.logoestilo.com",
+      "cdn-icons-png.flaticon.com",
+      "cdn.pixabay.com",
+      "www.pngall.com",
+      "www.pngitem.com",
+      "www.pngkey.com",
+      "www.pngfind.com",
+      "www.pngwing.com",
+      "www.pngarts.com",
+      "www.pngall.com",
+      "www.pngitem.com",
+      "www.pngkey.com",
+      "example.com",
     ], // 🔥 permite imágenes desde tu backend
   },
 };
