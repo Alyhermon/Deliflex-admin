@@ -30,30 +30,11 @@
   font-size: 12px;
 }
 
-/* TABS
-.tabs {
-  display: flex;
-  gap: 16px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
-}
-
-.tabs span {
-  cursor: pointer;
-  color: gray;
-}
-
-.activeTab {
-  color: #f97316;
-  font-weight: 600;
-} */
-
 
 .tabs {
   display: flex;
   gap: 24px;
   border-bottom: 1px solid #eee;
-  margin-top: 20px;
 }
 
 .tab {

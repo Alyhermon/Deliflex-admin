@@ -38,6 +38,8 @@ export default function StoresPage() {
 
   const normalizedSearch = normalizeText(search);
 
+  
+
   useEffect(() => {
     const loadStores = async () => {
       try {
