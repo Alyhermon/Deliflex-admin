@@ -30,7 +30,6 @@ export default function StoreDetailPage({ id }: { id: string }) {
   const [activeTab, setActiveTab] = useState<TabKey>("resumen");
   const [loading, setLoading] = useState(true);
 
-  // ✅ Tabs definidos correctamente (AQUÍ ESTABA EL ERROR 🔥)
   const tabs: { key: TabKey; label: string }[] = [
     { key: "resumen", label: "Resumen" },
     { key: "menu", label: "Menú" },
@@ -82,8 +81,6 @@ export default function StoreDetailPage({ id }: { id: string }) {
             { label: store.name },
           ]}
         />
-
-        {/* HEADER */}
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>{store.name}</h1>
