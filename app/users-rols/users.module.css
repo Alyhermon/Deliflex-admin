@@ -32,17 +32,64 @@
   margin-bottom: 24px;
 }
 
-.statsTitle{
-  font-size: 16px;
+.statsTitle {
+  font-size: 14px;
   font-weight: 700;
-  color: #363636;
+  color: #7a7a7a;
+}
+
+.description {
+  font-size: 14px;
+  color: #666;
 }
 
 .card {
+  display: flex;
+  flex-direction: row;
   background: white;
   padding: 16px;
   border-radius: 12px;
+  gap: 0.7rem;
+  align-content: center;
+  align-items: center;
   border: 1px solid #ebe9e9;
+}
+
+.statsInfo {
+  display: flex;
+  flex-direction: column;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.circleUsers, .circleShield, .circleManager, .circleStaff {
+  width: 60px;
+  height: 60px;
+  border-radius: 9999px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+}
+
+.circleManager {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.circleUsers{
+  background: #f5f5c7;
+  color: #d9c128;
+}
+
+.circleStaff {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.circleShield {
+  background: #ede9fe;
+  color: #6d28d9;
 }
 
 .content {
@@ -88,6 +135,13 @@
   border-top: 1px solid #eee;
 }
 
+.tableName{
+  font-size: 16px;
+  font-weight: 600;
+  color: #273649;
+  font-family: roboto, sans-serif;
+}
+
 .badge {
   padding: 4px 10px;
   border-radius: 999px;
@@ -118,17 +172,19 @@
 }
 
 .roles {
+  display: flex;
+  flex-direction: column;
   background: white;
   padding: 16px;
   border-radius: 12px;
   border: 1px solid #ebe9e9;
 }
 
-.roleCards{
-  margin: 0.5rem 0;
+.roleCards {
+  margin: 0.8rem 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 2px;
 }
 
 .roleCard {

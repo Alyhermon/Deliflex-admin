@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AdminLayout from "../components/layout/adminLayout";
 import styles from "./users.module.css";
 import DFInput from "../components/components-items/input";
 import DFDropdown from "../components/components-items/dropdown";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import {
+  faMagnifyingGlass,
+  faShield,
+  faStore,
+  faUser,
+  faUsers,
+} from "@fortawesome/free-solid-svg-icons";
 
 const users = [
   {
@@ -54,23 +60,42 @@ export default function UsersRolesPage() {
           <button className={styles.inviteBtn}>+ Invitar usuario</button>
         </div>
 
-        {/* Stats */}
         <div className={styles.stats}>
           <div className={styles.card}>
-            <p className={styles.statsTitle}>Usuarios Totales</p>
-            <h2>28</h2>
+            <div className={styles.circleUsers}>
+              <FontAwesomeIcon icon={faUsers} />
+            </div>
+            <div className={styles.statsInfo}>
+              <p className={styles.statsTitle}>Usuarios Totales</p>
+              <span>28</span>
+            </div>
           </div>
           <div className={styles.card}>
-            <p className={styles.statsTitle}>Admins</p>
-            <h2>6</h2>
+            <div className={styles.circleShield}>
+              <FontAwesomeIcon icon={faShield} />
+            </div>
+            <div className={styles.statsInfo}>
+              <p className={styles.statsTitle}>Admins</p>
+              <span>6</span>
+            </div>
+          </div>
+           <div className={styles.card}>
+            <div className={styles.circleManager}>
+              <FontAwesomeIcon icon={faStore} />
+            </div>
+            <div className={styles.statsInfo}>
+              <p className={styles.statsTitle}>Managers</p>
+              <span>15</span>
+            </div>
           </div>
           <div className={styles.card}>
-            <p className={styles.statsTitle}>Managers</p>
-            <h2>15</h2>
-          </div>
-          <div className={styles.card}>
-            <p className={styles.statsTitle}>Staff</p>
-            <h2>7</h2>
+            <div className={styles.circleStaff}>
+              <FontAwesomeIcon icon={faUser} />
+            </div>
+            <div className={styles.statsInfo}>
+              <p className={styles.statsTitle}>Staff</p>
+              <span>7</span>
+            </div>
           </div>
         </div>
 
@@ -127,7 +152,7 @@ export default function UsersRolesPage() {
                   <tr key={i}>
                     <td>
                       <div>
-                        <strong>{u.name}</strong>
+                        <span className={styles.tableName}>{u.name}</span>
                         <p>{u.email}</p>
                       </div>
                     </td>
@@ -156,9 +181,11 @@ export default function UsersRolesPage() {
             </table>
           </div>
 
-          {/* Sidebar roles */}
           <div className={styles.roles}>
             <span className={styles.statsTitle}>Roles</span>
+            <span className={styles.description}>
+              Gestiona los roles del sistema y los permisos que tienen asignados
+            </span>
 
             <div className={styles.roleCards}>
               <div className={styles.roleCard}>
