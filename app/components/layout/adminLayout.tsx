@@ -1,5 +1,8 @@
+"use client";
+
 import Sidebar from "./sidebar";
 import { ReactNode } from "react";
+import styles from "./layout.module.css";
 
 type Props = {
   children: ReactNode;
@@ -7,9 +10,12 @@ type Props = {
 
 export default function AdminLayout({ children }: Props) {
   return (
-    <div className="flex">
+    <div className={styles.layout}>
       <Sidebar />
-      <div className="flex-1 p-6 bg-gray-100 min-h-screen">{children}</div>
+
+      <div className={styles.content}>
+        {children}
+      </div>
     </div>
   );
 }
