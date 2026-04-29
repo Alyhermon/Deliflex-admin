@@ -1,13 +1,26 @@
 "use client";
 
 import styles from "../details.module.css";
-import Image from "next/image";
+// import Image from "next/image";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEdit,
   faEllipsis,
   faMagnifyingGlass,
   faTrash,
+  faBurger,
+  faCoffee,
+  faUtensils,
+  faCircleNotch,
+  faCakeCandles,
+  faBreadSlice,
+  faLeaf,
+  faAppleWhole,
+  faPizzaSlice,
+  faPumpSoap,
+  faCookieBite,
+  faWineBottle,
 } from "@fortawesome/free-solid-svg-icons";
 import DFInput from "@/app/components/components-items/input";
 import Dropdown from "@/app/components/components-items/dropdown";
@@ -15,12 +28,28 @@ import { useEffect, useState } from "react";
 
 type Product = {
   id: string;
+  category_icon: string;
   image_url: string | null;
   products_name: string;
   category_name: string;
   price: number;
   status: string;
   sales: number | null;
+};
+
+const iconMap: Record<string, IconDefinition> = {
+  coffee: faCoffee,
+  burger: faBurger,
+  cake: faCakeCandles,
+  circlenotch: faCircleNotch,
+  breadslice: faBreadSlice,
+  leaf: faLeaf,
+  utensils: faUtensils,
+  applewhole: faAppleWhole,
+  pizzaside: faPizzaSlice,
+  pumpsoap: faPumpSoap,
+  cookiebite: faCookieBite,
+  winebottle: faWineBottle,
 };
 
 export default function MenuTab({ id }: { id: string }) {
@@ -41,9 +70,7 @@ export default function MenuTab({ id }: { id: string }) {
     const loadStore = async () => {
       try {
         const res = await fetch(`http://localhost:3001/products/${id}`);
-
         const data = await res.json();
-
         const products = Array.isArray(data) ? data : data.data || [];
 
         setProducts(products);
@@ -95,7 +122,7 @@ export default function MenuTab({ id }: { id: string }) {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Imagen</th>
+              <th>Icono</th>
               <th>Nombre</th>
               <th>Categoría</th>
               <th>Precio</th>
@@ -110,13 +137,18 @@ export default function MenuTab({ id }: { id: string }) {
               <tr key={`${product.id}-${index}`}>
                 <td className={styles.productCell}>
                   <div className={styles.img}>
-                    <Image
+                    <FontAwesomeIcon
+                      icon={iconMap[product.category_icon] || faUtensils}
+                      color="#b81515"
+                      className={styles.zoomIcon}
+                    />
+                    {/* <Image
                       src={product.image_url || "/assets/no-image.png"}
                       alt="banner"
                       width={70}
                       height={70}
                       className={styles.bannerImg}
-                    />
+                    /> */}
                   </div>
                   {/* <img src={product.image_url} alt={product.name} /> */}
                 </td>
@@ -134,7 +166,7 @@ export default function MenuTab({ id }: { id: string }) {
                         : styles.badgeInactive
                     }
                   >
-                    {product.status}
+                    {product.status === "active" ? "Activo" : "Inactivo"}
                   </span>
                 </td>
 
