@@ -14,6 +14,7 @@ export default function StoreDetailPage({
 }) {
   const [type, setType] = useState("discount");
   const [promotionType, setPromotionType] = useState("");
+  // const [store, setStore] = useState(null);
   const { id } = params;
 
   const options = [
@@ -26,6 +27,8 @@ export default function StoreDetailPage({
   return (
     <AdminLayout>
       <div className={styles.container}>
+
+        {/* //TODO: revisar el Breadcrumb here, el label: "Cocorao" */}
         <Breadcrumb
           items={[
             { label: "Tiendas", href: "/stores" },
@@ -34,7 +37,6 @@ export default function StoreDetailPage({
           ]}
         />
         <div className={styles.container}>
-          {/* HEADER */}
           <div className={styles.header}>
             <h1>Crear promoción</h1>
             <p>

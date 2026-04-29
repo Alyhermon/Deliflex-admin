@@ -19,31 +19,48 @@ export default function ResumeTab({ id }: { id: string }) {
     status?: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const loadStore = async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:3001/register-business/${id}`,
-        );
+useEffect(() => {
+  if (!id) return;
 
-        const data = await res.json();
+  const loadStore = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:3001/register-business/${id}`
+      );
 
-        const stores = Array.isArray(data) ? data : data.data || [];
+      const data = await res.json();
 
-        const foundStore = stores.find(
-          (store: { id: string }) => store.id === id,
-        );
+      const stores = Array.isArray(data)
+        ? data
+        : Array.isArray(data.data)
+        ? data.data
+        : [];
 
-        setStore(foundStore);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
+      if (!stores.length) {
+        console.warn("No hay stores en la respuesta", data);
+        return;
       }
-    };
 
-    if (id) loadStore();
-  }, [id]);
+      const foundStore = stores.find(
+        (store: { id: string }) => store.id === id
+      );
+
+      if (!foundStore) {
+        console.warn("No se encontró el store con ese id", id);
+        return;
+      }
+
+      setStore(foundStore);
+
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadStore();
+}, [id]);
 
 //   if (loading) return <p>Cargando...</p>;
 //   if (!store) return <p>No encontrado</p>;
