@@ -52,8 +52,6 @@ export default function ResumeTab({ id }: { id: string }) {
 
       <div className={styles.container}>
 
-
-
         <div className={styles.metrics}>
           <Metric title="Ventas hoy" value="$620,000" />
           <Metric title="Pedidos" value="32" />
