@@ -87,7 +87,7 @@ export default function ResumeTab({ id }: { id: string }) {
           </div>
           <button
             onClick={() => {
-              if (id) return;
+              if (!id) return;
               router.push(`/stores/${id}/promotions`);
             }}
           >
