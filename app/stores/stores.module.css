@@ -204,9 +204,7 @@
 }
 
 .secondaryBtn:hover {
-  background: #f7c05a;
-  border: 1px solid #f7c05a;
-  color: #545454;
+  transform: scale(1.05);
 }
 
 .primaryBtn {

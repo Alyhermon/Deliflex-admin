@@ -85,7 +85,7 @@ export default function StoreDetailPage({ id }: { id: string }) {
             <span className={styles.subtitle}>ID: #{id}</span>
           </div>
 
-          <span className={styles.status}>Abierto</span>
+          <span className={styles.status}>{store.status === "ACTIVE" ? "Abierto" : "Cerrado"}</span>
         </div>
 
         <div className={styles.tabs}>
