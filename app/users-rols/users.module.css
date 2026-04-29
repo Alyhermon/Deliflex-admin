@@ -1,0 +1,148 @@
+.page {
+  padding: 24px;
+  background: #f6f7fb;
+  min-height: 100vh;
+  color: #000000;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.inviteBtn {
+  background: #ff6b00;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.statsTitle{
+  font-size: 16px;
+  font-weight: 700;
+  color: #363636;
+}
+
+.card {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #ebe9e9;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 20px;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.tableContainer {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #ebe9e9;
+}
+
+.tableTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #121b27;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ebe9e9;
+  border-radius: 12px;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px;
+  color: #666;
+}
+
+.table td {
+  padding: 10px;
+  border-top: 1px solid #eee;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.Administrador {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.Manager {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.Staff {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.active {
+  color: green;
+}
+
+.inactive {
+  color: red;
+}
+
+.roles {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #ebe9e9;
+}
+
+.roleCards{
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.roleCard {
+  border: 1px solid #ebe9e9;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.createRole {
+  width: 100%;
+  padding: 10px;
+  border: 1px dashed #aaa;
+  background: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
