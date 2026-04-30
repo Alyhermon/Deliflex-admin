@@ -24,7 +24,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import DFInput from "@/app/components/components-items/input";
 import Dropdown from "@/app/components/components-items/dropdown";
+import ProductForm from "./menu/products-form";
 import { useEffect, useState } from "react";
+import Modal from "@/app/components/components/modal/modal";
 
 type Product = {
   id: string;
@@ -60,6 +62,7 @@ export default function MenuTab({ id }: { id: string }) {
   const options = ["Todas", "Hamburguesas", "Bebidas", "Postres"];
   const [status, setStatus] = useState("");
   const optionsStatus = ["Todos", "Abiertos", "Cerrados"];
+  const [open, setOpen] = useState(false);
 
   const normalizeText = (text: string) =>
     text.toLowerCase().replace(/\s+/g, " ").trim();
@@ -115,7 +118,19 @@ export default function MenuTab({ id }: { id: string }) {
           placeholder="Selecciona estado"
         />
 
-        <button className={styles.addBtn}>+ Agregar producto</button>
+        <button className={styles.addBtn} onClick={() => setOpen(true)}>
+          + Agregar producto
+        </button>
+
+        <Modal
+          isOpen={open}
+          onClose={() => setOpen(false)}
+          title="Nuevo producto"
+          width="900px"
+        >
+          {/* 👇 AQUÍ CAMBIA TODO */}
+          <ProductForm />
+        </Modal>
       </div>
 
       <div className={styles.tableContainer}>
