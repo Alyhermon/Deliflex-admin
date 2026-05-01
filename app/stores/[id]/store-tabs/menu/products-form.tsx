@@ -2,27 +2,27 @@ import styles from "./productform.module.css";
 import DFInput from "@/app/components/components-items/input";
 // import DFTextArea from "@/app/components/components-items/textarea";
 // import DFSelect from "@/app/components/components-items/select";
+import DFCheckbox from "@/app/components/components-items/checkbox/checkbox";
 import DFDropdown from "@/app/components/components-items/dropdown";
-import { useState} from "react";
+import { useState } from "react";
 
 export default function ProductForm() {
-      const [category, setCategory] = useState("");
-      const [active, setActive] = useState("");
-      const options = [
-        "Todas",
-        "Hamburguesas",
-        "Bebidas",
-        "Postres",
-      ];
-      const optionsActive = ["Activo", "Inactivo"];
+  const [category, setCategory] = useState("");
+  const [active, setActive] = useState("");
+  const options = ["Todas", "Hamburguesas", "Bebidas", "Postres"];
+  const optionsActive = ["Activo", "Inactivo"];
+    const [items, setItems] = useState([true, false, false]);
+
+  const allChecked = items.every(Boolean);
+  const someChecked = items.some(Boolean);
+
   return (
     <div className={styles.container}>
-      
       <div className={styles.left}>
         <h3>Información básica</h3>
 
         <DFInput placeholder="Nombre del producto" />
-        
+
         <DFInput placeholder="Descripción" />
         {/* <DFTextArea placeholder="Descripción..." /> */}
 
@@ -61,9 +61,7 @@ export default function ProductForm() {
       <div className={styles.right}>
         <h3>Imagen</h3>
 
-        <div className={styles.uploadBox}>
-          Subir imagen
-        </div>
+        <div className={styles.uploadBox}>Subir imagen</div>
 
         <h3>Información adicional</h3>
 
@@ -75,15 +73,18 @@ export default function ProductForm() {
         />
 
         <label className={styles.switch}>
-          <input type="checkbox" />
-          Producto destacado
+          <DFCheckbox
+          size="lg"
+            label="Producto destacado"
+            checked={allChecked}
+            onChange={(checked) => setItems(items.map(() => checked))}
+          />
         </label>
 
-          <DFInput placeholder="Etiquetas" />
-          {/* <DFTextArea placeholder="Información adicional..." /> */}
-          <DFInput placeholder="Informacion nutricional" />
+        <DFInput placeholder="Etiquetas" />
+        {/* <DFTextArea placeholder="Información adicional..." /> */}
+        <DFInput placeholder="Informacion nutricional" />
       </div>
-
     </div>
   );
 }
