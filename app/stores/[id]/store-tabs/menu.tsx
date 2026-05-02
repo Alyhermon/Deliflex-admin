@@ -35,7 +35,7 @@ type Product = {
   products_name: string;
   category_name: string;
   price: number;
-  status: string;
+  status: boolean;
   sales: number | null;
 };
 
@@ -175,12 +175,12 @@ export default function MenuTab({ id }: { id: string }) {
                 <td>
                   <span
                     className={
-                      product.status === "active"
+                      product.status === true
                         ? styles.badgeActive
                         : styles.badgeInactive
                     }
                   >
-                    {product.status === "active" ? "Activo" : "Inactivo"}
+                    {product.status === true ? "Activo" : "Inactivo"}
                   </span>
                 </td>
 
