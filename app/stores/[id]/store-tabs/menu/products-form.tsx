@@ -200,14 +200,7 @@ export default function ProductForm() {
 
         <button
           onClick={handleSubmit}
-          style={{
-            marginTop: "20px",
-            padding: "10px",
-            background: "black",
-            color: "white",
-            border: "none",
-            cursor: "pointer",
-          }}
+          className={styles.saveBtn}
         >
           Guardar producto
         </button>
