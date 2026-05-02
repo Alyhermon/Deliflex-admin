@@ -128,7 +128,7 @@ export default function MenuTab({ id }: { id: string }) {
           title="Nuevo producto"
           width="900px"
         >
-          <ProductForm />
+          <ProductForm onClose={() => setOpen(false)} />
         </Modal>
       </div>
 

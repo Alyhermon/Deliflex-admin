@@ -22,11 +22,12 @@ type Category = {
   name: string;
 };
 
-export default function ProductForm() {
+export default function ProductForm({ onClose }: { onClose?: () => void }) {
   const [categoryName, setCategoryName] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [active, setActive] = useState("");
-  const optionsActive = [true, false ];
+    const [open, setOpen] = useState(false);
+  // const optionsActive = [true, false ];
 
   const [form, setForm] = useState({
     categoryId: "",
@@ -112,8 +113,32 @@ export default function ProductForm() {
       const result = await createProduct(payload);
 
       console.log("Producto creado:", result);
+
+      // Resetear el formulario después de crear el producto
+      setForm({
+        categoryId: "",
+        name: "",
+        description: "",
+        price: 0,
+        imageUrl: "",
+        status: true,
+        isAvailable: true,
+        productCode: "",
+        displayOrder: 0,
+        isFeatured: false,
+      });
+      setCategoryName("");
+      setActive("");
+      
+      console.log("Producto creado exitosamente:", result);
+      
+      // Cerrar el modal si existe la función onClose
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       console.error(error);
+      alert("Error al crear el producto");
     }
   };
 
