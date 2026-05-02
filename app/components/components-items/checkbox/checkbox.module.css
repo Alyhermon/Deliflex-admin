@@ -49,7 +49,6 @@
   display: block;
 }
 
-/* CHECK SHAPE */
 .sm .checkmark::after {
   left: 4px;
   top: 1px;
