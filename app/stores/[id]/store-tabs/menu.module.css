@@ -4,7 +4,6 @@
   gap: 20px;
 }
 
-/* FILTROS */
 .filtersRow {
   display: flex;
   gap: 12px;
@@ -33,7 +32,6 @@
   cursor: pointer;
 }
 
-/* CONTENEDOR */
 .tableWrapper {
   background: white;
   border-radius: 14px;
@@ -41,7 +39,6 @@
   overflow: hidden;
 }
 
-/* HEADER */
 .tableHeader {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
@@ -51,7 +48,6 @@
   font-size: 14px;
 }
 
-/* ROW */
 .tableRow {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
@@ -64,7 +60,6 @@
   background: #fafafa;
 }
 
-/* PRODUCT */
 .productCell {
   display: flex;
   align-items: center;
@@ -81,7 +76,6 @@
   justify-content: center;
 }
 
-/* STATUS */
 .statusActive {
   background: #e6f7ed;
   color: #1a7f37;
@@ -98,7 +92,6 @@
   font-size: 12px;
 }
 
-/* ACTIONS */
 .actions {
   display: flex;
   gap: 8px;
@@ -112,7 +105,6 @@
   cursor: pointer;
 }
 
-/* PAGINACIÓN */
 .paginationRow {
   display: flex;
   justify-content: space-between;
