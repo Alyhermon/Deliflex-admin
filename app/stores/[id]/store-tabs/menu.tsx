@@ -119,7 +119,7 @@ export default function MenuTab({ id }: { id: string }) {
         />
 
         <button className={styles.addBtn} onClick={() => setOpen(true)}>
-          + Agregar producto
+          + Agregar menu
         </button>
 
         <Modal
@@ -128,7 +128,6 @@ export default function MenuTab({ id }: { id: string }) {
           title="Nuevo producto"
           width="900px"
         >
-          {/* 👇 AQUÍ CAMBIA TODO */}
           <ProductForm />
         </Modal>
       </div>

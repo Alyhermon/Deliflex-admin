@@ -34,28 +34,15 @@ export default function ProductForm() {
         />
 
         <div className={styles.row}>
-          <DFInput placeholder="Marca" />
+          {/* <DFInput placeholder="Marca" /> */}
           <DFInput placeholder="SKU" />
         </div>
 
-        <h3>Precios e inventario</h3>
+        <h3>Precios</h3>
 
         <div className={styles.row}>
           <DFInput placeholder="Precio venta" />
-          <DFInput placeholder="Precio costo" />
         </div>
-
-        <div className={styles.row}>
-          <DFInput placeholder="Stock disponible" />
-          <DFInput placeholder="Stock mínimo" />
-        </div>
-
-        <DFDropdown
-          options={options}
-          value={category}
-          onChange={setCategory}
-          placeholder="Unidad de medida"
-        />
       </div>
 
       <div className={styles.right}>
