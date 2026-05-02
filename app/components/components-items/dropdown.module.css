@@ -44,9 +44,39 @@
   color: white;
 }
 
-/* Estado activo (color DeliFlex 🔥) */
 .active {
   background: #ff7a00;
   color: white;
   font-weight: 500;
+}
+
+
+.dropdown {
+  position: absolute;
+  top: 110%;
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px #3232321a;
+  z-index: 10;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: #fff3e6;
+  border-radius: 10px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: #ff7a00;
+  border-radius: 10px;
+}
+
+.dropdown::-webkit-scrollbar-thumb:hover {
+  background: #e66a00;
 }

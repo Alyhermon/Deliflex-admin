@@ -114,7 +114,6 @@ export default function ProductForm({ onClose }: { onClose?: () => void }) {
 
       console.log("Producto creado:", result);
 
-      // Resetear el formulario después de crear el producto
       setForm({
         categoryId: "",
         name: "",
@@ -132,7 +131,6 @@ export default function ProductForm({ onClose }: { onClose?: () => void }) {
       
       console.log("Producto creado exitosamente:", result);
       
-      // Cerrar el modal si existe la función onClose
       if (onClose) {
         onClose();
       }
