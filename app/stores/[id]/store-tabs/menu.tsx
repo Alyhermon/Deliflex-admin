@@ -30,9 +30,10 @@ import Modal from "@/app/components/components/modal/modal";
 
 type Product = {
   id: string;
+  store_id: string;
   category_icon: string;
   image_url: string | null;
-  products_name: string;
+  product_name: string;
   category_name: string;
   price: number;
   status: boolean;
@@ -72,11 +73,13 @@ export default function MenuTab({ id }: { id: string }) {
   useEffect(() => {
     const loadStore = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/products/${id}`);
+        const res = await fetch(`http://localhost:3001/products/store/${id}`);
         const data = await res.json();
         const products = Array.isArray(data) ? data : data.data || [];
 
         setProducts(products);
+
+        console.log("DATA COMPLETA:", data);
       } catch (error) {
         console.error(error);
       } finally {
@@ -87,12 +90,57 @@ export default function MenuTab({ id }: { id: string }) {
     if (id) loadStore();
   }, [id]);
 
-  const filteredProducts =
-    normalizedSearch.length >= 2
-      ? products.filter((product) =>
-          normalizeText(product.products_name).includes(normalizedSearch),
-        )
-      : products;
+  const filteredProducts = products.filter((product) => {
+    if (
+      normalizedSearch.length >= 2 &&
+      !normalizeText(product.product_name).includes(normalizedSearch)
+    ) {
+      return false;
+    }
+    if (category && category !== "Todas" && product.category_name !== category) {
+      return false;
+    }
+    if (status && status !== "Todos") {
+      const isActive = product.status === true;
+      if (status === "Abiertos" && !isActive) return false;
+      if (status === "Cerrados" && isActive) return false;
+    }
+    return true;
+  });
+
+  const deleteProduct = async (productId: string, storeId: string) => {
+    if (!confirm("¿Estás seguro de que deseas eliminar este producto?")) {
+      return;
+    }
+    try {
+      const res = await fetch(
+        `http://localhost:3001/products/${productId}?storeId=${storeId}`,
+        { method: "DELETE" },
+      );
+
+      const data = await res.json();
+      console.log(data);
+
+      if (!res.ok) throw new Error(data.message);
+
+      setProducts((prev) => prev.filter((product) => product.id !== productId));
+      alert("Producto eliminado correctamente ✅");
+    } catch (error) {
+      console.error(error);
+      alert(`Error al eliminar: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    }
+  };
+
+  const reloadProducts = async () => {
+    try {
+      const res = await fetch(`http://localhost:3001/products/store/${id}`);
+      const data = await res.json();
+      const products = Array.isArray(data) ? data : data.data || [];
+      setProducts(products);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className={styles.menuWrapper}>
@@ -128,7 +176,10 @@ export default function MenuTab({ id }: { id: string }) {
           title="Nuevo producto"
           width="900px"
         >
-          <ProductForm onClose={() => setOpen(false)} />
+          <ProductForm storeId={id} onClose={() => {
+            setOpen(false);
+            reloadProducts();
+          }} />
         </Modal>
       </div>
 
@@ -166,7 +217,7 @@ export default function MenuTab({ id }: { id: string }) {
                   </div>
                   {/* <img src={product.image_url} alt={product.name} /> */}
                 </td>
-                <td>{product.products_name}</td>
+                <td>{product.product_name}</td>
 
                 <td>{product.category_name}</td>
 
@@ -188,10 +239,12 @@ export default function MenuTab({ id }: { id: string }) {
 
                 <td className={styles.actions}>
                   <button>
-                    <FontAwesomeIcon icon={faEdit} color="#ff6a00" />
+                    <FontAwesomeIcon icon={faEdit} color="#da6614" />
                   </button>
-                  <button>
-                    <FontAwesomeIcon icon={faTrash} color="#f82727" />
+                  <button
+                    onClick={() => deleteProduct(product.id, product.store_id)}
+                  >
+                    <FontAwesomeIcon icon={faTrash} color="#c12424" />
                   </button>
                   <button>
                     <FontAwesomeIcon icon={faEllipsis} color="#494949" />
