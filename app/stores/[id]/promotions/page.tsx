@@ -5,6 +5,7 @@ import { useState } from "react";
 import Breadcrumb from "../../../components/components-items/breadcrumb/breadcrumb";
 import AdminLayout from "../../../components/layout/adminLayout";
 import Dropdown from "../../../components/components-items/dropdown";
+import Image from "next/image";
 import TimePicker from "@/app/components/components-items/timepicker";
 
 export default function StoreDetailPage({
@@ -17,17 +18,11 @@ export default function StoreDetailPage({
   // const [store, setStore] = useState(null);
   const { id } = params;
 
-  const options = [
-    "Todos los productos",
-    "Pizzas",
-    "Bebidas",
-    "Postres",
-  ];
+  const options = ["Todos los productos", "Pizzas", "Bebidas", "Postres"];
 
   return (
     <AdminLayout>
       <div className={styles.container}>
-
         {/* //TODO: revisar el Breadcrumb here, el label: "Cocorao" */}
         <Breadcrumb
           items={[
@@ -46,9 +41,8 @@ export default function StoreDetailPage({
           </div>
 
           <div className={styles.content}>
-            {/* LEFT */}
             <div className={styles.form}>
-              {/* 1. Tipo */}
+  
               <section className={styles.section}>
                 <h3>
                   <span className={styles.step}>1</span> Tipo de promoción
@@ -72,6 +66,11 @@ export default function StoreDetailPage({
                       title: "Combo especial",
                       desc: "Precio especial",
                     },
+                                        {
+                      id: "custom",
+                      title: "Personalizado",
+                      desc: "Pendiente de definir reglas",
+                    },
                   ].map((item) => (
                     <div
                       key={item.id}
@@ -87,10 +86,11 @@ export default function StoreDetailPage({
                 </div>
               </section>
 
-              {/* 2. Detalles */}
+
               <section className={styles.section}>
                 <h3>
-                  <span className={styles.step}>2</span> Detalles de la promoción
+                  <span className={styles.step}>2</span> Detalles de la
+                  promoción
                 </h3>
 
                 <div className={styles.row}>
@@ -109,7 +109,6 @@ export default function StoreDetailPage({
                 </div>
               </section>
 
-              {/* 3. Condiciones */}
               <section className={styles.section}>
                 <h3>
                   <span className={styles.step}>3</span> Condiciones
@@ -162,20 +161,24 @@ export default function StoreDetailPage({
                 </div>
               </section>
 
-              {/* ACTIONS */}
               <div className={styles.actions}>
                 <button className={styles.cancel}>Cancelar</button>
                 <button className={styles.submit}>Crear promoción</button>
               </div>
             </div>
 
-            {/* RIGHT - PREVIEW */}
             <div className={styles.preview}>
               <h4>Vista previa</h4>
 
               <div className={styles.cardPreview}>
                 <div className={styles.badge}>20%</div>
-                <img src="/pizza.jpg" alt="preview" />
+                <Image
+                  src="/assets/no-image.png"
+                  alt="Promoción de pizza"
+                  width={200}
+                  height={120}
+                  className={styles.promoImg}
+                />
 
                 <div className={styles.info}>
                   <h5>20% de descuento en pizzas</h5>
