@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 
 export default function ResumeTab({ id }: { id: string }) {
   const router = useRouter();
+  const [totalProducts, setTotalProducts] = useState(0);
   const [store, setStore] = useState<{
     id: string;
     name: string;
@@ -60,7 +61,29 @@ useEffect(() => {
   };
 
   loadStore();
+  
 }, [id]);
+
+useEffect(() => {
+  if (!id) return;
+
+  const loadCount = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:3001/products/count/${id}`
+      );
+
+      const data = await res.json();
+
+      setTotalProducts(data.total);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  loadCount();
+}, [id]);
+
 
 //   if (loading) return <p>Cargando...</p>;
 //   if (!store) return <p>No encontrado</p>;
@@ -113,7 +136,7 @@ useEffect(() => {
         </div>
 
         <div className={styles.cards}>
-          <SmallCard title="Menú" value="45 productos" />
+          <SmallCard title="Menú" value={`${totalProducts} productos`} />
           <SmallCard title="Promociones" value="2 activas" />
           <SmallCard title="Horario" value="9am - 11pm" />
         </div>
