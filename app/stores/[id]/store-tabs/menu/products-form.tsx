@@ -22,11 +22,11 @@ type Category = {
   name: string;
 };
 
-export default function ProductForm({ onClose }: { onClose?: () => void }) {
+export default function ProductForm({ storeId, onClose }: { storeId?: string; onClose?: () => void }) {
   const [categoryName, setCategoryName] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [active, setActive] = useState("");
-    const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   // const optionsActive = [true, false ];
 
   const [form, setForm] = useState({
@@ -55,8 +55,6 @@ export default function ProductForm({ onClose }: { onClose?: () => void }) {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const storeId = "92f9d5c3-0d69-446f-96a1-0b6c54b0adab";
-
         if (!storeId) {
           console.error("storeId no encontrado");
           return;
@@ -77,11 +75,12 @@ export default function ProductForm({ onClose }: { onClose?: () => void }) {
     };
 
     fetchCategories();
-  }, []);
-
-  const storeId = "92f9d5c3-0d69-446f-96a1-0b6c54b0adab";
+  }, [storeId]);
 
   const createProduct = async (data: ProductFormType) => {
+    if (!storeId) {
+      throw new Error("storeId no disponible");
+    }
     const response = await fetch(`http://localhost:3001/products/${storeId}`, {
       method: "POST",
       headers: {
@@ -128,15 +127,16 @@ export default function ProductForm({ onClose }: { onClose?: () => void }) {
       });
       setCategoryName("");
       setActive("");
-      
+
       console.log("Producto creado exitosamente:", result);
-      
+      alert("Producto creado correctamente ✅");
+
       if (onClose) {
         onClose();
       }
     } catch (error) {
       console.error(error);
-      alert("Error al crear el producto");
+      alert(`Error al crear el producto: ${error instanceof Error ? error.message : "Error desconocido"}`);
     }
   };
 
@@ -188,7 +188,7 @@ export default function ProductForm({ onClose }: { onClose?: () => void }) {
           <DFInput
             placeholder="Precio venta"
             value={form.price}
-            onChange={(e) => handleChange("price", e.target.value)}
+            onChange={(e) => handleChange("price", Number(e.target.value))}
           />
         </div>
       </div>
@@ -221,10 +221,7 @@ export default function ProductForm({ onClose }: { onClose?: () => void }) {
           onChange={(checked) => handleChange("isFeatured", checked)}
         />
 
-        <button
-          onClick={handleSubmit}
-          className={styles.saveBtn}
-        >
+        <button onClick={handleSubmit} className={styles.saveBtn}>
           Guardar producto
         </button>
       </div>
