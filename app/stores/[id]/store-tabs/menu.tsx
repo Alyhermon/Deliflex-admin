@@ -21,6 +21,10 @@ import {
   faPumpSoap,
   faCookieBite,
   faWineBottle,
+  faBagShopping,
+  faHeart,
+  faAnkh,
+  
 } from "@fortawesome/free-solid-svg-icons";
 import DFInput from "@/app/components/components-items/input";
 import Dropdown from "@/app/components/components-items/dropdown";
@@ -53,6 +57,9 @@ const iconMap: Record<string, IconDefinition> = {
   pumpsoap: faPumpSoap,
   cookiebite: faCookieBite,
   winebottle: faWineBottle,
+  bagshopping: faBagShopping,
+  heart: faHeart,
+  ankh: faAnkh,
 };
 
 export default function MenuTab({ id }: { id: string }) {
