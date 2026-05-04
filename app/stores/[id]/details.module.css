@@ -22,13 +22,13 @@
 }
 
 .status {
-  background: #fff3e0;
-  color: #f97316;
-  padding: 6px 12px;
+  background: #e8ffe0;
+  color: #2a920e;
+  padding: 6px 24px;
   border-radius: 20px;
-  font-size: 12px;
+  border: 1px solid #74d15b;
+  font-size: 16px;
 }
-
 
 .tabs {
   display: flex;
@@ -86,7 +86,8 @@
   gap: 16px;
 }
 
-.chart, .orders {
+.chart,
+.orders {
   background: white;
   padding: 16px;
   border-radius: 12px;
@@ -161,7 +162,9 @@
   border-radius: 10px;
   min-width: 220px;
   outline: none;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .search:focus {
@@ -178,7 +181,7 @@
 
 .addBtn {
   margin-left: auto;
-  background: linear-gradient(90deg,#ff7a00,#ff5a00);
+  background: linear-gradient(90deg, #ff7a00, #ff5a00);
   color: white;
   border: none;
   padding: 9px 14px;
@@ -191,7 +194,7 @@
   background: white;
   border-radius: 12px;
   padding: 12px;
-  box-shadow: 0 8px 28px rgba(15,23,42,0.04);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.04);
   overflow-x: auto;
 }
 

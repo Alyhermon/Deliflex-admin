@@ -28,6 +28,7 @@ const nextConfig: NextConfig = {
       "www.pngitem.com",
       "www.pngkey.com",
       "example.com",
+      "www.azulweb.net",
       "qiokcjzdqqsgapgqlnlu.supabase.co"
     ], // 🔥 permite imágenes desde tu backend
   },

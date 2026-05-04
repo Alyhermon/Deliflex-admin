@@ -101,7 +101,7 @@ useEffect(() => {
 
         <div className={styles.grid}>
           <div className={styles.chart}>
-            <h3>Rendimiento</h3>
+            <span className={styles.titleGrafic}>Rendimiento</span>
             <div className={styles.chartBox}>Gráfica aquí</div>
           </div>
 
@@ -122,7 +122,7 @@ useEffect(() => {
 
         <div className={styles.cta}>
           <div className={styles.ctaText}>
-            <p>Impulsa más ventas</p>
+            <span className={styles.moreTitle}>Impulsa más ventas</span>
             <p>Crea promociones y destaca tu negocio en DeliFlex</p>
           </div>
           <button
@@ -142,7 +142,7 @@ useEffect(() => {
         </div>
 
         <div className={styles.products}>
-          <h3>Top productos</h3>
+          <span className={styles.top}>Top productos</span>
 
           <Product name="Hamburguesa Clásica" price="$324K" />
           <Product name="Papas DeliFlex" price="$112K" />
