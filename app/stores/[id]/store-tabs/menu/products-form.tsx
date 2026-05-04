@@ -3,6 +3,7 @@ import DFInput from "@/app/components/components-items/input";
 import DFCheckbox from "@/app/components/components-items/checkbox/checkbox";
 import DFDropdown from "@/app/components/components-items/dropdown";
 import { useEffect, useState } from "react";
+import { Product, UpdateProduct, CreateProduct } from "@/app/types/products";
 
 type ProductFormType = {
   categoryId: string;
@@ -11,8 +12,8 @@ type ProductFormType = {
   price: number;
   imageUrl: string;
   status: boolean;
-  isAvailable: boolean;
-  productCode: string;
+  is_available: boolean;
+  product_code: string;
   displayOrder: number;
   isFeatured: boolean;
 };
@@ -22,29 +23,50 @@ type Category = {
   name: string;
 };
 
-export default function ProductForm({ storeId, onClose }: { storeId?: string; onClose?: () => void }) {
+export default function ProductForm({
+  storeId,
+  product,
+  onClose,
+}: {
+  storeId?: string;
+  product?: Product | null;
+  onClose?: () => void;
+}) {
   const [categoryName, setCategoryName] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [active, setActive] = useState("");
   const [open, setOpen] = useState(false);
+  const isEditMode = !!product;
   // const optionsActive = [true, false ];
 
-  const [form, setForm] = useState({
-    categoryId: "",
-    name: "",
-    description: "",
-    price: 0,
-    imageUrl: "",
-    status: true,
-    isAvailable: true,
-    productCode: "",
-    displayOrder: 0,
-    isFeatured: false,
+  const [form, setForm] = useState<ProductFormType>({
+    categoryId: product?.categoryId ?? "",
+    name: product?.name ?? "",
+    description: product?.description ?? "",
+    price: Number(product?.price) ?? 0,
+    imageUrl: product?.imageUrl ?? "",
+    status: product?.status ?? true,
+    is_available: product?.isAvailable ?? true,
+    product_code: product?.productCode ?? "",
+    displayOrder: product?.displayOrder ?? 0,
+    isFeatured: product?.isFeatured ?? false,
   });
 
-  const handleChange = (
-    name: keyof ProductFormType,
-    value: ProductFormType[keyof ProductFormType],
+  const mapFormToApi = (form: ProductFormType) => ({
+  name: form.name,
+  description: form.description,
+  price: Number(form.price),
+  imageUrl: form.imageUrl,  
+  productCode: form.product_code,
+  categoryId: form.categoryId,
+  isAvailable: form.is_available,
+  isFeatured: form.isFeatured,
+  displayOrder: Number(form.displayOrder || 0),
+  });
+
+  const handleChange = <K extends keyof ProductFormType>(
+    name: K,
+    value: ProductFormType[K],
   ) => {
     setForm((prev) => ({
       ...prev,
@@ -77,7 +99,27 @@ export default function ProductForm({ storeId, onClose }: { storeId?: string; on
     fetchCategories();
   }, [storeId]);
 
-  const createProduct = async (data: ProductFormType) => {
+  // Cargar datos del producto cuando está en modo edición
+  // useEffect(() => {
+  //   if (product) {
+  //     setForm({
+  //       categoryId: product.categoryId ?? "",
+  //       name: product.name ?? "",
+  //       description: product.description ?? "",
+  //       price: Number(product.price) ?? 0,
+  //       imageUrl: product.imageUrl ?? "",
+  //       status: product.status ?? true,
+  //       is_available: product.isAvailable ?? true,
+  //       product_code: product.productCode ?? "",
+  //       displayOrder: product.displayOrder ?? 0,
+  //       isFeatured: product.isFeatured ?? false,
+  //     });
+  //     setActive(product.status ? "Activo" : "Inactivo");
+  //     setCategoryName(product.categoryName ?? "");
+  //   }
+  // }, [product?.id]);
+
+  const createProduct = async (data: CreateProduct) => {
     if (!storeId) {
       throw new Error("storeId no disponible");
     }
@@ -96,6 +138,18 @@ export default function ProductForm({ storeId, onClose }: { storeId?: string; on
     return await response.json();
   };
 
+  const updateProduct = async (id: string, data: UpdateProduct) => {
+    const res = await fetch(`http://localhost:3001/products/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    return await res.json();
+  };
+
   const handleSubmit = async () => {
     try {
       if (!form.categoryId) {
@@ -103,40 +157,48 @@ export default function ProductForm({ storeId, onClose }: { storeId?: string; on
         return;
       }
 
-      const payload = {
-        ...form,
-        price: Number(form.price),
-        displayOrder: Number(form.displayOrder || 0),
-      };
+      const payload = mapFormToApi(form);
 
-      const result = await createProduct(payload);
+      let result;
 
-      console.log("Producto creado:", result);
+      if (isEditMode && product) {
+        result = await updateProduct(product.id, payload);
+        console.log("Producto actualizado:", result);
+        alert("Producto actualizado correctamente ✏️");
+      } else {
+        result = await createProduct(payload);
+        console.log("Producto creado:", result);
+        alert("Producto creado correctamente ✅");
+      }
 
-      setForm({
-        categoryId: "",
-        name: "",
-        description: "",
-        price: 0,
-        imageUrl: "",
-        status: true,
-        isAvailable: true,
-        productCode: "",
-        displayOrder: 0,
-        isFeatured: false,
-      });
-      setCategoryName("");
-      setActive("");
+      if (!isEditMode) {
+        setForm({
+          categoryId: "",
+          name: "",
+          description: "",
+          price: 0,
+          imageUrl: "",
+          status: true,
+          is_available: true,
+          product_code: "",
+          displayOrder: 0,
+          isFeatured: false,
+        });
 
-      console.log("Producto creado exitosamente:", result);
-      alert("Producto creado correctamente ✅");
+        setCategoryName("");
+        setActive("");
+      }
 
       if (onClose) {
         onClose();
       }
     } catch (error) {
       console.error(error);
-      alert(`Error al crear el producto: ${error instanceof Error ? error.message : "Error desconocido"}`);
+      alert(
+        `Error al guardar el producto: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      );
     }
   };
 
@@ -177,8 +239,8 @@ export default function ProductForm({ storeId, onClose }: { storeId?: string; on
         <div className={styles.row}>
           <DFInput
             placeholder="SKU"
-            value={form.productCode}
-            onChange={(e) => handleChange("productCode", e.target.value)}
+            value={form.product_code}
+            onChange={(e) => handleChange("product_code", e.target.value)}
           />
         </div>
 
@@ -186,8 +248,9 @@ export default function ProductForm({ storeId, onClose }: { storeId?: string; on
 
         <div className={styles.row}>
           <DFInput
+            type="number"
             placeholder="Precio venta"
-            value={form.price}
+            value={form.price || ""}
             onChange={(e) => handleChange("price", Number(e.target.value))}
           />
         </div>
@@ -209,7 +272,7 @@ export default function ProductForm({ storeId, onClose }: { storeId?: string; on
             setActive(value);
 
             handleChange("status", isActive);
-            handleChange("isAvailable", isActive);
+            handleChange("is_available", isActive);
           }}
           placeholder="Activo"
         />

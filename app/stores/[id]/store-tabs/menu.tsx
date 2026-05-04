@@ -24,25 +24,14 @@ import {
   faBagShopping,
   faHeart,
   faAnkh,
-  
 } from "@fortawesome/free-solid-svg-icons";
 import DFInput from "@/app/components/components-items/input";
 import Dropdown from "@/app/components/components-items/dropdown";
 import ProductForm from "./menu/products-form";
 import { useEffect, useState } from "react";
+import { Product } from "@/app/types/products";
+import { mapProductFromApi } from "../maps/product.mapper";
 import Modal from "@/app/components/components/modal/modal";
-
-type Product = {
-  id: string;
-  store_id: string;
-  category_icon: string;
-  image_url: string | null;
-  product_name: string;
-  category_name: string;
-  price: number;
-  status: boolean;
-  sales: number | null;
-};
 
 const iconMap: Record<string, IconDefinition> = {
   coffee: faCoffee,
@@ -65,12 +54,14 @@ const iconMap: Record<string, IconDefinition> = {
 export default function MenuTab({ id }: { id: string }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
+const [products, setProducts] = useState<Product[]>([]); // 🔥 CLAVE
   const [loading, setLoading] = useState(true);
   const options = ["Todas", "Hamburguesas", "Bebidas", "Postres"];
   const [status, setStatus] = useState("");
   const optionsStatus = ["Todos", "Abiertos", "Cerrados"];
   const [open, setOpen] = useState(false);
+
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const normalizeText = (text: string) =>
     text.toLowerCase().replace(/\s+/g, " ").trim();
@@ -84,7 +75,9 @@ export default function MenuTab({ id }: { id: string }) {
         const data = await res.json();
         const products = Array.isArray(data) ? data : data.data || [];
 
-        setProducts(products);
+        const mappedProducts = products.map(mapProductFromApi); // 🔥 AQUÍ
+
+        setProducts(mappedProducts);
 
         console.log("DATA COMPLETA:", data);
       } catch (error) {
@@ -100,11 +93,15 @@ export default function MenuTab({ id }: { id: string }) {
   const filteredProducts = products.filter((product) => {
     if (
       normalizedSearch.length >= 2 &&
-      !normalizeText(product.product_name).includes(normalizedSearch)
+      !normalizeText(product.name).includes(normalizedSearch)
     ) {
       return false;
     }
-    if (category && category !== "Todas" && product.category_name !== category) {
+    if (
+      category &&
+      category !== "Todas" &&
+      product.categoryName !== category
+    ) {
       return false;
     }
     if (status && status !== "Todos") {
@@ -134,7 +131,9 @@ export default function MenuTab({ id }: { id: string }) {
       alert("Producto eliminado correctamente ✅");
     } catch (error) {
       console.error(error);
-      alert(`Error al eliminar: ${error instanceof Error ? error.message : "Error desconocido"}`);
+      alert(
+        `Error al eliminar: ${error instanceof Error ? error.message : "Error desconocido"}`,
+      );
     }
   };
 
@@ -143,10 +142,17 @@ export default function MenuTab({ id }: { id: string }) {
       const res = await fetch(`http://localhost:3001/products/store/${id}`);
       const data = await res.json();
       const products = Array.isArray(data) ? data : data.data || [];
-      setProducts(products);
+      const mappedProducts = products.map(mapProductFromApi);
+      setProducts(mappedProducts);
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const editProduct = (product: Product) => {
+
+    setSelectedProduct(product);
+    setOpen(true);
   };
 
   return (
@@ -179,14 +185,23 @@ export default function MenuTab({ id }: { id: string }) {
 
         <Modal
           isOpen={open}
-          onClose={() => setOpen(false)}
-          title="Nuevo producto"
+          onClose={() => {
+            setOpen(false);
+            setSelectedProduct(null);
+          }}
+          title={selectedProduct ? "Editar producto" : "Nuevo producto"}
           width="900px"
         >
-          <ProductForm storeId={id} onClose={() => {
-            setOpen(false);
-            reloadProducts();
-          }} />
+          <ProductForm
+            key={selectedProduct?.id || "new"}
+            storeId={id}
+            product={selectedProduct}
+            onClose={() => {
+              setOpen(false);
+              setSelectedProduct(null);
+              reloadProducts();
+            }}
+          />
         </Modal>
       </div>
 
@@ -200,6 +215,7 @@ export default function MenuTab({ id }: { id: string }) {
               <th>Precio</th>
               <th>Estado</th>
               <th>Ventas</th>
+              <th>Codigo</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -210,7 +226,7 @@ export default function MenuTab({ id }: { id: string }) {
                 <td className={styles.productCell}>
                   <div className={styles.img}>
                     <FontAwesomeIcon
-                      icon={iconMap[product.category_icon] || faUtensils}
+                      icon={iconMap[product.categoryIcon] || faUtensils}
                       color="#b81515"
                       className={styles.zoomIcon}
                     />
@@ -224,9 +240,9 @@ export default function MenuTab({ id }: { id: string }) {
                   </div>
                   {/* <img src={product.image_url} alt={product.name} /> */}
                 </td>
-                <td>{product.product_name}</td>
+                <td>{product.name}</td>
 
-                <td>{product.category_name}</td>
+                <td>{product.categoryName}</td>
 
                 <td>${product.price}</td>
 
@@ -242,14 +258,15 @@ export default function MenuTab({ id }: { id: string }) {
                   </span>
                 </td>
 
-                <td>{product.sales ?? "-"}</td>
+                <td>-</td>
+                <td>{product.productCode}</td>
 
                 <td className={styles.actions}>
-                  <button>
+                  <button onClick={() => editProduct(product)}>
                     <FontAwesomeIcon icon={faEdit} color="#da6614" />
                   </button>
                   <button
-                    onClick={() => deleteProduct(product.id, product.store_id)}
+                    onClick={() => deleteProduct(product.id, product.storeId)}
                   >
                     <FontAwesomeIcon icon={faTrash} color="#c12424" />
                   </button>
