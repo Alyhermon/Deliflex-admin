@@ -1,6 +1,4 @@
-// types/products.ts
 
-// Modelo que usa TU UI (camelCase)
 export type Product = {
   id: string;
   storeId: string;

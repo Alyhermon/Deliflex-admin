@@ -34,10 +34,9 @@ export default function ProductForm({
 }) {
   const [categoryName, setCategoryName] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
-  const [active, setActive] = useState("");
+  const [active, setActive] = useState<boolean>(true);
   const [open, setOpen] = useState(false);
   const isEditMode = !!product;
-  // const optionsActive = [true, false ];
 
   const [form, setForm] = useState<ProductFormType>({
     categoryId: product?.categoryId ?? "",
@@ -53,15 +52,16 @@ export default function ProductForm({
   });
 
   const mapFormToApi = (form: ProductFormType) => ({
-  name: form.name,
-  description: form.description,
-  price: Number(form.price),
-  imageUrl: form.imageUrl,  
-  productCode: form.product_code,
-  categoryId: form.categoryId,
-  isAvailable: form.is_available,
-  isFeatured: form.isFeatured,
-  displayOrder: Number(form.displayOrder || 0),
+    name: form.name,
+    description: form.description,
+    price: Number(form.price),
+    imageUrl: form.imageUrl,
+    productCode: form.product_code,
+    categoryId: form.categoryId,
+    isAvailable: form.is_available,
+    status: form.status,
+    isFeatured: form.isFeatured,
+    displayOrder: Number(form.displayOrder || 0),
   });
 
   const handleChange = <K extends keyof ProductFormType>(
@@ -98,26 +98,6 @@ export default function ProductForm({
 
     fetchCategories();
   }, [storeId]);
-
-  // Cargar datos del producto cuando está en modo edición
-  // useEffect(() => {
-  //   if (product) {
-  //     setForm({
-  //       categoryId: product.categoryId ?? "",
-  //       name: product.name ?? "",
-  //       description: product.description ?? "",
-  //       price: Number(product.price) ?? 0,
-  //       imageUrl: product.imageUrl ?? "",
-  //       status: product.status ?? true,
-  //       is_available: product.isAvailable ?? true,
-  //       product_code: product.productCode ?? "",
-  //       displayOrder: product.displayOrder ?? 0,
-  //       isFeatured: product.isFeatured ?? false,
-  //     });
-  //     setActive(product.status ? "Activo" : "Inactivo");
-  //     setCategoryName(product.categoryName ?? "");
-  //   }
-  // }, [product?.id]);
 
   const createProduct = async (data: CreateProduct) => {
     if (!storeId) {
@@ -186,7 +166,7 @@ export default function ProductForm({
         });
 
         setCategoryName("");
-        setActive("");
+        setActive(true);
       }
 
       if (onClose) {
@@ -265,16 +245,16 @@ export default function ProductForm({
 
         <DFDropdown
           options={["Activo", "Inactivo"]}
-          value={active}
+          value={form.status ? "Activo" : "Inactivo"}
           onChange={(value) => {
             const isActive = value === "Activo";
 
-            setActive(value);
-
-            handleChange("status", isActive);
-            handleChange("is_available", isActive);
+            setForm((prev) => ({
+              ...prev,
+              status: isActive,
+              is_available: isActive,
+            }));
           }}
-          placeholder="Activo"
         />
 
         <DFCheckbox
