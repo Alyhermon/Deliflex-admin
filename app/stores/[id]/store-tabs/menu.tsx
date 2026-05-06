@@ -32,6 +32,7 @@ import { useEffect, useState } from "react";
 import { Product } from "@/app/types/products";
 import { mapProductFromApi } from "../maps/product.mapper";
 import Modal from "@/app/components/components/modal/modal";
+import SidePanel from "@/app/components/components/side-panel/side-panel";
 
 const iconMap: Record<string, IconDefinition> = {
   coffee: faCoffee,
@@ -54,14 +55,19 @@ const iconMap: Record<string, IconDefinition> = {
 export default function MenuTab({ id }: { id: string }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-const [products, setProducts] = useState<Product[]>([]); // 🔥 CLAVE
+  const [products, setProducts] = useState<Product[]>([]); // 🔥 CLAVE
   const [loading, setLoading] = useState(true);
   const options = ["Todas", "Hamburguesas", "Bebidas", "Postres"];
   const [status, setStatus] = useState("");
   const optionsStatus = ["Todos", "Abiertos", "Cerrados"];
   const [open, setOpen] = useState(false);
-
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const [openPanel, setOpenPanel] = useState(false);
+
+  function handleOpenPanel() {
+    setOpenPanel(true);
+  }
 
   const normalizeText = (text: string) =>
     text.toLowerCase().replace(/\s+/g, " ").trim();
@@ -97,11 +103,7 @@ const [products, setProducts] = useState<Product[]>([]); // 🔥 CLAVE
     ) {
       return false;
     }
-    if (
-      category &&
-      category !== "Todas" &&
-      product.categoryName !== category
-    ) {
+    if (category && category !== "Todas" && product.categoryName !== category) {
       return false;
     }
     if (status && status !== "Todos") {
@@ -150,7 +152,6 @@ const [products, setProducts] = useState<Product[]>([]); // 🔥 CLAVE
   };
 
   const editProduct = (product: Product) => {
-
     setSelectedProduct(product);
     setOpen(true);
   };
@@ -270,7 +271,8 @@ const [products, setProducts] = useState<Product[]>([]); // 🔥 CLAVE
                   >
                     <FontAwesomeIcon icon={faTrash} color="#c12424" />
                   </button>
-                  <button>
+
+                  <button onClick={handleOpenPanel}>
                     <FontAwesomeIcon icon={faEllipsis} color="#494949" />
                   </button>
                 </td>
@@ -278,6 +280,15 @@ const [products, setProducts] = useState<Product[]>([]); // 🔥 CLAVE
             ))}
           </tbody>
         </table>
+        <SidePanel
+          open={openPanel}
+          title="Gestionar producto"
+          side="right"
+          background="#FFFFFF"
+          width="440px"
+        >
+          <button onClick={() => setOpenPanel(false)}>Cerrar panel</button>
+        </SidePanel>
       </div>
 
       {/* PAGINACIÓN */}
