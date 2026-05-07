@@ -1,11 +1,8 @@
-// components/SidePanel/SidePanel.tsx
-
-
 import styles from "./side-panel.module.css";
 import { ReactNode } from "react";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faCircleXmark} from "@fortawesome/free-solid-svg-icons";
 
 type SidePanelProps = {
   open?: boolean;
@@ -32,10 +29,10 @@ export default function SidePanel({
 
 
   return (
-    <div className={styles["side-panel-overlay"]}>
+    <div className={styles.sidePanelOverlay}>
       <aside
         className={`
-          ${styles["side-panel"]}
+          ${styles.sidePanel}
           ${styles[`side-panel-${side}`]}
         `}
         style={
@@ -45,19 +42,19 @@ export default function SidePanel({
           } as React.CSSProperties
         }
       >
-        <div className={styles["side-panel-header"]}>
-          <span className={styles["side-title"]}>{title}</span>
+        <div className={styles.sidePanelHeader}>
+          <span className={styles.sideTitle}>{title}</span>
 
           <button
             onClick={() => setOpenPanel(false)}
             className={styles["close-button"]}
           >
-            <FontAwesomeIcon icon={faXmark} />
+            <FontAwesomeIcon icon={faCircleXmark} color="#ff7a00" size="lg"/>
           </button>
         </div>
 
-        <div className={styles["side-panel-content"]}>{children}</div>
+        <div className={styles.sidePanelContent}>{children}</div>
       </aside>
-    </div>
+    </div>  
   );
 }

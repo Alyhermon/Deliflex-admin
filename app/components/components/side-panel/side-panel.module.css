@@ -1,13 +1,11 @@
-/* components/SidePanel/side-panel.module.css */
-
-.side-panel-overlay {
+.sidePanelOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(63, 61, 61, 0.15);
   z-index: 9999;
 }
 
-.side-panel {
+.sidePanel {
   position: fixed;
   top: 0;
   right: 0;
@@ -33,18 +31,20 @@
   right: auto;
 }
 
-.side-panel-header {
-  padding: 24px;
+.sidePanelHeader {
+  display: flex;
   border-bottom: 1px solid #f1f1f1;
+  padding: 24px;
+  justify-content: space-between;
 }
 
-.side-panel-header .side-title {
+.sidePanelHeader .sideTitle {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
 }
 
-.side-panel-content {
+.sidePanelContent {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
