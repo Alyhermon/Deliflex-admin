@@ -1,0 +1,213 @@
+/* components/ProductManagementPanel/product-management-panel.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.productInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.productIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #fff2e8;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ff6b00;
+  font-size: 18px;
+}
+
+.productInfo h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.productInfo span {
+  font-size: 14px;
+  color: #7a7a7a;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  border-bottom: 1px solid #ececec;
+  padding-bottom: 16px;
+}
+
+.tabs button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  color: #6e6e6e;
+  font-size: 15px;
+  font-weight: 500;
+
+  padding-bottom: 12px;
+}
+
+.activeTab {
+  color: #ff6b00 !important;
+  border-bottom: 2px solid #ff6b00 !important;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sectionHeaderColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sectionHeader h4,
+.sectionHeaderColumn h4 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.sectionHeader p,
+.sectionHeaderColumn p {
+  margin: 0;
+  color: #7a7a7a;
+  font-size: 14px;
+}
+
+.primaryButton {
+    color: #fff;
+    cursor: pointer;
+    background: #ff6b00;
+    border: none;
+    border-radius: 12px;
+    height: max-content;
+    width: max-content;
+    padding: 0px 29px;
+    font-weight: 500;
+}
+
+.card {
+  border: 1px solid #efefef;
+  border-radius: 18px;
+  overflow: hidden;
+  background: white;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 18px 20px;
+  border-bottom: 1px solid #f3f3f3;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.rowLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  color: #555;
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.rowActions button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  color: #ff6b00;
+}
+
+.rowRight {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.price {
+  font-weight: 500;
+}
+
+.switchRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 20px;
+  border-bottom: 1px solid #f3f3f3;
+}
+
+.switchRow:last-child {
+  border-bottom: none;
+}
+
+.switchRow h5 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.switchRow span {
+  font-size: 13px;
+  color: #777;
+}
+
+.footer {
+  display: flex;
+  gap: 16px;
+}
+
+.cancelButton {
+  flex: 1;
+
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid #e2e2e2;
+
+  background: white;
+  cursor: pointer;
+
+  font-weight: 600;
+}
+
+.saveButton {
+  flex: 1;
+
+  height: 52px;
+  border-radius: 14px;
+  border: none;
+
+  background: #ff6b00;
+  color: white;
+
+  cursor: pointer;
+  font-weight: 600;
+}
