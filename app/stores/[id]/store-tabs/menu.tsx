@@ -33,6 +33,7 @@ import { Product } from "@/app/types/products";
 import { mapProductFromApi } from "../maps/product.mapper";
 import Modal from "@/app/components/components/modal/modal";
 import SidePanel from "@/app/components/components/side-panel/side-panel";
+import ProductManagementPanel from "@/app/stores/[id]/store-tabs/menu/(components)/sidePanelProduct"
 
 const iconMap: Record<string, IconDefinition> = {
   coffee: faCoffee,
@@ -55,7 +56,7 @@ const iconMap: Record<string, IconDefinition> = {
 export default function MenuTab({ id }: { id: string }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-  const [products, setProducts] = useState<Product[]>([]); // 🔥 CLAVE
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const options = ["Todas", "Hamburguesas", "Bebidas", "Postres"];
   const [status, setStatus] = useState("");
@@ -286,8 +287,9 @@ export default function MenuTab({ id }: { id: string }) {
           side="right"
           background="#FFFFFF"
           width="440px"
+          onClose={() => setOpenPanel(false)}
         >
-          <button onClick={() => setOpenPanel(false)}>Cerrar panel</button>
+          <ProductManagementPanel />
         </SidePanel>
       </div>
 
