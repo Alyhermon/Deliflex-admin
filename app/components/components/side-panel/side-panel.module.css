@@ -102,7 +102,7 @@
 .panelClose.side-panel-left {
   transform: translateX(-100%);
   opacity: 0;
-}
+} 
 
 @keyframes slidePanel {
   from {
