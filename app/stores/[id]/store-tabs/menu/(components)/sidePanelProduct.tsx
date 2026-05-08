@@ -1,25 +1,70 @@
 "use client";
 
 import styles from "./side-panel-product.module.css";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faBox,
+  faTrash,
+  faBurger,
+  faCoffee,
+  faUtensils,
+  faCircleNotch,
+  faCakeCandles,
+  faBreadSlice,
+  faLeaf,
+  faAppleWhole,
+  faPizzaSlice,
+  faPumpSoap,
+  faCookieBite,
+  faWineBottle,
+  faBagShopping,
+  faHeart,
+  faAnkh,
   faGripVertical,
   faPen,
-  faTrash,
+  faDrumstickBite,
+  faIcicles,
+  faCheese
 } from "@fortawesome/free-solid-svg-icons";
+import { Product} from "@/app/types/products";
 
-export default function ProductManagementPanel() {
+const iconMap: Record<string, IconDefinition> = {
+  coffee: faCoffee,
+  burger: faBurger,
+  cake: faCakeCandles,
+  circlenotch: faCircleNotch,
+  breadslice: faBreadSlice,
+  leaf: faLeaf,
+  utensils: faUtensils,
+  applewhole: faAppleWhole,
+  pizzaside: faPizzaSlice,
+  pumpsoap: faPumpSoap,
+  cookiebite: faCookieBite,
+  winebottle: faWineBottle,
+  bagshopping: faBagShopping,
+  heart: faHeart,
+  ankh: faAnkh,
+  drumstickbite: faDrumstickBite,
+  icicles: faIcicles,
+  cheese: faCheese
+};
+
+export default function ProductManagementPanel({
+  product,
+}: {
+  product?: Product | null;
+}) {
   return (
-    <div className={styles.container}>
+    <div className={styles.container}>  
       <div className={styles.productInfo}>
         <div className={styles.productIcon}>
-          <FontAwesomeIcon icon={faBox} />
+          <FontAwesomeIcon icon={iconMap[product?.categoryIcon || ""] || faUtensils} />
+               {/* <FontAwesomeIcon icon={faDrumstickBite} /> */}
         </div>
 
         <div>
-          <h3>El dulce mar</h3>
-          <span>CART-AZUL-001</span>
+          <h3>{product?.name}</h3>
+          <span>{product?.productCode}</span>
         </div>
       </div>
 
@@ -28,10 +73,8 @@ export default function ProductManagementPanel() {
         <button>Combo</button>
         <button>Variaciones</button>
         <button>Opciones</button>
-        <button>Más</button>
       </div>
 
-      {/* INGREDIENTES */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
@@ -77,14 +120,10 @@ export default function ProductManagementPanel() {
         <div className={styles.sectionHeader}>
           <div>
             <h4>Opciones adicionales</h4>
-            <p>
-              Personaliza opciones extra que el cliente puede agregar.
-            </p>
+            <p>Personaliza opciones extra que el cliente puede agregar.</p>
           </div>
 
-          <button className={styles.primaryButton}>
-            + Agregar opción
-          </button>
+          <button className={styles.primaryButton}>+ Agregar opción</button>
         </div>
 
         <div className={styles.card}>
@@ -112,9 +151,7 @@ export default function ProductManagementPanel() {
               </div>
 
               <div className={styles.rowRight}>
-                <span className={styles.price}>
-                  {item.price}
-                </span>
+                <span className={styles.price}>{item.price}</span>
 
                 <div className={styles.rowActions}>
                   <button>
@@ -161,13 +198,9 @@ export default function ProductManagementPanel() {
 
       {/* FOOTER */}
       <div className={styles.footer}>
-        <button className={styles.cancelButton}>
-          Cancelar
-        </button>
+        <button className={styles.cancelButton}>Cancelar</button>
 
-        <button className={styles.saveButton}>
-          Guardar cambios
-        </button>
+        <button className={styles.saveButton}>Guardar cambios</button>
       </div>
     </div>
   );
