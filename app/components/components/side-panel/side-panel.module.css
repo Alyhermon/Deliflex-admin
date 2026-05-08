@@ -50,6 +50,60 @@
   padding: 24px;
 }
 
+.sidePanelOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+
+  display: flex;
+  z-index: 999;
+
+  transition: opacity 0.25s ease;
+}
+
+.overlayOpen {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.overlayClose {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidePanel {
+  height: 100%;
+  width: var(--panel-width);
+  background: var(--panel-bg);
+
+  transition:
+    transform 0.28s ease,
+    opacity 0.28s ease;
+}
+
+.side-panel-right {
+  margin-left: auto;
+}
+
+.side-panel-left {
+  margin-right: auto;
+}
+
+.panelOpen {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.panelClose.side-panel-right {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.panelClose.side-panel-left {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
 @keyframes slidePanel {
   from {
     transform: translateX(100%);

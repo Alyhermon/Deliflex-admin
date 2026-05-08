@@ -1,7 +1,7 @@
 import styles from "./side-panel.module.css";
 import { ReactNode } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleXmark} from "@fortawesome/free-solid-svg-icons";
+import { faCircleXmark } from "@fortawesome/free-solid-svg-icons";
 
 type SidePanelProps = {
   open?: boolean;
@@ -22,13 +22,12 @@ export default function SidePanel({
   children,
   onClose,
 }: SidePanelProps) {
-    
   if (!open) return null;
 
-
   return (
-    <div className={styles.sidePanelOverlay}> 
+    <div className={styles.sidePanelOverlay} onClick={onClose}>
       <aside
+       onClick={(e) => e.stopPropagation()}
         className={`
           ${styles.sidePanel}
           ${styles[`side-panel-${side}`]}
@@ -43,16 +42,13 @@ export default function SidePanel({
         <div className={styles.sidePanelHeader}>
           <span className={styles.sideTitle}>{title}</span>
 
-          <button
-            onClick={onClose}
-            className={styles["close-button"]}
-          >
-            <FontAwesomeIcon icon={faCircleXmark} color="#ff7a00" size="lg"/>
+          <button onClick={onClose} className={styles["close-button"]}>
+            <FontAwesomeIcon icon={faCircleXmark} color="#ff7a00" size="lg" />
           </button>
         </div>
 
         <div className={styles.sidePanelContent}>{children}</div>
       </aside>
-    </div>  
+    </div>
   );
 }
