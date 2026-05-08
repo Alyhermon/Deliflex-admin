@@ -1,7 +1,6 @@
 "use client";
 
 import styles from "../details.module.css";
-// import Image from "next/image";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -24,6 +23,9 @@ import {
   faBagShopping,
   faHeart,
   faAnkh,
+  faDrumstickBite,
+  faIcicles,
+  faCheese,
 } from "@fortawesome/free-solid-svg-icons";
 import DFInput from "@/app/components/components-items/input";
 import Dropdown from "@/app/components/components-items/dropdown";
@@ -51,6 +53,9 @@ const iconMap: Record<string, IconDefinition> = {
   bagshopping: faBagShopping,
   heart: faHeart,
   ankh: faAnkh,
+  drumstickbite: faDrumstickBite,
+  icicles: faIcicles,
+  cheese: faCheese
 };
 
 export default function MenuTab({ id }: { id: string }) {
@@ -66,7 +71,8 @@ export default function MenuTab({ id }: { id: string }) {
 
   const [openPanel, setOpenPanel] = useState(false);
 
-  function handleOpenPanel() {
+  function handleOpenPanel(product: Product) {
+    setSelectedProduct(product);
     setOpenPanel(true);
   }
 
@@ -82,7 +88,7 @@ export default function MenuTab({ id }: { id: string }) {
         const data = await res.json();
         const products = Array.isArray(data) ? data : data.data || [];
 
-        const mappedProducts = products.map(mapProductFromApi); // 🔥 AQUÍ
+        const mappedProducts = products.map(mapProductFromApi);
 
         setProducts(mappedProducts);
 
@@ -273,7 +279,7 @@ export default function MenuTab({ id }: { id: string }) {
                     <FontAwesomeIcon icon={faTrash} color="#c12424" />
                   </button>
 
-                  <button onClick={handleOpenPanel}>
+                  <button onClick={() => handleOpenPanel(product)}>
                     <FontAwesomeIcon icon={faEllipsis} color="#494949" />
                   </button>
                 </td>
@@ -289,20 +295,9 @@ export default function MenuTab({ id }: { id: string }) {
           width="440px"
           onClose={() => setOpenPanel(false)}
         >
-          <ProductManagementPanel />
+          <ProductManagementPanel  product={selectedProduct}/>
         </SidePanel>
       </div>
-
-      {/* PAGINACIÓN */}
-      {/* <div className={styles.pagination}>
-        <span className={styles.pageActive}>1</span>
-        <span>2</span>
-        <span>3</span>
-        <span>...</span>
-        <span>6</span>
-
-        <div className={styles.pageSize}>8 por página ⌄</div>
-      </div> */}
     </div>
   );
 }
