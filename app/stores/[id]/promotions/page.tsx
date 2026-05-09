@@ -37,6 +37,7 @@ export default function StoreDetailPage({
             <p>
               Impulsa más ventas creando promociones atractivas para tus
               clientes.
+              TENGO QUE HACER ESTA PARTE, MUY IMPORTANTE
             </p>
           </div>
 
