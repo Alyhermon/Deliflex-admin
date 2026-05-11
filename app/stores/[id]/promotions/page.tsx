@@ -23,7 +23,6 @@ export default function StoreDetailPage({
   return (
     <AdminLayout>
       <div className={styles.container}>
-        {/* //TODO: revisar el Breadcrumb here, el label: "Cocorao" */}
         <Breadcrumb
           items={[
             { label: "Tiendas", href: "/stores" },
@@ -37,7 +36,6 @@ export default function StoreDetailPage({
             <p>
               Impulsa más ventas creando promociones atractivas para tus
               clientes.
-              TENGO QUE HACER ESTA PARTE, MUY IMPORTANTE
             </p>
           </div>
 
@@ -132,7 +130,6 @@ export default function StoreDetailPage({
                 </div>
               </section>
 
-              {/* 4. Visibilidad */}
               <section className={styles.section}>
                 <h3>
                   <span className={styles.step}>4</span> Visibilidad
@@ -151,7 +148,6 @@ export default function StoreDetailPage({
                 </div>
               </section>
 
-              {/* 5. Imagen */}
               <section className={styles.section}>
                 <h3>
                   <span className={styles.step}>5</span> Imagen

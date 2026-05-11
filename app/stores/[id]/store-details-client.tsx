@@ -7,7 +7,7 @@ import AdminLayout from "../../components/layout/adminLayout";
 import { JSX, useEffect, useState } from "react";
 import ResumeTab from "./store-tabs/resume/resume";
 import MenuTab from "./store-tabs/menu";
-import OrderTab from "./store-tabs/orders";
+import OrderTab from "./store-tabs/orders/orders";
 import StatisticsTab from "./store-tabs/statistics";
 
 type TabKey = "resumen" | "menu" | "pedidos" | "estadisticas";
