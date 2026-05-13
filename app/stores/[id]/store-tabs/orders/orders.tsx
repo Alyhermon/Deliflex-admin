@@ -20,6 +20,7 @@ type OrderType = {
   notes: string;
 };
 
+//TODO: Aqui esta pasando una lentitud horrible, LIMPIAR COMPUTADORA, Y OPTIMIZARLA
 const MOCK_ORDERS: OrderType[] = [
   {
     id: "#A-102",
