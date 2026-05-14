@@ -21,6 +21,7 @@ type OrderType = {
 };
 
 //TODO: Aqui esta pasando una lentitud horrible, LIMPIAR COMPUTADORA, Y OPTIMIZARLA
+//13/5/2026 me fui a correr y mi computadora sigue lenta, mañana estare limpiando porque asi no puedo
 const MOCK_ORDERS: OrderType[] = [
   {
     id: "#A-102",
