@@ -1,38 +1,47 @@
-// app/dashboard/page.tsx
-
 import styles from "./stadistics.module.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faStar,
+  faDollarSign,
+  faChartLine,
+  faUsers,
+  faBagShopping,
+  faClock,
+  faMotorcycle,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 
 const stats = [
   {
-    icon: "$",
+    icon: (<FontAwesomeIcon color="#3d9c2f" icon={faDollarSign} />),
     label: "Ventas totales",
     value: "RD$ 12,500",
     change: "↑ 18.5% vs semana anterior",
     color: "green",
   },
   {
-    icon: "🛍",
+    icon: (<FontAwesomeIcon color="#0f4bf1" icon={faBagShopping} />),
     label: "Pedidos totales",
     value: "48",
     change: "↑ 12.3% vs semana anterior",
     color: "blue",
   },
   {
-    icon: "👥",
+    icon: (<FontAwesomeIcon color="#8d17ed" icon={faUsers} />),
     label: "Clientes nuevos",
     value: "12",
     change: "↑ 9.1% vs semana anterior",
     color: "purple",
   },
   {
-    icon: "📈",
+    icon: (<FontAwesomeIcon color="#ed7b17" icon={faChartLine} />),
     label: "Ticket promedio",
     value: "RD$ 430",
     change: "↑ 6.4% vs semana anterior",
     color: "orange",
   },
   {
-    icon: "☆",
+    icon: (<FontAwesomeIcon color="#edbb17" icon={faStar} />),
     label: "Calificación promedio",
     value: "4.8",
     change: "",
@@ -91,7 +100,6 @@ const peakHours = [
 export default function DashboardPage() {
   return (
     <div className={styles.dashboard}>
-      {/* TOP STATS */}
       <div className={styles.statsGrid}>
         {stats.map((item, index) => (
           <div className={styles.statCard} key={index}>
@@ -120,7 +128,6 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* MIDDLE */}
       <div className={styles.middleGrid}>
         {/* CHART */}
         <div className={styles.card}>
@@ -172,11 +179,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* PRODUCTS */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h3>Productos más vendidos</h3>
-
             <a href="#">Ver todos</a>
           </div>
 
@@ -209,7 +214,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* DONUT */}
         <div className={styles.card}>
           <h3>Estado de órdenes</h3>
 
@@ -255,12 +259,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* BOTTOM */}
       <div className={styles.bottomGrid}>
-        {/* PEAK HOURS */}
         <div className={styles.card}>
           <h3>Horas pico</h3>
-
           <p className={styles.subText}>
             Las horas con más pedidos
           </p>
@@ -332,7 +333,7 @@ export default function DashboardPage() {
           <div className={styles.deliveryGrid}>
             <div className={styles.deliveryCard}>
               <div className={styles.deliveryIcon}>
-                🕒
+                <FontAwesomeIcon color="#ed7b17" icon={faClock} />
               </div>
 
               <p>Tiempo promedio</p>
@@ -346,7 +347,7 @@ export default function DashboardPage() {
 
             <div className={styles.deliveryCard}>
               <div className={styles.deliveryIcon}>
-                🛵
+                <FontAwesomeIcon color="#b42929" icon={faMotorcycle} />
               </div>
 
               <p>Entrega a tiempo</p>
@@ -360,7 +361,7 @@ export default function DashboardPage() {
 
             <div className={styles.deliveryCard}>
               <div className={styles.deliveryIcon}>
-                ❌
+                <FontAwesomeIcon color="#ed1717" icon={faXmark} />
               </div>
 
               <p>Tasa de cancelación</p>
