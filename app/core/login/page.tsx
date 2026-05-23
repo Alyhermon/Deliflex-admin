@@ -30,7 +30,6 @@ export default function DashboardPage() {
       alert(data.message);
       return;
     }
-    //estoy cansada por hoy seguimos mañana 17/05/2026
 
     // validar admin
     if (data.user.global_role_id !== 90) {
@@ -38,13 +37,10 @@ export default function DashboardPage() {
       return;
     }
 
-    // guardar token
     localStorage.setItem('token', data.access_token);
 
-    // guardar usuario
     localStorage.setItem('user', JSON.stringify(data.user));
 
-    // redireccionar
     router.push('/dashboard');
 
   } catch (error) {
