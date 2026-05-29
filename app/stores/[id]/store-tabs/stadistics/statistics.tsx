@@ -378,6 +378,7 @@ export default function DashboardPage() {
 
       {/* FOOTER */}
       {/*Vengo ahora*/}
+      {/*Hoy dia de cheese cake*/}
       <div className={styles.footer}>
         ● Los datos se actualizan cada 30 minutos
       </div>
