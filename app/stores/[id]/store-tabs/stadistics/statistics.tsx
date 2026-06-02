@@ -327,7 +327,6 @@ export default function DashboardPage() {
         </div>
 
         {/* DELIVERY */}
-        {/**DELIVERY */}
         <div className={styles.card}>
           <h3>Rendimiento de delivery</h3>
 
