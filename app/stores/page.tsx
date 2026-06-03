@@ -14,6 +14,7 @@ import {
   faStoreSlash,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../hooks/useAuth";
 
 type Store = {
   id: string;
@@ -38,27 +39,55 @@ export default function StoresPage() {
 
   const normalizedSearch = normalizeText(search);
 
-  useEffect(() => {
-    const loadStores = async () => {
-      try {
-        const res = await fetch(
-          "http://localhost:3001/register-business/owner/f4fbf456-4a9a-44d5-8584-ca90c720fbb5",
-        );
-        const data = await res.json();
+  const { user, loading: authLoading } = useAuth();
 
-        console.log("TIENDAS REALES:", data);
+useEffect(() => {
+  if (!user) return;
 
-        setStores(Array.isArray(data) ? data : data.data || []);
-      } catch (error) {
-        console.error(error);
-        setStores([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  console.log("USER:", user);        // ← ¿llega el usuario?
+  console.log("USER ID:", user.id);  // ← ¿tiene id?
 
-    loadStores();
-  }, []);
+  const loadStores = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:3001/register-business/owner/${user.id}`,
+      );
+      console.log("URL llamada:", `http://localhost:3001/register-business/owner/${user.id}`);
+      const data = await res.json();
+      console.log("TIENDAS:", data);
+      setStores(Array.isArray(data) ? data : data.data || []);
+    } catch (error) {
+      console.error(error);
+      setStores([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadStores();
+}, [user]);
+
+  // useEffect(() => {
+  //   const loadStores = async () => {
+  //     try {
+  //       const res = await fetch(
+  //         "http://localhost:3001/register-business/owner/f4fbf456-4a9a-44d5-8584-ca90c720fbb5",
+  //       );
+  //       const data = await res.json();
+
+  //       console.log("TIENDAS REALES:", data);
+
+  //       setStores(Array.isArray(data) ? data : data.data || []);
+  //     } catch (error) {
+  //       console.error(error);
+  //       setStores([]);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   loadStores();
+  // }, []);
 
   const filteredStores =
     normalizedSearch.length >= 3

@@ -31,19 +31,21 @@ export default function DashboardPage() {
         return;
       }
 
-      if (!data.user.global_role_id) {
-        alert("No tienes acceso al panel administrador");
-        return;
-      }
+      // if (!data.user.global_role_id) {
+      //   alert("No tienes acceso al panel administrador");
+      //   return;
+      // }
 
-      await fetch("/api/auth/set-cookie", {
+      const cookieRes = await fetch("/api/auth/set-cookie", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: data.access_token }),
       });
 
-      router.push("/dashboard");
+      console.log("Cookie status:", cookieRes.status);
+      console.log("Token que se envía:", data.access_token);
 
+      router.push("/dashboard");
     } catch (error) {
       console.error(error);
       alert("Error de conexión");
