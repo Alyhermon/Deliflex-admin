@@ -6,12 +6,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faKey } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Toast from "@/app/components/components-items/toast/toast";
 
 export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "error" | "success" | "warning";
+  } | null>(null);
 
   const login = async () => {
     setLoading(true);
@@ -31,10 +36,14 @@ export default function DashboardPage() {
         return;
       }
 
-      // if (!data.user.global_role_id) {
-      //   alert("No tienes acceso al panel administrador");
-      //   return;
-      // }
+      if (data.user.global_role_id !== 90) {
+        setToast({
+          message:
+            "No tienes acceso al panel administrador. Contacta a soporte.",
+          type: "error",
+        });
+        return;
+      }
 
       const cookieRes = await fetch("/api/auth/set-cookie", {
         method: "POST",
@@ -90,6 +99,13 @@ export default function DashboardPage() {
       <div className={styles.wrapper}>
         <Image src={"/assets/imagen-logo.png"} alt="banner" fill />
       </div>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
