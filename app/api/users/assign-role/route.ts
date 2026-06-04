@@ -19,7 +19,9 @@ export async function PATCH(request: NextRequest) {
     body: JSON.stringify(body),
   });
 
-  const data = await res.json();
+    console.log("ASSIGN STATUS:", res.status);
+    const data = await res.json();
+    console.log("ASSIGN DATA:", data);  
 
   if (!res.ok) {
     return NextResponse.json(data, { status: res.status });
