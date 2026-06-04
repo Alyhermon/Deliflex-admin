@@ -13,6 +13,7 @@ import {
   faUser,
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
+import InviteUserModal from "./(modals)/userInvited";
 
 const users = [
   {
@@ -44,6 +45,7 @@ const users = [
 export default function UsersRolesPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [showInvite, setShowInvite] = useState(false);
 
   const options = ["Todos los negocios", "Cocorao", "Cafetería Soñada"];
   const storeOptions = ["Todas las sucursales", "Naco", "Bella Vista"];
@@ -57,7 +59,7 @@ export default function UsersRolesPage() {
             <p>Administra accesos y permisos</p>
           </div>
 
-          <button className={styles.inviteBtn}>+ Invitar usuario</button>
+          <button className={styles.inviteBtn} onClick={() => setShowInvite(true)}>+ Invitar usuario</button>
         </div>
 
         <div className={styles.stats}>
@@ -208,6 +210,7 @@ export default function UsersRolesPage() {
           </div>
         </div>
       </div>
+        {showInvite && <InviteUserModal onClose={() => setShowInvite(false)} />}
     </AdminLayout>
   );
 }
