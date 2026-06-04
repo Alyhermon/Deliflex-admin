@@ -104,6 +104,10 @@ export default function InviteUserModal({ onClose }: Props) {
         }),
       });
 
+      console.log("ASSIGN STATUS:", res.status);
+      const data = await res.json();
+      console.log("ASSIGN DATA:", data);
+
       if (!res.ok) {
         setToast({ message: "Error al asignar el rol", type: "error" });
         return;
