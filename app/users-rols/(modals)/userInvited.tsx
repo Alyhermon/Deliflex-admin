@@ -128,7 +128,6 @@ export default function InviteUserModal({ onClose }: Props) {
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div className={styles.header}>
           <div>
             <span className={styles.title}>Agregar miembro</span>
@@ -154,7 +153,6 @@ export default function InviteUserModal({ onClose }: Props) {
           </div>
         </div>
 
-        {/* Step 1: Buscar */}
         {step === 1 && (
           <div className={styles.body}>
             <p className={styles.label}>Email del usuario en Deliflex</p>
