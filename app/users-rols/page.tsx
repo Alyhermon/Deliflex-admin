@@ -172,7 +172,7 @@ export default function UsersRolesPage() {
                         color: "#9ca3af",
                       }}
                     >
-                      No hay usuarios en el equipo aún
+                      No hay usuarios en el equipo todavia
                     </td>
                   </tr>
                 ) : (
