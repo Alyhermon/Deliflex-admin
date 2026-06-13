@@ -210,6 +210,7 @@ export default function UsersRolesPage() {
                                 : styles.inactive
                             }
                           >
+                            {/* Manana lo hacemos */}
                             {u.status === "active" ? "Activo" : "Inactivo"}
                           </span>
                         </td>
