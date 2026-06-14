@@ -220,9 +220,6 @@ export default function UsersRolesPage() {
             </table>
           </div>
 
-          {/* hoy 11 de junio te deseo lo mejor y que tus proyectos se cumplean nena, te lo mereces todo, eres una persona increible y te quiero un monton, gracias por ser parte de mi vida y por compartir tantos momentos juntos, que Dios te bendiga siempre y te de mucha salud para seguir disfrutando de la vida y de los tuyos, feliz cumpleaños wiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii */}
-          {/* FELIZ CUMPLEANOS PARA MI WEEEE, ERES FUERTE, ERES CAPAZ, ERES INCREIBLE, TE QUIERO MUCHO, TE LO MERECES TODO, QUE DIOS TE BENDIGA SIEMPRE Y TE DE MUCHA SALUD PARA SEGUIR DISFRUTANDO DE LA VIDA Y DE LOS TUYOS, GRACIAS POR EXISTIR Y SER PARTE DE MI VIDA, TE QUIERO UN MONTONNNNNNNNNNNNNNNNNNNNNNNNNNNNNN */}
-
           <div className={styles.roles}>
             <span className={styles.statsTitle}>Roles</span>
             <span className={styles.description}>
