@@ -198,7 +198,6 @@ export default function UsersRolesPage() {
                           <span
                             className={`${styles.badge} ${styles[u.role_name]}`}
                           >
-                            {/* hola */}
                             {u.role_name}
                           </span>
                         </td>
@@ -210,7 +209,6 @@ export default function UsersRolesPage() {
                                 : styles.inactive
                             }
                           >
-                            {/* Manana lo hacemos */}
                             {u.status === "active" ? "Activo" : "Inactivo"}
                           </span>
                         </td>
