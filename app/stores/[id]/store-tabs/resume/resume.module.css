@@ -87,8 +87,11 @@
 }
 
 .chart, .orders {
+  display: flex;
+  flex-direction: column;
   background: white;
   padding: 16px;
+  gap: 14px;
   border-radius: 12px;
 }
 
