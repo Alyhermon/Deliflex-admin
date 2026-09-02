@@ -1,8 +1,6 @@
-import React from 'react'
+import { redirect } from "next/navigation";
+
 export default function Page() {
-  return (
-    <div>
-      <h1>Deliflex Admin</h1>
-    </div>
-  );
+  // Entrar a Deliflex es entrar por el login, haya sesion o no.
+  redirect("/core/login");
 }

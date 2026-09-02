@@ -4,6 +4,7 @@ import styles from "../details.module.css";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faCircleCheck,
   faEdit,
   faEllipsis,
   faMagnifyingGlass,
@@ -34,6 +35,8 @@ import { useEffect, useState } from "react";
 import { Product } from "@/app/types/products";
 import { mapProductFromApi } from "../maps/product.mapper";
 import Modal from "@/app/components/components/modal/modal";
+import ConfirmDialog from "@/app/components/components/modal/confirm-dialog";
+import Toast from "@/app/components/components-items/toast/toast";
 import SidePanel from "@/app/components/components/side-panel/side-panel";
 import ProductManagementPanel from "@/app/stores/[id]/store-tabs/menu/(components)/sidePanelProduct"
 
@@ -70,6 +73,14 @@ export default function MenuTab({ id }: { id: string }) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const [openPanel, setOpenPanel] = useState(false);
+
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "info" | "danger";
+  } | null>(null);
 
   function handleOpenPanel(product: Product) {
     setSelectedProduct(product);
@@ -121,10 +132,14 @@ export default function MenuTab({ id }: { id: string }) {
     return true;
   });
 
-  const deleteProduct = async (productId: string, storeId: string) => {
-    if (!confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-      return;
-    }
+  // La confirmacion la pide ConfirmDialog; aqui solo se ejecuta el borrado.
+  const deleteProduct = async () => {
+    if (!productToDelete) return;
+
+    const { id: productId, storeId } = productToDelete;
+
+    setDeleting(true);
+
     try {
       const res = await fetch(
         `http://localhost:3001/products/${productId}?storeId=${storeId}`,
@@ -132,17 +147,19 @@ export default function MenuTab({ id }: { id: string }) {
       );
 
       const data = await res.json();
-      console.log(data);
 
       if (!res.ok) throw new Error(data.message);
 
       setProducts((prev) => prev.filter((product) => product.id !== productId));
-      alert("Producto eliminado correctamente ✅");
+      setProductToDelete(null);
+      setToast({ message: "Producto eliminado correctamente", type: "danger" });
     } catch (error) {
       console.error(error);
       alert(
         `Error al eliminar: ${error instanceof Error ? error.message : "Error desconocido"}`,
       );
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -204,6 +221,19 @@ export default function MenuTab({ id }: { id: string }) {
             key={selectedProduct?.id || "new"}
             storeId={id}
             product={selectedProduct}
+            onSuccess={(action) =>
+              setToast(
+                action === "created"
+                  ? {
+                      message: "Producto agregado correctamente",
+                      type: "success",
+                    }
+                  : {
+                      message: "Producto editado correctamente",
+                      type: "info",
+                    },
+              )
+            }
             onClose={() => {
               setOpen(false);
               setSelectedProduct(null);
@@ -248,7 +278,21 @@ export default function MenuTab({ id }: { id: string }) {
                   </div>
                   {/* <img src={product.image_url} alt={product.name} /> */}
                 </td>
-                <td>{product.name}</td>
+                <td>
+                  <div className={styles.nameCell}>
+                    {product.name}
+
+                    {product.isBestSeller && (
+                      <span
+                        className={styles.badgeFeatured}
+                        title={`Top 3 en ventas: ${product.unitsSold} unidades en los ultimos 30 dias`}
+                      >
+                        <FontAwesomeIcon icon={faCircleCheck} />
+                        Destacado
+                      </span>
+                    )}
+                  </div>
+                </td>
 
                 <td>{product.categoryName}</td>
 
@@ -266,16 +310,14 @@ export default function MenuTab({ id }: { id: string }) {
                   </span>
                 </td>
 
-                <td>-</td>
+                <td>{product.unitsSold > 0 ? product.unitsSold : "-"}</td>
                 <td>{product.productCode}</td>
 
                 <td className={styles.actions}>
                   <button onClick={() => editProduct(product)}>
                     <FontAwesomeIcon icon={faEdit} color="#da6614" />
                   </button>
-                  <button
-                    onClick={() => deleteProduct(product.id, product.storeId)}
-                  >
+                  <button onClick={() => setProductToDelete(product)}>
                     <FontAwesomeIcon icon={faTrash} color="#c12424" />
                   </button>
 
@@ -287,6 +329,32 @@ export default function MenuTab({ id }: { id: string }) {
             ))}
           </tbody>
         </table>
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+
+        <ConfirmDialog
+          isOpen={productToDelete !== null}
+          title="Eliminar producto"
+          message={
+            <>
+              ¿Seguro que deseas eliminar{" "}
+              <strong>{productToDelete?.name}</strong>{" "}
+              del menu?
+            </>
+          }
+          note="El producto dejara de aparecer en la tienda y en la app."
+          confirmLabel="Si, eliminar"
+          cancelLabel="Cancelar"
+          loading={deleting}
+          onConfirm={deleteProduct}
+          onCancel={() => setProductToDelete(null)}
+        />
+
         <SidePanel
           open={openPanel}
           title="Gestionar producto"

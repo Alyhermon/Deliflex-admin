@@ -1,6 +1,7 @@
 "use client";
 
 import Sidebar from "./sidebar";
+import Footer from "./footer";
 import { ReactNode } from "react";
 import styles from "./layout.module.css";
 
@@ -14,7 +15,9 @@ export default function AdminLayout({ children }: Props) {
       <Sidebar />
 
       <div className={styles.content}>
-        {children}
+        <main className={styles.main}>{children}</main>
+
+        <Footer />
       </div>
     </div>
   );

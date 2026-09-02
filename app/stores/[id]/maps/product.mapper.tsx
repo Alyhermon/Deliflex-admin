@@ -15,6 +15,8 @@ type ProductApi = {
   is_available: boolean;
   product_code: string;
   is_featured: boolean;
+  units_sold: number;
+  is_best_seller: boolean;
 };
 
 export const mapProductFromApi = (product: ProductApi): Product => ({
@@ -32,6 +34,8 @@ export const mapProductFromApi = (product: ProductApi): Product => ({
   isAvailable: product.is_available,
   productCode: product.product_code,
   isFeatured: product.is_featured,
+  unitsSold: Number(product.units_sold ?? 0),
+  isBestSeller: Boolean(product.is_best_seller),
 
   categoryName:
     product.category_name,

@@ -357,6 +357,28 @@
   font-size: 20px;
 }
 
+/* Nombre del producto + su etiqueta de destacado */
+.nameCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badgeFeatured {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
 .badgeActive {
   display: inline-flex;
   align-items: center;

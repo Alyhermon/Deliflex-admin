@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "deliflex-admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "deliflex-backend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "C:/Users/Alina/Desktop/ES76BA~1/Deliflex/backend",
+        "run",
+        "start:dev"
+      ],
+      "port": 3001
+    }
+  ]
+}

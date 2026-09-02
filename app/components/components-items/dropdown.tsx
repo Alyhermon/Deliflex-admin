@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./dropdown.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleDown, faAngleUp } from "@fortawesome/free-solid-svg-icons";
@@ -10,6 +10,8 @@ type Props = {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  error?: string;
+  fullWidth?: boolean;
 };
 
 export default function Dropdown({
@@ -17,8 +19,34 @@ export default function Dropdown({
   value,
   onChange,
   placeholder = "Selecciona una opción",
+  error,
+  fullWidth = false,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Clic fuera (o Escape) cierra la lista.
+  useEffect(() => {
+    if (!open) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   const handleSelect = (option: string) => {
     onChange(option);
@@ -26,9 +54,12 @@ export default function Dropdown({
   };
 
   return (
-    <div className={styles.container}>
+    <div
+      ref={containerRef}
+      className={`${styles.container} ${fullWidth ? styles.fullWidth : ""}`}
+    >
       <div
-        className={styles.select}
+        className={`${styles.select} ${error ? styles.selectError : ""}`}
         onClick={() => setOpen(!open)}
       >
         {value || placeholder}
@@ -50,6 +81,8 @@ export default function Dropdown({
           ))}
         </div>
       )}
+
+      {error && <span className={styles.errorText}>{error}</span>}
     </div>
   );
 }

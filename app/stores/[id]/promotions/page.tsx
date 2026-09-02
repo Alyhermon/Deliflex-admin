@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./promotion.module.css";
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import Breadcrumb from "../../../components/components-items/breadcrumb/breadcrumb";
 import AdminLayout from "../../../components/layout/adminLayout";
 import Dropdown from "../../../components/components-items/dropdown";
@@ -11,12 +11,37 @@ import TimePicker from "@/app/components/components-items/timepicker";
 export default function StoreDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const [type, setType] = useState("discount");
   const [promotionType, setPromotionType] = useState("");
-  // const [store, setStore] = useState(null);
-  const { id } = params;
+  // En Next 16 los params llegan como promesa: destructurarlos directo dejaba
+  // el id en undefined y el breadcrumb apuntaba a /stores/undefined.
+  const { id } = use(params);
+  const [storeName, setStoreName] = useState("Negocio");
+
+  useEffect(() => {
+    const loadStore = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:3001/register-business/${id}`,
+        );
+
+        const data = await res.json();
+        const stores = Array.isArray(data) ? data : data.data || [];
+
+        const foundStore = stores.find(
+          (store: { id: string }) => store.id === id,
+        );
+
+        if (foundStore) setStoreName(foundStore.name);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    if (id) loadStore();
+  }, [id]);
 
   const options = ["Todos los productos", "Pizzas", "Bebidas", "Postres"];
 
@@ -26,7 +51,7 @@ export default function StoreDetailPage({
         <Breadcrumb
           items={[
             { label: "Tiendas", href: "/stores" },
-            { label: "Cocorao", href: `/stores/${id}` },
+            { label: storeName, href: `/stores/${id}` },
             { label: "Promociones" },
           ]}
         />

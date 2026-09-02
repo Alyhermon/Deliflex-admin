@@ -6,6 +6,8 @@ import Metric from "../resume/metric/page";
 import SmallCard from "../resume/small-card/page";
 import Product from "../resume/product/page";
 import { useEffect, useState } from "react";
+import { Product as ProductType } from "@/app/types/products";
+import { mapProductFromApi } from "../../maps/product.mapper";
 
 export default function ResumeTab({ id }: { id: string }) {
   const router = useRouter();
@@ -20,6 +22,8 @@ export default function ResumeTab({ id }: { id: string }) {
     status?: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [topProducts, setTopProducts] = useState<ProductType[]>([]);
+  const [activePromotions, setActivePromotions] = useState(0);
 useEffect(() => {
   if (!id) return;
 
@@ -84,6 +88,58 @@ useEffect(() => {
   loadCount();
 }, [id]);
 
+useEffect(() => {
+  if (!id) return;
+
+  const loadPromotions = async () => {
+    try {
+      const res = await fetch(`http://localhost:3001/promotions/count/${id}`);
+      const data = await res.json();
+
+      setActivePromotions(data.total ?? 0);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  loadPromotions();
+}, [id]);
+
+// Top productos: primero los destacados (top 3 en ventas) y el resto
+// por unidades vendidas. Solo los 10 primeros.
+useEffect(() => {
+  if (!id) return;
+
+  const loadTopProducts = async () => {
+    try {
+      const res = await fetch(`http://localhost:3001/products/store/${id}`);
+      const data = await res.json();
+      const products = Array.isArray(data) ? data : data.data || [];
+
+      const ordenados = products
+        .map(mapProductFromApi)
+        .sort((a: ProductType, b: ProductType) => {
+          if (a.isBestSeller !== b.isBestSeller) {
+            return a.isBestSeller ? -1 : 1;
+          }
+
+          if (b.unitsSold !== a.unitsSold) {
+            return b.unitsSold - a.unitsSold;
+          }
+
+          return a.name.localeCompare(b.name);
+        })
+        .slice(0, 10);
+
+      setTopProducts(ordenados);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  loadTopProducts();
+}, [id]);
+
 
 //   if (loading) return <p>Cargando...</p>;
 //   if (!store) return <p>No encontrado</p>;
@@ -137,15 +193,32 @@ useEffect(() => {
 
         <div className={styles.cards}>
           <SmallCard title="Menú" value={`${totalProducts} productos`} />
-          <SmallCard title="Promociones" value="2 activas" />
+          <SmallCard
+            title="Promociones"
+            value={
+              activePromotions === 1
+                ? "1 activa"
+                : `${activePromotions} activas`
+            }
+          />
           <SmallCard title="Horario" value="9am - 11pm" />
         </div>
 
         <div className={styles.products}>
           <span className={styles.top}>Top productos</span>
 
-          <Product name="Hamburguesa Clásica" price="$324K" />
-          <Product name="Papas DeliFlex" price="$112K" />
+          {topProducts.length === 0 ? (
+            <p className={styles.empty}>Todavia no hay productos que mostrar.</p>
+          ) : (
+            topProducts.map((product) => (
+              <Product
+                key={product.id}
+                name={product.name}
+                value={`$${product.price.toLocaleString("es-DO")}`}
+                featured={product.isBestSeller}
+              />
+            ))
+          )}
         </div>
       </div>
   );

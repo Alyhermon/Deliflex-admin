@@ -23,16 +23,25 @@ type Category = {
   name: string;
 };
 
+type FormErrors = {
+  category?: string;
+  productCode?: string;
+  price?: string;
+};
+
 export default function ProductForm({
   storeId,
   product,
   onClose,
+  onSuccess,
 }: {
   storeId?: string;
   product?: Product | null;
   onClose?: () => void;
+  onSuccess?: (action: "created" | "updated") => void;
 }) {
   const [categoryName, setCategoryName] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
   const [categories, setCategories] = useState<Category[]>([]);
   const [active, setActive] = useState<boolean>(true);
   const [open, setOpen] = useState(false);
@@ -132,8 +141,25 @@ export default function ProductForm({
 
   const handleSubmit = async () => {
     try {
+      const nextErrors: FormErrors = {};
+
       if (!form.categoryId) {
-        alert("Debes seleccionar una categoría");
+        nextErrors.category = "La categoria es obligatoria";
+      }
+
+      if (!form.product_code.trim()) {
+        nextErrors.productCode = "El SKU es obligatorio";
+      }
+
+      if (!form.price) {
+        nextErrors.price = "El precio es obligatorio";
+      } else if (Number(form.price) <= 0) {
+        nextErrors.price = "El precio debe ser mayor que 0";
+      }
+
+      setErrors(nextErrors);
+
+      if (Object.keys(nextErrors).length > 0) {
         return;
       }
 
@@ -144,11 +170,11 @@ export default function ProductForm({
       if (isEditMode && product) {
         result = await updateProduct(product.id, payload);
         console.log("Producto actualizado:", result);
-        alert("Producto actualizado correctamente ✏️");
+        onSuccess?.("updated");
       } else {
         result = await createProduct(payload);
         console.log("Producto creado:", result);
-        alert("Producto creado correctamente ✅");
+        onSuccess?.("created");
       }
 
       if (!isEditMode) {
@@ -200,6 +226,8 @@ export default function ProductForm({
         />
 
         <DFDropdown
+          fullWidth
+          error={errors.category}
           options={categories?.map((c) => c.name)}
           value={categoryName}
           onChange={(value) => {
@@ -211,6 +239,7 @@ export default function ProductForm({
             }
 
             setCategoryName(value);
+            setErrors((prev) => ({ ...prev, category: undefined }));
             handleChange("categoryId", selected.id);
           }}
           placeholder="Selecciona categoría"
@@ -219,8 +248,12 @@ export default function ProductForm({
         <div className={styles.row}>
           <DFInput
             placeholder="SKU"
+            error={errors.productCode}
             value={form.product_code}
-            onChange={(e) => handleChange("product_code", e.target.value)}
+            onChange={(e) => {
+              setErrors((prev) => ({ ...prev, productCode: undefined }));
+              handleChange("product_code", e.target.value);
+            }}
           />
         </div>
 
@@ -230,8 +263,12 @@ export default function ProductForm({
           <DFInput
             type="number"
             placeholder="Precio venta"
+            error={errors.price}
             value={form.price || ""}
-            onChange={(e) => handleChange("price", Number(e.target.value))}
+            onChange={(e) => {
+              setErrors((prev) => ({ ...prev, price: undefined }));
+              handleChange("price", Number(e.target.value));
+            }}
           />
         </div>
       </div>
@@ -244,6 +281,7 @@ export default function ProductForm({
         <h3>Información adicional</h3>
 
         <DFDropdown
+          fullWidth
           options={["Activo", "Inactivo"]}
           value={form.status ? "Activo" : "Inactivo"}
           onChange={(value) => {

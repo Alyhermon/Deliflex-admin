@@ -16,6 +16,8 @@ export type Product = {
   categoryName: string;
   displayOrder: number;
   isFeatured: boolean;
+  unitsSold: number;
+  isBestSeller: boolean;
 };
 
 export type CreateProduct = {

@@ -42,7 +42,15 @@ export default function StoresPage() {
   const { user, loading: authLoading } = useAuth();
 
 useEffect(() => {
-  if (!user) return;
+  // Esperamos a que /api/auth/me responda antes de decidir nada.
+  if (authLoading) return;
+
+  // Sin sesion valida no hay nada que cargar: al login, sin dejar el spinner colgado.
+  if (!user) {
+    setLoading(false);
+    router.replace("/core/login");
+    return;
+  }
 
   console.log("USER:", user);        // ← ¿llega el usuario?
   console.log("USER ID:", user.id);  // ← ¿tiene id?
@@ -65,7 +73,7 @@ useEffect(() => {
   };
 
   loadStores();
-}, [user]);
+}, [user, authLoading, router]);
 
   // useEffect(() => {
   //   const loadStores = async () => {
