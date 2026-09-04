@@ -1011,25 +1011,27 @@ export default function StoreInventoryPage({
                 Todavía no hay movimientos para este ingrediente.
               </p>
             ) : (
-              movements.map((m) => (
-                <div key={m.id} className={styles.historyItem}>
-                  <div>
-                    <div
-                      className={
-                        m.type === "IN" ? styles.movementIn : styles.movementOut
-                      }
-                    >
-                      {m.type === "IN" ? "+" : "-"}
-                      {Number(m.quantity)} {detailIngredient.unit}
-                      {m.note ? ` · ${m.note}` : ""}
-                    </div>
-                    <div className={styles.historyMeta}>
-                      {fechaHora(m.created_at)}
-                      {m.created_by_name ? ` · ${m.created_by_name}` : ""}
+              <div className={styles.historyList}>
+                {movements.map((m) => (
+                  <div key={m.id} className={styles.historyItem}>
+                    <div>
+                      <div
+                        className={
+                          m.type === "IN" ? styles.movementIn : styles.movementOut
+                        }
+                      >
+                        {m.type === "IN" ? "+" : "-"}
+                        {Number(m.quantity)} {detailIngredient.unit}
+                        {m.note ? ` · ${m.note}` : ""}
+                      </div>
+                      <div className={styles.historyMeta}>
+                        {fechaHora(m.created_at)}
+                        {m.created_by_name ? ` · ${m.created_by_name}` : ""}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         )}

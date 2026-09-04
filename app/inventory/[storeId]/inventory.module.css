@@ -587,6 +587,11 @@
 }
 
 /* ---- Historial de movimientos ---- */
+.historyList {
+  max-height: 480px;
+  overflow-y: auto;
+}
+
 .historyItem {
   display: flex;
   justify-content: space-between;
