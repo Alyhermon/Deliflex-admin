@@ -907,17 +907,19 @@ export default function StoreInventoryPage({
         <div className={styles.form}>
           <div className={styles.field}>
             <label className={styles.label}>Ingrediente</label>
-            <DFDropdown
-              fullWidth
-              options={ingredients.map((i) => i.name)}
-              value={
-                ingredients.find((i) => i.id === movementIngredientId)?.name ?? ""
-              }
-              onChange={(nombre) => {
-                const ing = ingredients.find((i) => i.name === nombre);
-                if (ing) setMovementIngredientId(ing.id);
-              }}
-            />
+            <div className={styles.ingredientPicker}>
+              <DFDropdown
+                fullWidth
+                options={ingredients.map((i) => i.name)}
+                value={
+                  ingredients.find((i) => i.id === movementIngredientId)?.name ?? ""
+                }
+                onChange={(nombre) => {
+                  const ing = ingredients.find((i) => i.name === nombre);
+                  if (ing) setMovementIngredientId(ing.id);
+                }}
+              />
+            </div>
           </div>
 
           <div className={styles.typeToggle}>

@@ -513,6 +513,15 @@
   color: #ff4d4f;
 }
 
+/* El selector de ingrediente comparte el componente Dropdown global, cuyo
+   popup trae su propio limite de 180px (~4 opciones). Aqui necesitamos que
+   quepan 8 antes de scrollear, asi que se pisa solo para este selector,
+   apuntando al segundo hijo (el popup) por estructura, no por su clase
+   (viene hasheada por CSS Modules del otro archivo). */
+.ingredientPicker > div > div:nth-child(2) {
+  max-height: 384px;
+}
+
 .typeToggle {
   display: flex;
   gap: 8px;
