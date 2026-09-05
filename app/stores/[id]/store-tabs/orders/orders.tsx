@@ -44,18 +44,23 @@ type OrderDetail = Order & {
 
 type Summary = {
   pending: number;
+  accepted: number;
   preparing: number;
-  ready: number;
+  readyForPickup: number;
+  onTheWay: number;
   delivered: number;
   cancelled: number;
 };
 
-// Mismo ciclo que reconoce el backend (ORDER_STATUSES). "css" es la clase
-// en order.module.css para el badge de cada estado.
+// Mismo ciclo que reconoce el backend (ORDER_STATUSES, que a su vez refleja
+// el CHECK constraint real de la tabla orders). "css" es la clase en
+// order.module.css para el badge de cada estado.
 const ESTADO_META: Record<string, { label: string; css: string }> = {
   PENDING: { label: "Pendiente", css: "pending" },
+  ACCEPTED: { label: "Aceptado", css: "accepted" },
   PREPARING: { label: "En preparación", css: "preparing" },
-  READY: { label: "Listo", css: "ready" },
+  READY_FOR_PICKUP: { label: "Listo para retirar", css: "ready" },
+  ON_THE_WAY: { label: "En camino", css: "onTheWay" },
   DELIVERED: { label: "Entregado", css: "delivered" },
   CANCELLED: { label: "Cancelado", css: "cancelled" },
 };
@@ -65,7 +70,10 @@ const TIPO_META: Record<string, string> = {
   PICKUP: "Retiro en tienda",
 };
 
-const ESTADO_FILTROS = Object.values(ESTADO_META).map((m) => m.label);
+const TODOS_ESTADOS = "Todos los estados";
+const TODOS_TIPOS = "Todos los tipos";
+
+const ESTADO_FILTROS = [TODOS_ESTADOS, ...Object.values(ESTADO_META).map((m) => m.label)];
 
 const fechaHora = (iso: string) =>
   new Date(iso).toLocaleString("es-DO", {
@@ -82,8 +90,10 @@ export default function OrdersTab({ id }: { id: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [summary, setSummary] = useState<Summary>({
     pending: 0,
+    accepted: 0,
     preparing: 0,
-    ready: 0,
+    readyForPickup: 0,
+    onTheWay: 0,
     delivered: 0,
     cancelled: 0,
   });
@@ -190,9 +200,10 @@ export default function OrdersTab({ id }: { id: string }) {
 
   // Solo se ofrecen los tipos que de verdad existen en este negocio, para
   // no mostrar un filtro que nunca va a devolver nada.
-  const tiposDisponibles = Array.from(
-    new Set(orders.map((o) => TIPO_META[o.order_type] ?? o.order_type)),
-  );
+  const tiposFiltros = [
+    TODOS_TIPOS,
+    ...Array.from(new Set(orders.map((o) => TIPO_META[o.order_type] ?? o.order_type))),
+  ];
 
   const cambiarEstado = async (nuevoEstado: string) => {
     if (!detail) return;
@@ -244,13 +255,17 @@ export default function OrdersTab({ id }: { id: string }) {
           </div>
 
           <div className={`${styles.statCard} ${styles.blue}`}>
-            <span className={styles.statValue}>{summary.preparing}</span>
+            <span className={styles.statValue}>
+              {summary.accepted + summary.preparing}
+            </span>
             <span className={styles.statLabel}>En preparación</span>
           </div>
 
           <div className={`${styles.statCard} ${styles.green}`}>
-            <span className={styles.statValue}>{summary.ready}</span>
-            <span className={styles.statLabel}>Listos</span>
+            <span className={styles.statValue}>
+              {summary.readyForPickup + summary.onTheWay}
+            </span>
+            <span className={styles.statLabel}>Listos / en camino</span>
           </div>
 
           <div className={`${styles.statCard} ${styles.gray}`}>
@@ -272,16 +287,16 @@ export default function OrdersTab({ id }: { id: string }) {
 
         <Dropdown
           options={ESTADO_FILTROS}
-          value={statusFilter}
-          onChange={setStatusFilter}
-          placeholder="Estado: Todos"
+          value={statusFilter || TODOS_ESTADOS}
+          onChange={(v) => setStatusFilter(v === TODOS_ESTADOS ? "" : v)}
+          placeholder="Estado"
         />
 
         <Dropdown
-          options={tiposDisponibles}
-          value={typeFilter}
-          onChange={setTypeFilter}
-          placeholder="Tipo: Todos"
+          options={tiposFiltros}
+          value={typeFilter || TODOS_TIPOS}
+          onChange={(v) => setTypeFilter(v === TODOS_TIPOS ? "" : v)}
+          placeholder="Tipo"
         />
       </div>
 
@@ -417,9 +432,28 @@ export default function OrdersTab({ id }: { id: string }) {
                       <button
                         className={styles.warningButton}
                         disabled={updating}
-                        onClick={() => cambiarEstado("PREPARING")}
+                        onClick={() => cambiarEstado("ACCEPTED")}
                       >
                         Aceptar
+                      </button>
+                    </>
+                  )}
+
+                  {detail.status === "ACCEPTED" && (
+                    <>
+                      <button
+                        className={styles.dangerButton}
+                        disabled={updating}
+                        onClick={() => cambiarEstado("CANCELLED")}
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        className={styles.primaryButton}
+                        disabled={updating}
+                        onClick={() => cambiarEstado("PREPARING")}
+                      >
+                        Empezar a preparar
                       </button>
                     </>
                   )}
@@ -436,16 +470,26 @@ export default function OrdersTab({ id }: { id: string }) {
                       <button
                         className={styles.successButton}
                         disabled={updating}
-                        onClick={() => cambiarEstado("READY")}
+                        onClick={() => cambiarEstado("READY_FOR_PICKUP")}
                       >
                         Marcar listo
                       </button>
                     </>
                   )}
 
-                  {detail.status === "READY" && (
+                  {detail.status === "READY_FOR_PICKUP" && (
                     <button
                       className={styles.primaryButton}
+                      disabled={updating}
+                      onClick={() => cambiarEstado("ON_THE_WAY")}
+                    >
+                      Salió en camino
+                    </button>
+                  )}
+
+                  {detail.status === "ON_THE_WAY" && (
+                    <button
+                      className={styles.successButton}
                       disabled={updating}
                       onClick={() => cambiarEstado("DELIVERED")}
                     >

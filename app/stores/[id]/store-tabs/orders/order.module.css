@@ -214,6 +214,16 @@
   color: #ff7a00;
 }
 
+.accepted {
+  background: #fff9db;
+  color: #b8860b;
+}
+
+.onTheWay {
+  background: #f3ecff;
+  color: #7c3aed;
+}
+
 .preparing {
   background: #edf4ff;
   color: #2f7cf6;
