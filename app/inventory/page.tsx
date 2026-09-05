@@ -8,6 +8,7 @@ import { useAuth } from "../hooks/useAuth";
 import styles from "./picker.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight, faBoxOpen } from "@fortawesome/free-solid-svg-icons";
+import { SkeletonCardGrid } from "../components/components-items/skeleton/skeleton";
 
 type Store = {
   id: string;
@@ -37,7 +38,7 @@ export default function InventoryPickerPage() {
 
     const url = esSuperAdmin
       ? "http://localhost:3001/register-business/all"
-      : `http://localhost:3001/register-business/owner/${user.id}`;
+      : `http://localhost:3001/register-business/accessible/${user.id}`;
 
     const cargar = async () => {
       try {
@@ -64,7 +65,7 @@ export default function InventoryPickerPage() {
         </div>
 
         {loading ? (
-          <p className={styles.cargando}>Cargando negocios...</p>
+          <SkeletonCardGrid count={3} />
         ) : stores.length === 0 ? (
           <div className={styles.empty}>
             <FontAwesomeIcon icon={faBoxOpen} size="2x" />

@@ -9,6 +9,10 @@ import DFDropdown from "../../components/components-items/dropdown";
 import Modal from "../../components/components/modal/modal";
 import ConfirmDialog from "../../components/components/modal/confirm-dialog";
 import Toast from "../../components/components-items/toast/toast";
+import {
+  SkeletonStatCards,
+  SkeletonTableRows,
+} from "../../components/components-items/skeleton/skeleton";
 import styles from "./inventory.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -526,6 +530,9 @@ export default function StoreInventoryPage({
           <p>Administra y controla el inventario de {storeName} en tiempo real.</p>
         </div>
 
+        {loading ? (
+          <SkeletonStatCards count={4} />
+        ) : (
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
             <div>
@@ -573,6 +580,7 @@ export default function StoreInventoryPage({
             </span>
           </div>
         </div>
+        )}
 
         <div className={styles.filters}>
           <div className={styles.searchField}>
@@ -623,11 +631,7 @@ export default function StoreInventoryPage({
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={7} className={styles.emptyTable}>
-                    Cargando...
-                  </td>
-                </tr>
+                <SkeletonTableRows rows={4} columns={7} />
               ) : loadError ? (
                 <tr>
                   <td colSpan={7} className={styles.emptyTable}>
