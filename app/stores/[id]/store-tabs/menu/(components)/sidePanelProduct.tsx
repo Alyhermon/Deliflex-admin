@@ -27,6 +27,8 @@ import {
   faCheese
 } from "@fortawesome/free-solid-svg-icons";
 import { Product} from "@/app/types/products";
+import DFCheckbox from "@/app/components/components-items/checkbox/checkbox";
+import { useState } from "react";
 
 const iconMap: Record<string, IconDefinition> = {
   coffee: faCoffee,
@@ -54,6 +56,11 @@ export default function ProductManagementPanel({
 }: {
   product?: Product | null;
 }) {
+  // Antes eran checkbox nativos con defaultChecked: no guardaban nada.
+  // Siguen sin persistir, pero al menos ya tienen estado propio.
+  const [disponible, setDisponible] = useState(product?.isAvailable ?? true);
+  const [permiteNotas, setPermiteNotas] = useState(true);
+
   return (
     <div className={styles.container}>  
       <div className={styles.productInfo}>
@@ -182,7 +189,10 @@ export default function ProductManagementPanel({
               <span>El producto estará visible en el menú</span>
             </div>
 
-            <input type="checkbox" defaultChecked />
+            <DFCheckbox
+              checked={disponible}
+              onChange={setDisponible}
+            />
           </div>
 
           <div className={styles.switchRow}>
@@ -191,7 +201,10 @@ export default function ProductManagementPanel({
               <span>El cliente podrá agregar notas</span>
             </div>
 
-            <input type="checkbox" defaultChecked />
+            <DFCheckbox
+              checked={permiteNotas}
+              onChange={setPermiteNotas}
+            />
           </div>
         </div>
       </section>
