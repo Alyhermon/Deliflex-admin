@@ -18,6 +18,7 @@ export type Product = {
   isFeatured: boolean;
   unitsSold: number;
   isBestSeller: boolean;
+  createdAt: string;
 };
 
 export type CreateProduct = {

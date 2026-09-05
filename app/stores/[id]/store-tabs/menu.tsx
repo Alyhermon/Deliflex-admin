@@ -40,6 +40,38 @@ import Toast from "@/app/components/components-items/toast/toast";
 import SidePanel from "@/app/components/components/side-panel/side-panel";
 import ProductManagementPanel from "@/app/stores/[id]/store-tabs/menu/(components)/sidePanelProduct"
 
+// El primero es el orden por defecto: lo mas vendido va arriba.
+const ORDEN_OPCIONES = [
+  "Más vendidos",
+  "Menos vendidos",
+  "Agregados recientemente",
+  "Precio: mayor a menor",
+  "Precio: menor a mayor",
+  "Nombre (A-Z)",
+];
+
+const ordenarProductos = (lista: Product[], orden: string): Product[] => {
+  const copia = [...lista];
+
+  switch (orden) {
+    case "Menos vendidos":
+      return copia.sort((a, b) => a.unitsSold - b.unitsSold);
+    case "Agregados recientemente":
+      return copia.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+    case "Precio: mayor a menor":
+      return copia.sort((a, b) => Number(b.price) - Number(a.price));
+    case "Precio: menor a mayor":
+      return copia.sort((a, b) => Number(a.price) - Number(b.price));
+    case "Nombre (A-Z)":
+      return copia.sort((a, b) => a.name.localeCompare(b.name));
+    case "Más vendidos":
+    default:
+      return copia.sort((a, b) => b.unitsSold - a.unitsSold);
+  }
+};
+
 const iconMap: Record<string, IconDefinition> = {
   coffee: faCoffee,
   burger: faBurger,
@@ -69,6 +101,7 @@ export default function MenuTab({ id }: { id: string }) {
   const options = ["Todas", "Hamburguesas", "Bebidas", "Postres"];
   const [status, setStatus] = useState("");
   const optionsStatus = ["Todos", "Abiertos", "Cerrados"];
+  const [orden, setOrden] = useState(ORDEN_OPCIONES[0]);
   const [open, setOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
@@ -131,6 +164,8 @@ export default function MenuTab({ id }: { id: string }) {
     }
     return true;
   });
+
+  const productosOrdenados = ordenarProductos(filteredProducts, orden);
 
   // La confirmacion la pide ConfirmDialog; aqui solo se ejecuta el borrado.
   const deleteProduct = async () => {
@@ -204,6 +239,13 @@ export default function MenuTab({ id }: { id: string }) {
           placeholder="Selecciona estado"
         />
 
+        <Dropdown
+          options={ORDEN_OPCIONES}
+          value={orden}
+          onChange={setOrden}
+          placeholder="Ordenar por"
+        />
+
         <button className={styles.addBtn} onClick={() => setOpen(true)}>
           + Agregar menu
         </button>
@@ -259,7 +301,7 @@ export default function MenuTab({ id }: { id: string }) {
           </thead>
 
           <tbody>
-            {filteredProducts.map((product, index) => (
+            {productosOrdenados.map((product, index) => (
               <tr key={`${product.id}-${index}`}>
                 <td className={styles.productCell}>
                   <div className={styles.img}>
