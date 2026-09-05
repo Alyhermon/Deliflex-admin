@@ -11,6 +11,7 @@ import ResumeTab from "./store-tabs/resume/resume";
 import MenuTab from "./store-tabs/menu";
 import OrderTab from "./store-tabs/orders/orders";
 import StatisticsTab from "./store-tabs/stadistics/statistics";
+import { isStoreOpenNow, ScheduleRow } from "./schedule-utils";
 
 type TabKey = "resumen" | "menu" | "pedidos" | "estadisticas";
 
@@ -29,6 +30,10 @@ export default function StoreDetailPage({ id }: { id: string }) {
 
   const [activeTab, setActiveTab] = useState<TabKey>("resumen");
   const [loading, setLoading] = useState(true);
+  // null = todavia no se sabe / sin horarios guardados -> se usa store.status.
+  const [abiertoPorHorario, setAbiertoPorHorario] = useState<boolean | null>(
+    null,
+  );
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: "resumen", label: "Resumen" },
@@ -62,6 +67,30 @@ export default function StoreDetailPage({ id }: { id: string }) {
     if (id) loadStore();
   }, [id]);
 
+  // El "Abierto"/"Cerrado" de la cabecera depende del horario real,
+  // no del estado de aprobacion de la tienda (PENDING_APPROVAL/ACTIVE/etc).
+  useEffect(() => {
+    if (!id) return;
+
+    const loadSchedule = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:3001/register-business/edit/${id}`,
+        );
+        const data = await res.json();
+        const schedules: ScheduleRow[] = Array.isArray(data.schedules)
+          ? data.schedules
+          : [];
+
+        setAbiertoPorHorario(isStoreOpenNow(schedules));
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    loadSchedule();
+  }, [id]);
+
   if (loading) return <p>Cargando...</p>;
   if (!store) return <p>No encontrado</p>;
 
@@ -91,8 +120,16 @@ export default function StoreDetailPage({ id }: { id: string }) {
               <div className={styles.topRow}>
                 <h1 className={styles.title}>{store.name}</h1>
 
-                <span className={styles.status}>
-                  {store.status === "ACTIVE" ? "Abierto" : "Cerrado"}
+                <span
+                  className={`${styles.status} ${
+                    (abiertoPorHorario ?? store.status === "ACTIVE")
+                      ? ""
+                      : styles.statusClosed
+                  }`}
+                >
+                  {(abiertoPorHorario ?? store.status === "ACTIVE")
+                    ? "Abierto"
+                    : "Cerrado"}
                 </span>
               </div>
 
@@ -105,7 +142,10 @@ export default function StoreDetailPage({ id }: { id: string }) {
           </div>
 
           <div className={styles.actions}>
-            <span className={styles.editButton}>
+            <span
+              className={styles.editButton}
+              onClick={() => router.push(`/stores/${id}/edit`)}
+            >
               <FontAwesomeIcon icon={faEdit} color="#ffffff" />
               Editar negocio
             </span>

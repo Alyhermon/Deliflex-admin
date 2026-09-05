@@ -8,6 +8,7 @@ import Product from "../resume/product/page";
 import { useEffect, useState } from "react";
 import { Product as ProductType } from "@/app/types/products";
 import { mapProductFromApi } from "../../maps/product.mapper";
+import { formatScheduleRanges, ScheduleRow } from "../../schedule-utils";
 
 export default function ResumeTab({ id }: { id: string }) {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function ResumeTab({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [topProducts, setTopProducts] = useState<ProductType[]>([]);
   const [activePromotions, setActivePromotions] = useState(0);
+  const [horarioTexto, setHorarioTexto] = useState<string | null>(null);
 useEffect(() => {
   if (!id) return;
 
@@ -86,6 +88,26 @@ useEffect(() => {
   };
 
   loadCount();
+}, [id]);
+
+useEffect(() => {
+  if (!id) return;
+
+  const loadSchedule = async () => {
+    try {
+      const res = await fetch(`http://localhost:3001/register-business/edit/${id}`);
+      const data = await res.json();
+      const schedules: ScheduleRow[] = Array.isArray(data.schedules)
+        ? data.schedules
+        : [];
+
+      setHorarioTexto(formatScheduleRanges(schedules));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  loadSchedule();
 }, [id]);
 
 useEffect(() => {
@@ -201,7 +223,10 @@ useEffect(() => {
                 : `${activePromotions} activas`
             }
           />
-          <SmallCard title="Horario" value="9am - 11pm" />
+          <SmallCard
+            title="Horario"
+            value={horarioTexto ?? "Sin horario configurado"}
+          />
         </div>
 
         <div className={styles.products}>

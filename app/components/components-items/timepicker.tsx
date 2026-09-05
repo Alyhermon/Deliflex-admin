@@ -6,16 +6,44 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock } from "@fortawesome/free-solid-svg-icons";
 
 interface TimePickerProps {
+  /** Hora en formato "10:30 AM". Si se pasa, el componente la refleja. */
+  value?: string;
   onChange?: (time: string) => void;
 }
 
-export default function TimePicker({ onChange }: TimePickerProps) {
+// "10:30 AM" -> { hour: 10, minute: 30, period: "AM" }
+const leerHora = (valor?: string) => {
+  const match = valor?.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+
+  if (!match) return null;
+
+  return {
+    hour: Number(match[1]),
+    minute: Number(match[2]),
+    period: match[3].toUpperCase() as "AM" | "PM",
+  };
+};
+
+export default function TimePicker({ value, onChange }: TimePickerProps) {
+  const inicial = leerHora(value);
+
   const [isOpen, setIsOpen] = useState(false);
-  const [hour, setHour] = useState(10);
-  const [minute, setMinute] = useState(0);
-  const [period, setPeriod] = useState<"AM" | "PM">("AM");
+  const [hour, setHour] = useState(inicial?.hour ?? 10);
+  const [minute, setMinute] = useState(inicial?.minute ?? 0);
+  const [period, setPeriod] = useState<"AM" | "PM">(inicial?.period ?? "AM");
 
   const ref = useRef<HTMLDivElement>(null);
+
+  // Si el valor cambia desde fuera, el componente se sincroniza.
+  useEffect(() => {
+    const leido = leerHora(value);
+
+    if (!leido) return;
+
+    setHour(leido.hour);
+    setMinute(leido.minute);
+    setPeriod(leido.period);
+  }, [value]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

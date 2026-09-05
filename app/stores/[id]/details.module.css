@@ -66,6 +66,11 @@
     font-weight: 600;
 }
 
+.statusClosed {
+    background: #fde8e8;
+    color: #c53030;
+}
+
 .location {
     font-size: 14px;
     color: #777;

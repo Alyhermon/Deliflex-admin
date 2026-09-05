@@ -1,0 +1,264 @@
+.container {
+  padding: 4px 0 20px;
+  color: #000;
+}
+
+.header {
+  background: linear-gradient(90deg, #ff5a00, #ff7a00);
+  color: white;
+  border-radius: 12px;
+  margin: 20px 0;
+  padding: 17px 30px;
+}
+
+.header h1 {
+  margin: 0 0 4px;
+  font-size: 24px;
+}
+
+.header p {
+  margin: 0;
+  opacity: 0.92;
+  font-size: 14px;
+}
+
+.section {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.sectionHead h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.sectionIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff4ea;
+  color: #ff7a00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sectionDesc {
+  margin: 0 0 16px 40px;
+  font-size: 13px;
+  color: #8a8a8a;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.field {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 13px;
+  color: #555;
+  font-weight: 500;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 78px;
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: #ff7a00;
+  box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.12);
+}
+
+.inputError {
+  border-color: #ff4d4f !important;
+  box-shadow: 0 0 0 3px rgba(255, 77, 79, 0.12);
+}
+
+.errorText {
+  font-size: 12px;
+  color: #ff4d4f;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: #8a8a8a;
+}
+
+/* ---- Horarios ---- */
+.horarios {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.horarioRow {
+  display: grid;
+  grid-template-columns: 110px 130px 1fr 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f4f4f4;
+}
+
+.horarioRow:last-child {
+  border-bottom: none;
+}
+
+.dia {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cerrado {
+  font-size: 13px;
+  color: #9ca3af;
+  grid-column: 3 / span 2;
+}
+
+@media (max-width: 720px) {
+  .horarioRow {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dia {
+    grid-column: 1 / span 2;
+  }
+
+  .cerrado {
+    grid-column: 1 / span 2;
+  }
+}
+
+/* ---- Acciones ---- */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cancel {
+  padding: 12px 22px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  color: #4a4a4a;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.cancel:hover:not(:disabled) {
+  background: #f7f7f7;
+}
+
+.submit {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(90deg, #ff7a00, #ff5a00);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 122, 0, 0.28);
+}
+
+.submit:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.cancel:disabled,
+.submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.cargando {
+  padding: 40px;
+  text-align: center;
+  color: #8a8a8a;
+}
+
+/* ---- Datos de solo lectura ---- */
+.lockPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-left: 40px;
+}
+
+.dato,
+.datoAncho {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.datoAncho {
+  grid-column: 1 / -1;
+}
+
+.dato strong,
+.datoAncho strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f1f1f;
+  word-break: break-word;
+}
+
+@media (max-width: 720px) {
+  .datos {
+    margin-left: 0;
+  }
+}
