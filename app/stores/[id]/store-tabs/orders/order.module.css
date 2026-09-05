@@ -51,20 +51,29 @@
 
 .filters {
   display: flex;
+  align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
-.searchInput,
-.select {
-  height: 48px;
-  border-radius: 14px;
-  border: 1px solid #dcdcdc;
-  background: white;
-  padding: 0 16px;
-}
-
-.searchInput {
+.searchWrap {
   flex: 1;
+  min-width: 220px;
+}
+
+/* DFInput trae un margin-bottom pensado para formularios apilados; en una
+   barra de filtros en linea desalinea el input con los selects de al lado. */
+.searchWrap > div {
+  margin-bottom: 0;
+}
+
+.emptyState {
+  background: white;
+  border: 1px solid #ececec;
+  border-radius: 18px;
+  padding: 60px 20px;
+  text-align: center;
+  color: #9a9a9a;
 }
 
 .content {
@@ -142,6 +151,9 @@
 }
 
 .productRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
   padding: 10px 0;
 }
 
@@ -215,4 +227,15 @@
 .cancelled {
   background: #fff1f1;
   color: #e53935;
+}
+
+.delivered {
+  background: #f1f1f1;
+  color: #5a5a5a;
+}
+
+.finishedNote {
+  margin: 0;
+  color: #9a9a9a;
+  font-size: 13.5px;
 }

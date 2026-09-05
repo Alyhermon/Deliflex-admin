@@ -97,7 +97,7 @@ export default function StoreDetailPage({ id }: { id: string }) {
   const TAB_COMPONENTS: Record<TabKey, JSX.Element> = {
     resumen: <ResumeTab id={id} />,
     menu: <MenuTab id={id} />,
-    pedidos: <OrderTab />,
+    pedidos: <OrderTab id={id} />,
     estadisticas: <StatisticsTab />,
   };
 
