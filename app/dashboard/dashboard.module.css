@@ -1,0 +1,340 @@
+.container {
+  padding: 4px 0 20px;
+}
+
+/* ---- Cabecera ---- */
+.header {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(120deg, #ff7a00 0%, #ff5a00 60%, #ff3d00 100%);
+  color: white;
+  padding: 30px 32px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 12px 30px rgba(255, 90, 0, 0.28);
+}
+
+/* Brillo decorativo, puro CSS, sin imagenes */
+.header::before,
+.header::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  pointer-events: none;
+}
+
+.header::before {
+  width: 320px;
+  height: 320px;
+  top: -160px;
+  right: -60px;
+}
+
+.header::after {
+  width: 200px;
+  height: 200px;
+  bottom: -120px;
+  right: 140px;
+}
+
+.headerTop {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header h1 {
+  margin: 0 0 4px;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.header p {
+  margin: 0;
+  opacity: 0.94;
+  font-size: 14px;
+  max-width: 460px;
+}
+
+.fecha {
+  position: relative;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(2px);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ---- Tarjetas de metricas ---- */
+.statsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.statCard {
+  flex: 1 1 180px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: white;
+  padding: 18px 20px;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.05);
+  border: 1px solid #f1f1f1;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(20, 20, 20, 0.08);
+}
+
+.statIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.iconOrange {
+  background: linear-gradient(135deg, #fff1e2, #ffe1c2);
+  color: #ff7a00;
+}
+
+.iconGreen {
+  background: linear-gradient(135deg, #e7fbef, #d3f5df);
+  color: #059669;
+}
+
+.iconAmber {
+  background: linear-gradient(135deg, #fff8e1, #ffedb8);
+  color: #b45309;
+}
+
+.iconBlue {
+  background: linear-gradient(135deg, #eaf2ff, #d7e6ff);
+  color: #1d4ed8;
+}
+
+.iconPurple {
+  background: linear-gradient(135deg, #f3ecff, #e6d8ff);
+  color: #7c3aed;
+}
+
+.statBody {
+  min-width: 0;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.15;
+}
+
+.statLabel {
+  font-size: 12.5px;
+  color: #8a8a8a;
+  margin-top: 2px;
+}
+
+/* ---- Contenido principal ---- */
+.content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.panel {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.05);
+  border: 1px solid #f1f1f1;
+}
+
+.panelPending {
+  flex: 2 1 420px;
+  min-width: 0;
+}
+
+.panelStatus {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.panelHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  color: black;
+  margin-bottom: 14px;
+}
+
+.panelHead h3 {
+  margin: 0;
+  font-size: 15.5px;
+}
+
+.panelLink {
+  font-size: 12.5px;
+  color: #ff7a00;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.panelLink:hover {
+  text-decoration: underline;
+}
+
+/* Lista de pendientes */
+.pendingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid #f4f4f4;
+  text-decoration: none;
+  color: inherit;
+}
+
+.pendingItem:last-child {
+  border-bottom: none;
+}
+
+/* Un negocio pendiente solo se puede abrir para revisarlo/aprobarlo si
+   eres el super admin; para el resto es solo informativo. */
+.pendingItemLocked {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.pendingInfo {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pendingName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pendingMeta {
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
+.pendingBadge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff4ea;
+  color: #b45309;
+  border: 1px solid #ffe1c2;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.emptyState {
+  padding: 20px 0;
+  text-align: center;
+  color: #9a9a9a;
+  font-size: 13.5px;
+}
+
+.emptyIcon {
+  font-size: 22px;
+  color: #34c759;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Distribucion de estado */
+.statusBar {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #f1f1f1;
+  margin-bottom: 16px;
+}
+
+.segActive {
+  background: #059669;
+}
+
+.segPending {
+  background: #ff7a00;
+}
+
+.segInactive {
+  background: #d1d5db;
+}
+
+.statusLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  flex: 1;
+  color: #4a4a4a;
+}
+
+.legendValue {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.cargando {
+  padding: 60px 0;
+  text-align: center;
+  color: #9a9a9a;
+}
