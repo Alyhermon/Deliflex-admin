@@ -15,6 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
+import { SkeletonCardGrid } from "../components/components-items/skeleton/skeleton";
 
 type Store = {
   id: string;
@@ -26,13 +27,50 @@ type Store = {
   status?: string;
 };
 
+// Mismo enum que usa la BD (stores_status). Una sola fuente de verdad
+// para el filtro y para el badge de cada tarjeta, asi no se desincronizan.
+const STATUS_META: Record<
+  string,
+  { label: string; badge: string; dot: string }
+> = {
+  PENDING_APPROVAL: {
+    label: "Pendiente",
+    badge: "pending",
+    dot: "dotPending",
+  },
+  ACTIVE: { label: "Activo", badge: "statusActive", dot: "dotActive" },
+  INACTIVE: { label: "Inactivo", badge: "statusInactive", dot: "dotInactive" },
+  CLOSED: { label: "Cerrado", badge: "statusClosed", dot: "dotClosed" },
+  BANNED: { label: "Suspendido", badge: "statusBanned", dot: "dotBanned" },
+};
+
+// Orden en que se muestran en el select de filtro.
+const STATUS_FILTROS = [
+  "PENDING_APPROVAL",
+  "ACTIVE",
+  "CLOSED",
+  "INACTIVE",
+  "BANNED",
+];
+
 export default function StoresPage() {
   const router = useRouter();
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [businessType, setBusinessType] = useState("");
   const [search, setSearch] = useState("");
-  const options = ["Todos", "Abiertos", "Cerrados"];
+
+  const TODOS = "Todos los estados";
+  const options = [
+    TODOS,
+    ...STATUS_FILTROS.map((status) => STATUS_META[status].label),
+  ];
+
+  // El Dropdown solo habla en texto ("Pendiente"), asi que hay que
+  // volver a mapearlo al valor real de la BD para poder filtrar.
+  const statusSeleccionado = STATUS_FILTROS.find(
+    (status) => STATUS_META[status].label === businessType,
+  );
 
   const normalizeText = (text: string) =>
     text.toLowerCase().replace(/\s+/g, " ").trim();
@@ -58,9 +96,9 @@ useEffect(() => {
   const loadStores = async () => {
     try {
       const res = await fetch(
-        `http://localhost:3001/register-business/owner/${user.id}`,
+        `http://localhost:3001/register-business/accessible/${user.id}`,
       );
-      console.log("URL llamada:", `http://localhost:3001/register-business/owner/${user.id}`);
+      console.log("URL llamada:", `http://localhost:3001/register-business/accessible/${user.id}`);
       const data = await res.json();
       console.log("TIENDAS:", data);
       setStores(Array.isArray(data) ? data : data.data || []);
@@ -97,12 +135,19 @@ useEffect(() => {
   //   loadStores();
   // }, []);
 
-  const filteredStores =
-    normalizedSearch.length >= 3
-      ? stores.filter((store) =>
-          normalizeText(store.name).includes(normalizedSearch),
-        )
-      : stores;
+  // Las tiendas eliminadas (borrado logico) nunca deben verse aqui,
+  // sin importar el filtro que se elija.
+  const visibleStores = stores.filter((store) => store.status !== "DELETED");
+
+  const filteredStores = visibleStores
+    .filter((store) =>
+      normalizedSearch.length >= 3
+        ? normalizeText(store.name).includes(normalizedSearch)
+        : true,
+    )
+    .filter((store) =>
+      statusSeleccionado ? store.status === statusSeleccionado : true,
+    );
 
   const handleCreate = () => {
     router.push("/stores/register");
@@ -136,12 +181,20 @@ useEffect(() => {
             onChange={setBusinessType}
             placeholder="Selecciona estado"
           />
+
+          {statusSeleccionado && (
+            <button
+              type="button"
+              className={styles.clearFilter}
+              onClick={() => setBusinessType("")}
+            >
+              Quitar filtro ×
+            </button>
+          )}
         </div>
 
         {loading ? (
-          <div className={styles.empty}>
-            <p>Cargando negocios...</p>
-          </div>
+          <SkeletonCardGrid count={3} />
         ) : stores.length === 0 ? (
           <div className={styles.empty}>
             <h3>No tienes negocios aún</h3>
@@ -149,13 +202,23 @@ useEffect(() => {
 
             <button className={styles.btnCreate}>Crear negocio</button>
           </div>
-        ) : filteredStores.length === 0 && search.trim().length >= 3 ? (
+        ) : filteredStores.length === 0 &&
+          (search.trim().length >= 3 || statusSeleccionado) ? (
           <div className={styles.noResultsWrapper}>
             <p className={styles.noResults}>
               <FontAwesomeIcon icon={faStoreSlash} color="#ff6b00" />
               <div className={styles.noResultsText}>
-                No se encontraron resultados para
-                <span className={styles.searchTerm}>{` ${search} `}</span>
+                {search.trim().length >= 3 ? (
+                  <>
+                    No se encontraron resultados para
+                    <span className={styles.searchTerm}>{` ${search} `}</span>
+                  </>
+                ) : (
+                  <>
+                    Ningun negocio esta{" "}
+                    <span className={styles.searchTerm}>{businessType}</span>
+                  </>
+                )}
               </div>
             </p>
           </div>
@@ -175,31 +238,20 @@ useEffect(() => {
 
                   <span
                     className={
-                      store.status === "PENDING_APPROVAL"
-                        ? styles.pending
-                        : store.status === "ACTIVE"
-                          ? styles.statusActive
-                          : store.status === "INACTIVE"
-                            ? styles.statusInactive
-                            : styles.statusBadge
+                      styles[
+                        STATUS_META[store.status ?? ""]?.badge ??
+                          "statusInactive"
+                      ]
                     }
                   >
                     <span
                       className={
-                        store.status === "PENDING_APPROVAL"
-                          ? styles.dotPending
-                          : store.status === "ACTIVE"
-                            ? styles.dotActive
-                            : store.status === "INACTIVE"
-                              ? styles.dotInactive
-                              : styles.dotDefault
+                        styles[
+                          STATUS_META[store.status ?? ""]?.dot ?? "dotInactive"
+                        ]
                       }
                     ></span>
-                    {store.status === "PENDING_APPROVAL"
-                      ? "Pendiente"
-                      : store.status === "ACTIVE"
-                        ? "Activo"
-                        : "Inactivo"}
+                    {STATUS_META[store.status ?? ""]?.label ?? "Inactivo"}
                   </span>
                 </div>
 
