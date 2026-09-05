@@ -5,6 +5,9 @@ import { use, useCallback, useEffect, useState } from "react";
 import Breadcrumb from "../../../components/components-items/breadcrumb/breadcrumb";
 import AdminLayout from "../../../components/layout/adminLayout";
 import Dropdown from "../../../components/components-items/dropdown";
+import DatePicker from "@/app/components/components-items/datepicker";
+import TimePicker from "@/app/components/components-items/timepicker";
+import DFCheckbox from "@/app/components/components-items/checkbox/checkbox";
 import Toast from "@/app/components/components-items/toast/toast";
 import ConfirmDialog from "@/app/components/components/modal/confirm-dialog";
 import { useRouter } from "next/navigation";
@@ -47,7 +50,10 @@ type PromotionForm = {
   minOrder: string;
   maxAmount: string;
   startsAt: string;
+  startsTime: string;
   endsAt: string;
+  endsTime: string;
+  conHoras: boolean;
   showOnHome: boolean;
   showOnMenu: boolean;
   notifyCustomers: boolean;
@@ -100,7 +106,10 @@ const FORM_VACIO: PromotionForm = {
   minOrder: "",
   maxAmount: "",
   startsAt: "",
+  startsTime: "8:00 AM",
   endsAt: "",
+  endsTime: "11:00 PM",
+  conHoras: false,
   showOnHome: false,
   showOnMenu: false,
   notifyCustomers: false,
@@ -111,7 +120,6 @@ export default function PromotionsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // En Next 16 los params llegan como promesa.
   const { id } = use(params);
   const router = useRouter();
 
@@ -195,16 +203,33 @@ export default function PromotionsPage({
     loadProducts();
   }, [id]);
 
-  const loadPromotions = useCallback(async () => {
-    try {
-      const res = await fetch(`http://localhost:3001/promotions/store/${id}`);
-      const data = await res.json();
+  const [promotionsError, setPromotionsError] = useState(false);
 
-      setPromotions(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error(error);
-    }
-  }, [id]);
+  // Si falla (el backend recompilando con nest --watch tarda un instante en
+  // volver a aceptar conexiones), se reintenta una vez solo antes de rendirse.
+  // Al fallar NO se vacia la lista: "no se pudo cargar" no es lo mismo que
+  // "no hay promociones", y mostrarlas igual confundia una cosa con la otra.
+  const loadPromotions = useCallback(
+    async (reintentar = true) => {
+      try {
+        const res = await fetch(`http://localhost:3001/promotions/store/${id}`);
+        const data = await res.json();
+
+        setPromotions(Array.isArray(data) ? data : []);
+        setPromotionsError(false);
+      } catch (error) {
+        console.error(error);
+
+        if (reintentar) {
+          setTimeout(() => loadPromotions(false), 1200);
+          return;
+        }
+
+        setPromotionsError(true);
+      }
+    },
+    [id],
+  );
 
   useEffect(() => {
     if (id) loadPromotions();
@@ -253,10 +278,36 @@ export default function PromotionsPage({
     }
   };
 
+  // Junta la fecha (YYYY-MM-DD) con la hora ("8:00 AM") en un instante real.
+  // Sin horas, el dia arranca a las 00:00.
+  const combinar = (fecha: string, hora: string) => {
+    if (!fecha) return undefined;
+
+    const [year, month, day] = fecha.split("-").map(Number);
+    const leida = form.conHoras
+      ? hora.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i)
+      : null;
+
+    let horas = 0;
+    let minutos = 0;
+
+    if (leida) {
+      horas = Number(leida[1]) % 12;
+      minutos = Number(leida[2]);
+
+      if (leida[3].toUpperCase() === "PM") horas += 12;
+    }
+
+    return new Date(year, month - 1, day, horas, minutos).toISOString();
+  };
+
   const handleSubmit = async () => {
     const nextErrors: FormErrors = {};
 
-    if (!form.name.trim()) {
+    // Con un producto existente el nombre se puede heredar del producto.
+    const nombreFinal = form.name.trim() || productoElegido?.name || "";
+
+    if (!nombreFinal) {
       nextErrors.name = "El nombre es obligatorio";
     }
 
@@ -278,8 +329,13 @@ export default function PromotionsPage({
       nextErrors.alcance = "Sube la imagen del producto nuevo";
     }
 
-    if (form.startsAt && form.endsAt && form.endsAt <= form.startsAt) {
-      nextErrors.fechas = "La fecha de fin debe ser posterior a la de inicio";
+    const inicio = combinar(form.startsAt, form.startsTime);
+    const fin = combinar(form.endsAt, form.endsTime);
+
+    if (inicio && fin && fin <= inicio) {
+      nextErrors.fechas = form.conHoras
+        ? "El fin debe ser posterior al inicio"
+        : "La fecha de fin debe ser posterior a la de inicio";
     }
 
     setErrors(nextErrors);
@@ -296,7 +352,7 @@ export default function PromotionsPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: form.type,
-          name: form.name.trim(),
+          name: nombreFinal,
           description: form.description.trim() || undefined,
           value: necesitaValor ? Number(form.value) : undefined,
           categoryId:
@@ -306,10 +362,8 @@ export default function PromotionsPage({
           imageUrl: form.alcance === "nuevo" ? form.imageUrl : undefined,
           minOrder: form.minOrder ? Number(form.minOrder) : undefined,
           maxAmount: form.maxAmount ? Number(form.maxAmount) : undefined,
-          startsAt: form.startsAt
-            ? new Date(form.startsAt).toISOString()
-            : undefined,
-          endsAt: form.endsAt ? new Date(form.endsAt).toISOString() : undefined,
+          startsAt: inicio,
+          endsAt: fin,
           showOnHome: form.showOnHome,
           showOnMenu: form.showOnMenu,
           notifyCustomers: form.notifyCustomers,
@@ -514,7 +568,11 @@ export default function PromotionsPage({
                 <div className={styles.field}>
                   <input
                     className={errors.name ? styles.inputError : ""}
-                    placeholder="Nombre de la promoción"
+                    placeholder={
+                      productoElegido
+                        ? `Opcional: se usará "${productoElegido.name}"`
+                        : "Nombre de la promoción"
+                    }
                     value={form.name}
                     onChange={(e) => {
                       setErrors((prev) => ({ ...prev, name: undefined }));
@@ -539,15 +597,27 @@ export default function PromotionsPage({
                 <div className={styles.field}>
                   <input
                     type="number"
+                    min={0}
+                    max={100}
+                    step={1}
                     className={errors.value ? styles.inputError : ""}
                     placeholder={
                       necesitaValor ? "Descuento (%)" : "No aplica a este tipo"
                     }
                     disabled={!necesitaValor}
                     value={form.value}
+                    // El teclado tambien puede meter el signo: se filtra aqui.
+                    onKeyDown={(e) => {
+                      if (["-", "+", "e", "E"].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                     onChange={(e) => {
                       setErrors((prev) => ({ ...prev, value: undefined }));
-                      handleChange("value", e.target.value);
+                      handleChange(
+                        "value",
+                        e.target.value.replace(/[^0-9.]/g, ""),
+                      );
                     }}
                   />
                   {errors.value && (
@@ -587,36 +657,75 @@ export default function PromotionsPage({
               <div className={styles.row}>
                 <div className={styles.field}>
                   <label className={styles.label}>Válido desde</label>
-                  <input
-                    type="date"
-                    value={form.startsAt}
-                    onChange={(e) => {
-                      setErrors((prev) => ({ ...prev, fechas: undefined }));
-                      handleChange("startsAt", e.target.value);
-                    }}
-                  />
+
+                  <div className={styles.fechaHora}>
+                    <DatePicker
+                      value={form.startsAt}
+                      placeholder="Desde siempre"
+                      onChange={(value) => {
+                        setErrors((prev) => ({ ...prev, fechas: undefined }));
+                        handleChange("startsAt", value);
+                      }}
+                    />
+
+                    {form.conHoras && (
+                      <TimePicker
+                        value={form.startsTime}
+                        onChange={(value) => {
+                          setErrors((prev) => ({ ...prev, fechas: undefined }));
+                          handleChange("startsTime", value);
+                        }}
+                      />
+                    )}
+                  </div>
                 </div>
 
                 <div className={styles.field}>
                   <label className={styles.label}>Válido hasta</label>
-                  <input
-                    type="date"
-                    className={errors.fechas ? styles.inputError : ""}
-                    value={form.endsAt}
-                    onChange={(e) => {
-                      setErrors((prev) => ({ ...prev, fechas: undefined }));
-                      handleChange("endsAt", e.target.value);
-                    }}
-                  />
+
+                  <div className={styles.fechaHora}>
+                    <DatePicker
+                      value={form.endsAt}
+                      placeholder="Sin vencimiento"
+                      error={errors.fechas}
+                      onChange={(value) => {
+                        setErrors((prev) => ({ ...prev, fechas: undefined }));
+                        handleChange("endsAt", value);
+                      }}
+                    />
+
+                    {form.conHoras && (
+                      <TimePicker
+                        value={form.endsTime}
+                        onChange={(value) => {
+                          setErrors((prev) => ({ ...prev, fechas: undefined }));
+                          handleChange("endsTime", value);
+                        }}
+                      />
+                    )}
+                  </div>
+
                   {errors.fechas && (
                     <span className={styles.errorText}>{errors.fechas}</span>
                   )}
                 </div>
               </div>
 
+              <div className={styles.switchHoras}>
+                <DFCheckbox
+                  label="Agregar horas"
+                  checked={form.conHoras}
+                  onChange={(checked) => {
+                    setErrors((prev) => ({ ...prev, fechas: undefined }));
+                    handleChange("conHoras", checked);
+                  }}
+                />
+              </div>
+
               <p className={styles.hint}>
-                Si dejas las fechas vacías, la promoción corre desde ya y no
-                vence.
+                {form.conHoras
+                  ? "La promoción arranca y termina a la hora exacta que indiques."
+                  : "Sin horas la promoción cubre los días completos. Si dejas las fechas vacías, corre desde ya y no vence."}
               </p>
             </section>
 
@@ -626,36 +735,23 @@ export default function PromotionsPage({
               </h3>
 
               <div className={styles.checks}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={form.showOnHome}
-                    onChange={(e) =>
-                      handleChange("showOnHome", e.target.checked)
-                    }
-                  />{" "}
-                  Página principal
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={form.showOnMenu}
-                    onChange={(e) =>
-                      handleChange("showOnMenu", e.target.checked)
-                    }
-                  />{" "}
-                  Menú
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={form.notifyCustomers}
-                    onChange={(e) =>
-                      handleChange("notifyCustomers", e.target.checked)
-                    }
-                  />{" "}
-                  Notificar clientes
-                </label>
+                <DFCheckbox
+                  label="Página principal"
+                  checked={form.showOnHome}
+                  onChange={(checked) => handleChange("showOnHome", checked)}
+                />
+                <DFCheckbox
+                  label="Menú"
+                  checked={form.showOnMenu}
+                  onChange={(checked) => handleChange("showOnMenu", checked)}
+                />
+                <DFCheckbox
+                  label="Notificar clientes"
+                  checked={form.notifyCustomers}
+                  onChange={(checked) =>
+                    handleChange("notifyCustomers", checked)
+                  }
+                />
               </div>
             </section>
 
@@ -718,7 +814,18 @@ export default function PromotionsPage({
             <div className={styles.list}>
               <h4>Promociones del negocio</h4>
 
-              {promotions.length === 0 ? (
+              {promotionsError ? (
+                <div className={styles.empty}>
+                  No se pudieron cargar las promociones.{" "}
+                  <button
+                    type="button"
+                    className={styles.retryLink}
+                    onClick={() => loadPromotions()}
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              ) : promotions.length === 0 ? (
                 <p className={styles.empty}>Todavía no hay promociones.</p>
               ) : (
                 promotions.map((promotion) => {

@@ -1,0 +1,168 @@
+.wrapper {
+  position: relative;
+  width: 100%;
+  font-family: sans-serif;
+}
+
+.input {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  color: #111;
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input:hover {
+  border-color: #fdba74;
+}
+
+.open {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+
+.placeholder {
+  color: #9ca3af;
+}
+
+.inputError {
+  border-color: #ff4d4f;
+  box-shadow: 0 0 0 3px rgba(255, 77, 79, 0.12);
+}
+
+.dropdown {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px;
+  z-index: 20;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Cabecera: mes y flechas */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.month {
+  font-weight: 600;
+  font-size: 14px;
+  color: #9a4a06;
+  text-transform: capitalize;
+}
+
+.navBtn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: #fff4ea;
+  color: #f97316;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.navBtn:hover {
+  background: #ffe3cc;
+}
+
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.weekDay {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  padding: 4px 0;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #111;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.day:hover {
+  background: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+}
+
+.empty {
+  visibility: hidden;
+}
+
+.today {
+  border: 1px solid #fdba74;
+  font-weight: 600;
+  color: #f97316;
+}
+
+.selected,
+.selected:hover {
+  background: #f97316;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.footerBtn {
+  background: none;
+  border: none;
+  font-size: 12.5px;
+  color: #f97316;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.footerBtn:hover {
+  text-decoration: underline;
+}
+
+.clearBtn {
+  color: #9ca3af;
+}

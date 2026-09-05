@@ -137,7 +137,7 @@
 
 .badge {
   position: absolute;
-  background: #ff5a00;
+  background: #ed7b10;
   color: white;
   padding: 8px;
   border-radius: 8px;
@@ -150,13 +150,14 @@
 
 .info button {
   width: 100%;
-  background: #ff5a00;
+  background: #ed7b10;
   color: white;
   padding: 10px;
   border: none;
+  text-transform: uppercase;
   border-radius: 8px;
 }
-/* ---- Campos del formulario ---- */
+
 .field {
   flex: 1 1 220px;
   display: flex;
@@ -327,6 +328,17 @@
   font-size: 13px;
 }
 
+.retryLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #ff7a00;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 /* ---- Alcance de la promocion ---- */
 .alcanceBox {
   margin-top: 14px;
@@ -357,4 +369,25 @@
   border-radius: 8px;
   object-fit: cover;
   flex-shrink: 0;
+}
+
+.switchHoras {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 13.5px;
+  color: #444;
+  cursor: pointer;
+}
+
+.fechaHora {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fechaHora > * {
+  flex: 1 1 130px;
+  min-width: 0;
 }
