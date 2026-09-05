@@ -98,9 +98,8 @@ export default function MenuTab({ id }: { id: string }) {
   const [category, setCategory] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const options = ["Todas", "Hamburguesas", "Bebidas", "Postres"];
   const [status, setStatus] = useState("");
-  const optionsStatus = ["Todos", "Abiertos", "Cerrados"];
+  const optionsStatus = ["Todos", "Activo", "Inactivo"];
   const [orden, setOrden] = useState(ORDEN_OPCIONES[0]);
   const [open, setOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -124,6 +123,13 @@ export default function MenuTab({ id }: { id: string }) {
     text.toLowerCase().replace(/\s+/g, " ").trim();
 
   const normalizedSearch = normalizeText(search);
+
+  // Categorias reales de los productos ya cargados, no una lista inventada
+  // que nunca iba a coincidir con nada (por eso el filtro no filtraba).
+  const categoriasDisponibles = [
+    "Todas",
+    ...Array.from(new Set(products.map((p) => p.categoryName).filter(Boolean))),
+  ];
 
   useEffect(() => {
     const loadStore = async () => {
@@ -159,8 +165,8 @@ export default function MenuTab({ id }: { id: string }) {
     }
     if (status && status !== "Todos") {
       const isActive = product.status === true;
-      if (status === "Abiertos" && !isActive) return false;
-      if (status === "Cerrados" && isActive) return false;
+      if (status === "Activo" && !isActive) return false;
+      if (status === "Inactivo" && isActive) return false;
     }
     return true;
   });
@@ -226,7 +232,7 @@ export default function MenuTab({ id }: { id: string }) {
         />
 
         <Dropdown
-          options={options}
+          options={categoriasDisponibles}
           value={category}
           onChange={setCategory}
           placeholder="Selecciona categoría"
