@@ -1,21 +1,29 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ staffId: string }> },
+) {
+  const { staffId } = await params;
   const token = request.cookies.get("auth_token")?.value;
-  const businessId = request.nextUrl.searchParams.get("businessId");
 
   if (!token) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
-  if (!businessId) {
-    return NextResponse.json({ error: "Falta businessId" }, { status: 400 });
-  }
+  const body = await request.json();
 
   const res = await fetch(
-    `http://localhost:3001/users/staff?businessId=${encodeURIComponent(businessId)}`,
-    { headers: { Authorization: `Bearer ${token}` } },
+    `http://localhost:3001/users/staff/${staffId}/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    },
   );
 
   const data = await res.json();

@@ -3,20 +3,14 @@ import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get("auth_token")?.value;
-  const businessId = request.nextUrl.searchParams.get("businessId");
 
   if (!token) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
-  if (!businessId) {
-    return NextResponse.json({ error: "Falta businessId" }, { status: 400 });
-  }
-
-  const res = await fetch(
-    `http://localhost:3001/users/staff?businessId=${encodeURIComponent(businessId)}`,
-    { headers: { Authorization: `Bearer ${token}` } },
-  );
+  const res = await fetch("http://localhost:3001/users/staff/all", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
   const data = await res.json();
 

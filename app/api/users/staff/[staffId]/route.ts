@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ staffId: string }> },
+) {
+  const { staffId } = await params;
   const token = request.cookies.get("auth_token")?.value;
   const businessId = request.nextUrl.searchParams.get("businessId");
 
@@ -14,8 +18,11 @@ export async function GET(request: NextRequest) {
   }
 
   const res = await fetch(
-    `http://localhost:3001/users/staff?businessId=${encodeURIComponent(businessId)}`,
-    { headers: { Authorization: `Bearer ${token}` } },
+    `http://localhost:3001/users/staff/${staffId}?businessId=${encodeURIComponent(businessId)}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    },
   );
 
   const data = await res.json();
