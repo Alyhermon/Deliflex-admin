@@ -36,7 +36,17 @@ export default function DashboardPage() {
         return;
       }
 
-      if (data.user.global_role_id !== 90) {
+      // 90 = ADMIN, 100 = SUPER_ADMIN a nivel de plataforma. Pero tambien
+      // dejamos entrar a quien tenga un rol de equipo asignado en algun
+      // negocio (Gerente, Supervisor, Cajero, Staff), aunque su rol de
+      // plataforma sea el de un usuario normal - ese rol vive aparte, en
+      // business_staff, no en global_role_id.
+      const esAdminPlataforma = Number(data.user.global_role_id) >= 90;
+      const esStaffDeAlgunNegocio =
+        Array.isArray(data.user.staff_businesses) &&
+        data.user.staff_businesses.length > 0;
+
+      if (!esAdminPlataforma && !esStaffDeAlgunNegocio) {
         setToast({
           message:
             "No tienes acceso al panel administrador. Contacta a soporte.",

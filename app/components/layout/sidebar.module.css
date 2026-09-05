@@ -1,10 +1,12 @@
 .sidebar {
   width: 250px;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #121b27;
   color: white;
   padding: 20px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
@@ -35,4 +37,33 @@
 
 .active {
   background-color: #f97316;
+}
+
+.roleContext {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.roleContextTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.roleRow {
+  font-size: 12.5px;
+  color: #d1d5db;
+  line-height: 1.5;
+}
+
+.roleName {
+  color: #f97316;
+  font-weight: 600;
 }
