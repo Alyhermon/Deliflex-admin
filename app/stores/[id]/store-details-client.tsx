@@ -8,12 +8,13 @@ import { JSX, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit } from "@fortawesome/free-solid-svg-icons";
 import ResumeTab from "./store-tabs/resume/resume";
-import MenuTab from "./store-tabs/menu";
+import MenuScreen from "../../menu/[storeId]/MenuScreen";
+import InventoryScreen from "../../inventory/[storeId]/InventoryScreen";
+import FinanceScreen from "../../finanzas/[storeId]/FinanceScreen";
 import OrderTab from "./store-tabs/orders/orders";
-import StatisticsTab from "./store-tabs/stadistics/statistics";
 import { isStoreOpenNow, ScheduleRow } from "./schedule-utils";
 
-type TabKey = "resumen" | "menu" | "pedidos" | "estadisticas";
+type TabKey = "resumen" | "inventario" | "menu" | "pedidos" | "finanzas";
 
 export default function StoreDetailPage({ id }: { id: string }) {
   const router = useRouter();
@@ -37,9 +38,10 @@ export default function StoreDetailPage({ id }: { id: string }) {
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: "resumen", label: "Resumen" },
+    { key: "inventario", label: "Inventario" },
     { key: "menu", label: "Menú" },
     { key: "pedidos", label: "Pedidos" },
-    { key: "estadisticas", label: "Estadísticas" },
+    { key: "finanzas", label: "Finanzas" },
   ];
 
   useEffect(() => {
@@ -47,6 +49,7 @@ export default function StoreDetailPage({ id }: { id: string }) {
       try {
         const res = await fetch(
           `http://localhost:3001/register-business/${id}`,
+          { credentials: "include" },
         );
 
         const data = await res.json();
@@ -76,6 +79,7 @@ export default function StoreDetailPage({ id }: { id: string }) {
       try {
         const res = await fetch(
           `http://localhost:3001/register-business/edit/${id}`,
+          { credentials: "include" },
         );
         const data = await res.json();
         const schedules: ScheduleRow[] = Array.isArray(data.schedules)
@@ -96,9 +100,10 @@ export default function StoreDetailPage({ id }: { id: string }) {
 
   const TAB_COMPONENTS: Record<TabKey, JSX.Element> = {
     resumen: <ResumeTab id={id} />,
-    menu: <MenuTab id={id} />,
+    inventario: <InventoryScreen storeId={id} />,
+    menu: <MenuScreen storeId={id} />,
     pedidos: <OrderTab id={id} />,
-    estadisticas: <StatisticsTab />,
+    finanzas: <FinanceScreen storeId={id} />,
   };
 
   return (

@@ -79,7 +79,13 @@ export default function StoresPage() {
 
   const { user, loading: authLoading } = useAuth();
 
-useEffect(() => {
+  // 100 = SUPER_ADMIN: ve TODOS los negocios de la plataforma (incluso los
+  // que todavia no tienen business_id asignado). El resto solo ve los
+  // negocios propios o donde es staff - mismo criterio que el dashboard y
+  // el selector del sidebar.
+  const esSuperAdmin = Number(user?.global_role_id) >= 100;
+
+  useEffect(() => {
   // Esperamos a que /api/auth/me responda antes de decidir nada.
   if (authLoading) return;
 
@@ -90,17 +96,14 @@ useEffect(() => {
     return;
   }
 
-  console.log("USER:", user);        // ← ¿llega el usuario?
-  console.log("USER ID:", user.id);  // ← ¿tiene id?
+  const url = esSuperAdmin
+    ? "http://localhost:3001/register-business/all"
+    : `http://localhost:3001/register-business/accessible/${user.id}`;
 
   const loadStores = async () => {
     try {
-      const res = await fetch(
-        `http://localhost:3001/register-business/accessible/${user.id}`,
-      );
-      console.log("URL llamada:", `http://localhost:3001/register-business/accessible/${user.id}`);
+      const res = await fetch(url, { credentials: "include" });
       const data = await res.json();
-      console.log("TIENDAS:", data);
       setStores(Array.isArray(data) ? data : data.data || []);
     } catch (error) {
       console.error(error);
@@ -111,29 +114,7 @@ useEffect(() => {
   };
 
   loadStores();
-}, [user, authLoading, router]);
-
-  // useEffect(() => {
-  //   const loadStores = async () => {
-  //     try {
-  //       const res = await fetch(
-  //         "http://localhost:3001/register-business/owner/f4fbf456-4a9a-44d5-8584-ca90c720fbb5",
-  //       );
-  //       const data = await res.json();
-
-  //       console.log("TIENDAS REALES:", data);
-
-  //       setStores(Array.isArray(data) ? data : data.data || []);
-  //     } catch (error) {
-  //       console.error(error);
-  //       setStores([]);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   loadStores();
-  // }, []);
+}, [user, authLoading, esSuperAdmin, router]);
 
   // Las tiendas eliminadas (borrado logico) nunca deben verse aqui,
   // sin importar el filtro que se elija.

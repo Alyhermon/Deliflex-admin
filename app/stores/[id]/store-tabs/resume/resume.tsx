@@ -26,13 +26,16 @@ export default function ResumeTab({ id }: { id: string }) {
   const [topProducts, setTopProducts] = useState<ProductType[]>([]);
   const [activePromotions, setActivePromotions] = useState(0);
   const [horarioTexto, setHorarioTexto] = useState<string | null>(null);
+  const [ingresosHoy, setIngresosHoy] = useState(0);
+  const [pedidosPendientes, setPedidosPendientes] = useState(0);
 useEffect(() => {
   if (!id) return;
 
   const loadStore = async () => {
     try {
       const res = await fetch(
-        `http://localhost:3001/register-business/${id}`
+        `http://localhost:3001/register-business/${id}`,
+        { credentials: "include" }
       );
 
       const data = await res.json();
@@ -76,7 +79,8 @@ useEffect(() => {
   const loadCount = async () => {
     try {
       const res = await fetch(
-        `http://localhost:3001/products/count/${id}`
+        `http://localhost:3001/products/count/${id}`,
+        { credentials: "include" }
       );
 
       const data = await res.json();
@@ -95,7 +99,7 @@ useEffect(() => {
 
   const loadSchedule = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/register-business/edit/${id}`);
+      const res = await fetch(`http://localhost:3001/register-business/edit/${id}`, { credentials: "include" });
       const data = await res.json();
       const schedules: ScheduleRow[] = Array.isArray(data.schedules)
         ? data.schedules
@@ -115,7 +119,7 @@ useEffect(() => {
 
   const loadPromotions = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/promotions/count/${id}`);
+      const res = await fetch(`http://localhost:3001/promotions/count/${id}`, { credentials: "include" });
       const data = await res.json();
 
       setActivePromotions(data.total ?? 0);
@@ -134,7 +138,7 @@ useEffect(() => {
 
   const loadTopProducts = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/products/store/${id}`);
+      const res = await fetch(`http://localhost:3001/products/store/${id}`, { credentials: "include" });
       const data = await res.json();
       const products = Array.isArray(data) ? data : data.data || [];
 
@@ -162,6 +166,40 @@ useEffect(() => {
   loadTopProducts();
 }, [id]);
 
+// Mismos endpoints que ya usan Finanzas y Pedidos para esta tienda: nada
+// inventado, solo los numeros reales de hoy en vez de los mocks fijos
+// que antes mostraba este resumen.
+useEffect(() => {
+  if (!id) return;
+
+  const loadIngresosHoy = async () => {
+    try {
+      const res = await fetch(`http://localhost:3001/finance/summary/${id}?days=1`, { credentials: "include" });
+      const data = await res.json();
+      setIngresosHoy(data.totalRevenue ?? 0);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  loadIngresosHoy();
+}, [id]);
+
+useEffect(() => {
+  if (!id) return;
+
+  const loadPedidosPendientes = async () => {
+    try {
+      const res = await fetch(`http://localhost:3001/orders/summary/${id}`, { credentials: "include" });
+      const data = await res.json();
+      setPedidosPendientes(data.pending ?? 0);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  loadPedidosPendientes();
+}, [id]);
 
 //   if (loading) return <p>Cargando...</p>;
 //   if (!store) return <p>No encontrado</p>;
@@ -171,37 +209,15 @@ useEffect(() => {
       <div className={styles.container}>
 
         <div className={styles.metrics}>
-          <Metric title="Ventas hoy" value="$620,000" />
-          <Metric title="Pedidos" value="32" />
-          <Metric title="Ticket promedio" value="$19,375" />
-          <Metric title="Rating" value="4.8" />
-        </div>
-
-        <div className={styles.grid}>
-          <div className={styles.chart}>
-            <span className={styles.titleGrafic}>Rendimiento</span>
-            <div className={styles.chartBox}>Gráfica aquí</div>
-          </div>
-
-          <div className={styles.orders}>
-            <h3>Pedidos</h3>
-
-            <div className={styles.orderItem}>
-              <span>#1245</span>
-              <span className={styles.price}>$32,000</span>
-            </div>
-
-            <div className={styles.orderItem}>
-              <span>#1244</span>
-              <span className={styles.price}>$45,500</span>
-            </div>
-          </div>
+          <Metric title="Ingresos hoy" value={`RD$${ingresosHoy.toLocaleString("es-DO")}`} />
+          <Metric title="Pedidos pendientes" value={String(pedidosPendientes)} />
+          <Metric title="Rating" value={store?.rating != null ? String(store.rating) : "Sin calificar"} />
         </div>
 
         <div className={styles.cta}>
           <div className={styles.ctaText}>
             <span className={styles.moreTitle}>Impulsa más ventas</span>
-            <p>Crea promociones y destaca tu negocio en DeliFlex</p>
+            <div>Crea promociones y destaca tu negocio en DeliFlex</div>
           </div>
           <button
             onClick={() => {
