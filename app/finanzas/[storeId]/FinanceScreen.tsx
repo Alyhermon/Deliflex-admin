@@ -120,6 +120,7 @@ export default function FinanceScreen({ storeId, onStoreNameLoaded }: Props) {
       try {
         const res = await fetch(
           `http://localhost:3001/register-business/edit/${storeId}`,
+          { credentials: "include" },
         );
         const data = await res.json();
         if (data?.store_name) {
@@ -147,10 +148,11 @@ export default function FinanceScreen({ storeId, onStoreNameLoaded }: Props) {
           : `days=${days}`;
 
         const [resSummary, resDaily, resOrders] = await Promise.all([
-          fetch(`http://localhost:3001/finance/summary/${storeId}?${query}`),
-          fetch(`http://localhost:3001/finance/daily/${storeId}?${query}`),
+          fetch(`http://localhost:3001/finance/summary/${storeId}?${query}`, { credentials: "include" }),
+          fetch(`http://localhost:3001/finance/daily/${storeId}?${query}`, { credentials: "include" }),
           fetch(
             `http://localhost:3001/finance/orders/${storeId}?${query}&limit=20`,
+            { credentials: "include" },
           ),
         ]);
 
