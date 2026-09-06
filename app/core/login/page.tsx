@@ -21,6 +21,7 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const response = await fetch("http://localhost:3001/auth/login", {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -87,10 +88,24 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.container}>
-      <Image src={"/assets/fondo.png"} alt="banner" fill />
-      <div className={styles.content}>
-        <div className={styles.img_logo}>
-          <Image src={"/assets/logo.png"} alt="banner" fill />
+      <div className={styles.background}>
+        <Image
+          src="/assets/fondo.png"
+          alt=""
+          fill
+          priority
+          className={styles.backgroundImg}
+        />
+      </div>
+
+      <div className={styles.card}>
+        <div className={styles.logo}>
+          <Image
+            src="/assets/logo.png"
+            alt="Deliflex"
+            fill
+            className={styles.logoImg}
+          />
         </div>
 
         <div className={styles.input}>
@@ -118,9 +133,16 @@ export default function DashboardPage() {
           </button>
         </div>
       </div>
-      <div className={styles.wrapper}>
-        <Image src={"/assets/imagen-logo.png"} alt="banner" fill />
+
+      <div className={styles.illustration}>
+        <Image
+          src="/assets/imagen-logo.png"
+          alt=""
+          fill
+          className={styles.illustrationImg}
+        />
       </div>
+
       {toast && (
         <Toast
           message={toast.message}

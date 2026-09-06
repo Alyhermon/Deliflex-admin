@@ -1,52 +1,108 @@
-/* .container {
+.container {
   position: relative;
-} */
-
-.content {
+  min-height: 100vh;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 24px;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.backgroundImg {
+  object-fit: cover;
+  object-position: center;
+}
+
+.card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background-color: #fff;
   border-radius: 2rem;
-  width: 30rem;
-  height: 35rem;
-  margin-top: 10rem;
-  margin-left: 10rem;
-  justify-content: center;
-  position: absolute;
+  width: 100%;
+  max-width: 420px;
+  padding: 48px 36px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
 }
 
-.wrapper {
-  position: absolute;
-  height: 68%;
-    width: 40%;
-  left: 44rem;
-  top: 10rem;
-  right: 0;
-  bottom: 0;
-  color: transparent;
+.logo {
+  position: relative;
+  width: 200px;
+  height: 68px;
+  margin-bottom: 28px;
+  flex-shrink: 0;
 }
 
-.img_logo {
-  position: absolute;
-  width: 59%;
-  height: 17%;
-  left: 100px;
-  top: 70px;
-  right: 0;
-  bottom: 0;
-  color: transparent;
+.logoImg {
+  object-fit: contain;
 }
 
 .input {
   display: flex;
-  justify-content: center;
-  width: 300px;
-  align-items: center;
   flex-direction: column;
+  align-items: stretch;
+  width: 100%;
 }
 
 .loginButton {
   background-color: #d81212;
-  padding: 0.7rem;
-  width: 300px;
+  color: #fff;
+  border: none;
+  padding: 0.9rem;
+  width: 100%;
   border-radius: 1rem;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.loginButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Ilustracion decorativa: solo hay espacio para ella al lado de la
+   tarjeta en pantallas anchas, nunca debe competir por el mismo lugar
+   que el formulario. */
+.illustration {
+  position: absolute;
+  z-index: 1;
+  right: 4%;
+  bottom: 0;
+  width: 32%;
+  max-width: 380px;
+  height: 72%;
+  pointer-events: none;
+}
+
+.illustrationImg {
+  object-fit: contain;
+  object-position: bottom;
+}
+
+@media (max-width: 900px) {
+  .illustration {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 32px 22px;
+    border-radius: 1.5rem;
+  }
+
+  .logo {
+    width: 160px;
+    height: 54px;
+    margin-bottom: 20px;
+  }
 }
