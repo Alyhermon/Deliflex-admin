@@ -5,12 +5,13 @@ import { useCallback, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import DFInput from "@/app/components/components-items/input";
 import Dropdown from "@/app/components/components-items/dropdown";
+import DatePicker from "@/app/components/components-items/datepicker";
 import Toast from "@/app/components/components-items/toast/toast";
-import {
+import Skeleton, {
   SkeletonStatCards,
   SkeletonCardGrid,
 } from "@/app/components/components-items/skeleton/skeleton";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 type Order = {
   id: string;
@@ -53,16 +54,16 @@ type Summary = {
 };
 
 // Mismo ciclo que reconoce el backend (ORDER_STATUSES, que a su vez refleja
-// el CHECK constraint real de la tabla orders). "css" es la clase en
-// order.module.css para el badge de cada estado.
-const ESTADO_META: Record<string, { label: string; css: string }> = {
-  PENDING: { label: "Pendiente", css: "pending" },
-  ACCEPTED: { label: "Aceptado", css: "accepted" },
-  PREPARING: { label: "En preparación", css: "preparing" },
-  READY_FOR_PICKUP: { label: "Listo para retirar", css: "ready" },
-  ON_THE_WAY: { label: "En camino", css: "onTheWay" },
-  DELIVERED: { label: "Entregado", css: "delivered" },
-  CANCELLED: { label: "Cancelado", css: "cancelled" },
+// el CHECK constraint real de la tabla orders). "css" es la clase del badge
+// y "cardBg" la del fondo sutil de la tarjeta, mismo tono que el badge.
+const ESTADO_META: Record<string, { label: string; css: string; cardBg: string }> = {
+  PENDING: { label: "Pendiente", css: "pending", cardBg: "cardPending" },
+  ACCEPTED: { label: "Aceptado", css: "accepted", cardBg: "cardAccepted" },
+  PREPARING: { label: "En preparación", css: "preparing", cardBg: "cardPreparing" },
+  READY_FOR_PICKUP: { label: "Listo para retirar", css: "ready", cardBg: "cardReady" },
+  ON_THE_WAY: { label: "En camino", css: "onTheWay", cardBg: "cardOnTheWay" },
+  DELIVERED: { label: "Entregado", css: "delivered", cardBg: "cardDelivered" },
+  CANCELLED: { label: "Cancelado", css: "cancelled", cardBg: "cardCancelled" },
 };
 
 const TIPO_META: Record<string, string> = {
@@ -101,6 +102,8 @@ export default function OrdersTab({ id }: { id: string }) {
   const [loadError, setLoadError] = useState(false);
 
   const [search, setSearch] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
 
@@ -120,8 +123,8 @@ export default function OrdersTab({ id }: { id: string }) {
 
       try {
         const [resOrders, resSummary] = await Promise.all([
-          fetch(`http://localhost:3001/orders/store/${id}`),
-          fetch(`http://localhost:3001/orders/summary/${id}`),
+          fetch(`http://localhost:3001/orders/store/${id}`, { credentials: "include" }),
+          fetch(`http://localhost:3001/orders/summary/${id}`, { credentials: "include" }),
         ]);
 
         if (!resOrders.ok || !resSummary.ok) throw new Error("fetch fallido");
@@ -167,7 +170,7 @@ export default function OrdersTab({ id }: { id: string }) {
 
     setLoadingDetail(true);
 
-    fetch(`http://localhost:3001/orders/${selectedId}`)
+    fetch(`http://localhost:3001/orders/${selectedId}`, { credentials: "include" })
       .then((res) => res.json())
       .then(setDetail)
       .catch((error) => {
@@ -195,6 +198,10 @@ export default function OrdersTab({ id }: { id: string }) {
       return false;
     }
 
+    const fechaPedido = o.created_at.slice(0, 10);
+    if (startDate && fechaPedido < startDate) return false;
+    if (endDate && fechaPedido > endDate) return false;
+
     return true;
   });
 
@@ -214,6 +221,7 @@ export default function OrdersTab({ id }: { id: string }) {
       const res = await fetch(
         `http://localhost:3001/orders/${detail.id}/status`,
         {
+          credentials: "include",
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: nuevoEstado }),
@@ -231,7 +239,7 @@ export default function OrdersTab({ id }: { id: string }) {
         type: nuevoEstado === "CANCELLED" ? "danger" : "success",
       });
 
-      const resSummary = await fetch(`http://localhost:3001/orders/summary/${id}`);
+      const resSummary = await fetch(`http://localhost:3001/orders/summary/${id}`, { credentials: "include" });
       setSummary(await resSummary.json());
     } catch (error) {
       setToast({
@@ -268,7 +276,7 @@ export default function OrdersTab({ id }: { id: string }) {
             <span className={styles.statLabel}>Listos / en camino</span>
           </div>
 
-          <div className={`${styles.statCard} ${styles.gray}`}>
+          <div className={`${styles.statCard} ${styles.red}`}>
             <span className={styles.statValue}>{summary.cancelled}</span>
             <span className={styles.statLabel}>Cancelados</span>
           </div>
@@ -283,6 +291,31 @@ export default function OrdersTab({ id }: { id: string }) {
             placeholder="Buscar pedido, cliente o teléfono..."
             icon={<FontAwesomeIcon color="#ed7b17" icon={faMagnifyingGlass} />}
           />
+        </div>
+
+        <div className={styles.rangePicker}>
+          <div className={styles.rangeDateWrap}>
+            <DatePicker value={startDate} onChange={setStartDate} placeholder="Desde" />
+          </div>
+          <span className={styles.rangeSeparator}>–</span>
+          <div className={styles.rangeDateWrap}>
+            <DatePicker value={endDate} onChange={setEndDate} placeholder="Hasta" />
+          </div>
+
+          {(startDate || endDate) && (
+            <button
+              type="button"
+              className={styles.rangeClearBtn}
+              onClick={() => {
+                setStartDate("");
+                setEndDate("");
+              }}
+              aria-label="Quitar filtro de fechas"
+              title="Quitar filtro de fechas"
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+          )}
         </div>
 
         <Dropdown
@@ -319,8 +352,8 @@ export default function OrdersTab({ id }: { id: string }) {
               <button
                 key={order.id}
                 className={`${styles.orderCard} ${
-                  selectedId === order.id ? styles.selected : ""
-                }`}
+                  styles[ESTADO_META[order.status]?.cardBg ?? "cardCancelled"]
+                } ${selectedId === order.id ? styles.selected : ""}`}
                 onClick={() => setSelectedId(order.id)}
               >
                 <div className={styles.orderHeader}>
@@ -347,9 +380,61 @@ export default function OrdersTab({ id }: { id: string }) {
             ))}
           </div>
 
-          <div className={styles.detailsPanel}>
+          <div
+            className={`${styles.detailsPanel} ${
+              detail ? styles[ESTADO_META[detail.status]?.cardBg ?? "cardCancelled"] : ""
+            }`}
+          >
             {loadingDetail || !detail ? (
-              <div className={styles.emptyState}>Cargando pedido...</div>
+              <>
+                <div className={styles.detailsHeader}>
+                  <div style={{ flex: 1 }}>
+                    <Skeleton width="55%" height={20} style={{ marginBottom: 10 }} />
+                    <Skeleton width="35%" height={13} />
+                  </div>
+                  <Skeleton width={90} height={28} radius={999} />
+                </div>
+
+                <div className={styles.detailsGrid}>
+                  {[0, 1, 2].map((i) => (
+                    <div key={i}>
+                      <Skeleton width="50%" height={11} style={{ marginBottom: 8 }} />
+                      <Skeleton width="80%" height={14} />
+                    </div>
+                  ))}
+                </div>
+
+                <div className={styles.productsSection}>
+                  <Skeleton width="30%" height={11} style={{ marginBottom: 16 }} />
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className={styles.productRow}>
+                      <Skeleton width="60%" height={13} />
+                      <Skeleton width="15%" height={13} />
+                    </div>
+                  ))}
+                </div>
+
+                <div className={styles.notesSection}>
+                  <Skeleton width="35%" height={11} style={{ marginBottom: 10 }} />
+                  <Skeleton width="90%" height={13} />
+                </div>
+
+                <div className={styles.paymentTotal}>
+                  <div>
+                    <Skeleton width="45%" height={11} style={{ marginBottom: 8 }} />
+                    <Skeleton width="60%" height={14} />
+                  </div>
+                  <div className={styles.totalBox}>
+                    <Skeleton width={50} height={11} style={{ marginBottom: 8, marginLeft: "auto" }} />
+                    <Skeleton width={90} height={28} style={{ marginLeft: "auto" }} />
+                  </div>
+                </div>
+
+                <div className={styles.actions}>
+                  <Skeleton width={120} height={48} radius={14} />
+                  <Skeleton width={170} height={48} radius={14} />
+                </div>
+              </>
             ) : (
               <>
                 <div className={styles.detailsHeader}>

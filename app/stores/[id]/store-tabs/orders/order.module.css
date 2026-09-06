@@ -44,9 +44,9 @@
   color: #2da44e;
 }
 
-.gray .statValue,
-.gray .statLabel {
-  color: #7d7d7d;
+.red .statValue,
+.red .statLabel {
+  color: #e53935;
 }
 
 .filters {
@@ -65,6 +65,45 @@
    barra de filtros en linea desalinea el input con los selects de al lado. */
 .searchWrap > div {
   margin-bottom: 0;
+}
+
+.rangePicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+.rangeDateWrap {
+  width: 128px;
+}
+
+.rangeSeparator {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.rangeClearBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #9ca3af;
+  font-size: 11px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.rangeClearBtn:hover {
+  background: #ffe3cc;
+  color: #ff7a00;
 }
 
 .emptyState {
@@ -88,6 +127,32 @@
   flex-direction: column;
   gap: 14px;
   overflow-y: auto;
+  /* Nada de barra gris por defecto: el corte de la ultima tarjeta ya
+     avisa que hay mas abajo. Al pasar el mouse aparece un hilo naranja
+     bien discreto, solo como confirmacion de que si se puede scrollear. */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.ordersList:hover {
+  scrollbar-color: rgba(255, 122, 0, 0.35) transparent;
+}
+
+.ordersList::-webkit-scrollbar {
+  width: 5px;
+}
+
+.ordersList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ordersList::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+
+.ordersList:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 122, 0, 0.35);
 }
 
 .orderCard {
@@ -100,16 +165,93 @@
   gap: 10px;
   text-align: left;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  /* Es un <button>: sin esto el texto hereda el gris apagado que el
+     navegador le da por defecto a los controles de formulario. */
+  color: #1a1a1a;
+  font-family: inherit;
 }
 
 .orderCard:hover {
-  transform: translateY(-2px);
+  border-color: #d8d8d8;
 }
 
+/* Grosor de "seleccionado" generico; el color va aparte, uno por estado,
+   para que la seleccion se sienta parte de la misma tarjeta y no un azul
+   o naranja generico que no tiene nada que ver con su color de fondo. */
 .selected {
+  border-width: 2px;
+  padding: 19px;
+}
+
+/* La tarjeta del listado se queda blanca hasta que se elige: solo el
+   borde (mas grueso) toma el color del estado al seleccionarla. */
+.cardPending.selected {
   border-color: #ff7a00;
-  box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.1);
+}
+
+.cardAccepted.selected {
+  border-color: #b8860b;
+}
+
+.cardPreparing.selected {
+  border-color: #2f7cf6;
+}
+
+.cardReady.selected {
+  border-color: #2da44e;
+}
+
+.cardOnTheWay.selected {
+  border-color: #7c3aed;
+}
+
+.cardDelivered.selected {
+  border-color: #0d9488;
+}
+
+.cardCancelled.selected {
+  border-color: #e53935;
+}
+
+/* El fondo suave si va en el panel de detalle (la pantalla completa del
+   pedido elegido), mismo tono que ya usa la etiqueta de estado. */
+.detailsPanel.cardPending {
+  background: #fff8f0;
+  border-color: #ffdcaa;
+}
+
+.detailsPanel.cardAccepted {
+  background: #fffdf2;
+  border-color: #f0dfa0;
+}
+
+.detailsPanel.cardPreparing {
+  background: #f3f8ff;
+  border-color: #bdd8ff;
+}
+
+.detailsPanel.cardReady {
+  background: #f2fbf4;
+  border-color: #b9ecc6;
+}
+
+.detailsPanel.cardOnTheWay {
+  background: #f8f4ff;
+  border-color: #ddc9fc;
+}
+
+/* "Entregado" no es un estado neutro, es el final feliz del pedido: un
+   verde azulado (teal) lo distingue de "Listo" (verde) sin caer en el
+   gris que lo hacia ver como si no tuviera estado. */
+.detailsPanel.cardDelivered {
+  background: #eafaf8;
+  border-color: #9fdccf;
+}
+
+.detailsPanel.cardCancelled {
+  background: #fff5f5;
+  border-color: #ffc9c9;
 }
 
 .orderHeader,
@@ -140,7 +282,8 @@
 .detailLabel {
   display: block;
   font-size: 13px;
-  color: #888;
+  font-weight: 600;
+  color: #1a1a1a;
   margin-bottom: 8px;
 }
 
@@ -154,6 +297,7 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  color: #1a1a1a;
   padding: 10px 0;
 }
 
@@ -240,8 +384,8 @@
 }
 
 .delivered {
-  background: #f1f1f1;
-  color: #5a5a5a;
+  background: #e6fbf8;
+  color: #0d9488;
 }
 
 .finishedNote {
