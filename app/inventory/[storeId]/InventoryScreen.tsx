@@ -244,6 +244,7 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
       try {
         const res = await fetch(
           `http://localhost:3001/register-business/edit/${storeId}`,
+          { credentials: "include" },
         );
         const data = await res.json();
         if (data?.store_name) {
@@ -265,8 +266,8 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
 
       try {
         const [resLista, resResumen] = await Promise.all([
-          fetch(`http://localhost:3001/inventory/store/${storeId}`),
-          fetch(`http://localhost:3001/inventory/summary/${storeId}`),
+          fetch(`http://localhost:3001/inventory/store/${storeId}`, { credentials: "include" }),
+          fetch(`http://localhost:3001/inventory/summary/${storeId}`, { credentials: "include" }),
         ]);
 
         if (!resLista.ok || !resResumen.ok) throw new Error("fetch fallido");
@@ -373,6 +374,7 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
         : `http://localhost:3001/inventory/store/${storeId}`;
 
       const res = await fetch(url, {
+        credentials: "include",
         method: esEdicion ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -417,7 +419,7 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
     try {
       const res = await fetch(
         `http://localhost:3001/inventory/${ingredientToDelete.id}?storeId=${storeId}`,
-        { method: "DELETE" },
+        { credentials: "include", method: "DELETE" },
       );
 
       if (!res.ok) throw new Error("No se pudo eliminar");
@@ -468,6 +470,7 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
       const res = await fetch(
         `http://localhost:3001/inventory/store/${storeId}/movement`,
         {
+          credentials: "include",
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -511,6 +514,7 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
     try {
       const res = await fetch(
         `http://localhost:3001/inventory/${ing.id}/movements?storeId=${storeId}`,
+        { credentials: "include" },
       );
       const data = await res.json();
       setMovements(Array.isArray(data) ? data : []);
