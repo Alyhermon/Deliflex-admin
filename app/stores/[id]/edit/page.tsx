@@ -136,8 +136,8 @@ export default function EditStorePage({
     const cargar = async () => {
       try {
         const [resDatos, resCategorias] = await Promise.all([
-          fetch(`http://localhost:3001/register-business/edit/${id}`),
-          fetch("http://localhost:3001/register-business/categories"),
+          fetch(`http://localhost:3001/register-business/edit/${id}`, { credentials: "include" }),
+          fetch("http://localhost:3001/register-business/categories", { credentials: "include" }),
         ]);
 
         if (!resDatos.ok) {
@@ -233,6 +233,7 @@ export default function EditStorePage({
       const res = await fetch(
         `http://localhost:3001/register-business/store/${id}`,
         {
+          credentials: "include",
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           // Solo se mandan los horarios: el resto es de solo lectura y el

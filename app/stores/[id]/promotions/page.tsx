@@ -157,6 +157,7 @@ export default function PromotionsPage({
       try {
         const res = await fetch(
           `http://localhost:3001/register-business/${id}`,
+          { credentials: "include" },
         );
 
         const data = await res.json();
@@ -176,6 +177,7 @@ export default function PromotionsPage({
       try {
         const res = await fetch(
           `http://localhost:3001/products/categories/${id}`,
+          { credentials: "include" },
         );
 
         const data = await res.json();
@@ -188,7 +190,7 @@ export default function PromotionsPage({
 
     const loadProducts = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/products/store/${id}`);
+        const res = await fetch(`http://localhost:3001/products/store/${id}`, { credentials: "include" });
         const data = await res.json();
         const lista = Array.isArray(data) ? data : data.data || [];
 
@@ -212,7 +214,7 @@ export default function PromotionsPage({
   const loadPromotions = useCallback(
     async (reintentar = true) => {
       try {
-        const res = await fetch(`http://localhost:3001/promotions/store/${id}`);
+        const res = await fetch(`http://localhost:3001/promotions/store/${id}`, { credentials: "include" });
         const data = await res.json();
 
         setPromotions(Array.isArray(data) ? data : []);
@@ -348,6 +350,7 @@ export default function PromotionsPage({
       const categoria = categories.find((c) => c.name === form.categoryName);
 
       const res = await fetch(`http://localhost:3001/promotions/${id}`, {
+        credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -403,7 +406,7 @@ export default function PromotionsPage({
     try {
       const res = await fetch(
         `http://localhost:3001/promotions/${promotionToDelete.id}`,
-        { method: "DELETE" },
+        { credentials: "include", method: "DELETE" },
       );
 
       if (!res.ok) throw new Error("No se pudo eliminar");

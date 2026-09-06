@@ -75,7 +75,7 @@ export default function DashboardPage() {
       : `http://localhost:3001/register-business/accessible/${user.id}/dashboard-summary`;
 
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, { credentials: "include" });
       const data = await res.json();
 
       setSummary(data);
@@ -111,6 +111,7 @@ export default function DashboardPage() {
       const res = await fetch(
         `http://localhost:3001/register-business/store/${storeId}/status`,
         {
+          credentials: "include",
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status }),
