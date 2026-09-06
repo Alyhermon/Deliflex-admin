@@ -25,8 +25,8 @@ export default function AdminLayout({ children }: Props) {
         : null;
   const rolEnEstaTienda = getRoleForStore(user, storeId);
 
-  // Dentro de una tienda donde eres Cajero, solo Finanzas (de esa misma
-  // tienda) y el listado de Negocios (para poder salir a otra) tienen
+  // Dentro de una tienda donde eres Cajero, solo Finanzas y Pedidos (de esa
+  // misma tienda) y el listado de Negocios (para poder salir a otra) tienen
   // sentido. Si entra por URL directa a cualquier otra cosa de esa
   // tienda, lo regresamos - ocultar el link del menu no alcanza, alguien
   // puede tener el link guardado o escribirlo a mano.
@@ -35,7 +35,9 @@ export default function AdminLayout({ children }: Props) {
     if (!storeId || rolEnEstaTienda !== 60) return;
 
     const permitido =
-      pathname?.startsWith(`/finanzas/${storeId}`) || pathname === "/stores";
+      pathname?.startsWith(`/finanzas/${storeId}`) ||
+      pathname?.startsWith(`/pedidos/${storeId}`) ||
+      pathname === "/stores";
 
     if (!permitido) {
       router.replace(`/finanzas/${storeId}`);

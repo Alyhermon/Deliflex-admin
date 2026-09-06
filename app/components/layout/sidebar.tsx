@@ -185,9 +185,11 @@ export default function Sidebar() {
     // Ya elegiste un negocio: el menu se ajusta a lo que puedes hacer
     // AHI, no a tu mejor rol en otro negocio distinto.
     if (rolEnEstaTienda === 60) {
+      // Cajero: maneja caja (Finanzas) y toma/despacha pedidos (Pedidos).
       items = menuItems.filter(
         (item) =>
           item.name === "Finanzas" ||
+          item.name === "Pedidos" ||
           item.path === "/stores" ||
           item.path === "/core/login",
       );
