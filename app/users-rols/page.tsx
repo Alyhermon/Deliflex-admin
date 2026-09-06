@@ -20,6 +20,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import InviteUserModal from "./(modals)/userInvited";
 import { useAuth } from "../hooks/useAuth";
+import { useActiveStore, ALL_STORES_ID } from "../hooks/useActiveStore";
 import Skeleton, {
   SkeletonTableRows,
 } from "../components/components-items/skeleton/skeleton";
@@ -46,8 +47,6 @@ type StaffMember = {
   store_name: string | null;
 };
 
-const TODOS_LOS_NEGOCIOS = "Todos los negocios";
-
 // Mismos 5 roles que reparte el modal de invitar (+ Administrador, que solo
 // un super admin puede asignar). role_id -> clase de color de la medalla.
 const ROLE_BADGE: Record<number, string> = {
@@ -59,6 +58,16 @@ const ROLE_BADGE: Record<number, string> = {
 };
 
 const ROLE_FILTROS = ["Administrador", "Gerente General", "Supervisor", "Cajero", "Staff"];
+const ESTADO_FILTROS = ["Activo", "Inactivo"];
+
+// Sin foto de perfil todavia en el backend: las iniciales del nombre
+// hacen de avatar mientras tanto (2 letras si hay nombre y apellido).
+const iniciales = (nombre: string) => {
+  const partes = nombre.trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return "?";
+  if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+  return (partes[0][0] + partes[1][0]).toUpperCase();
+};
 
 const fechaCorta = (iso: string) =>
   new Date(iso).toLocaleDateString("es-DO", {
@@ -188,11 +197,14 @@ export default function UsersRolesPage() {
 
   const esSuperAdmin = Number(user?.global_role_id) >= 100;
 
+  // El negocio activo es el mismo que elige el selector del sidebar para
+  // toda la app: aqui no hay un filtro de negocio aparte, para no repetir
+  // la misma eleccion dos veces en dos lugares distintos.
+  const { activeStoreId } = useActiveStore();
+  const realStoreId = activeStoreId === ALL_STORES_ID ? null : activeStoreId;
+
   const [stores, setStores] = useState<StoreOption[]>([]);
   const [loadingStores, setLoadingStores] = useState(true);
-
-  // Filtro puro sobre la tabla: "" = Todos los negocios.
-  const [storeFilter, setStoreFilter] = useState("");
 
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(true);
@@ -200,6 +212,7 @@ export default function UsersRolesPage() {
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [showInvite, setShowInvite] = useState(false);
 
   const [detailMember, setDetailMember] = useState<StaffMember | null>(null);
@@ -228,7 +241,7 @@ export default function UsersRolesPage() {
       ? `${store.name} (${store.id.slice(0, 8)})`
       : store.name;
 
-  const storeSeleccionada = stores.find((s) => etiquetaTienda(s) === storeFilter);
+  const storeSeleccionada = stores.find((s) => s.id === realStoreId);
 
   // El rol con el que el usuario actual opera EN ESE negocio puntual:
   // super admin y dueño (implicito, si el negocio esta en su lista de
@@ -276,7 +289,7 @@ export default function UsersRolesPage() {
 
     const cargarTiendas = async () => {
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, { credentials: "include" });
         const data = await res.json();
 
         setStores(Array.isArray(data) ? data : []);
@@ -349,7 +362,12 @@ export default function UsersRolesPage() {
           normalize(u.email).includes(normalizedSearch)
         : true,
     )
-    .filter((u) => (roleFilter ? u.role_name === roleFilter : true));
+    .filter((u) => (roleFilter ? u.role_name === roleFilter : true))
+    .filter((u) =>
+      statusFilter
+        ? u.status === (statusFilter === "Activo" ? "active" : "inactive")
+        : true,
+    );
 
   const mostrarColumnaNegocio = !storeSeleccionada;
 
@@ -559,20 +577,16 @@ export default function UsersRolesPage() {
                 }
               />
               <DFDropdown
-                options={[TODOS_LOS_NEGOCIOS, ...stores.map(etiquetaTienda)]}
-                value={storeFilter || TODOS_LOS_NEGOCIOS}
-                onChange={(valor) =>
-                  setStoreFilter(valor === TODOS_LOS_NEGOCIOS ? "" : valor)
-                }
-                placeholder={
-                  loadingStores ? "Cargando negocios..." : "Selecciona negocio"
-                }
-              />
-              <DFDropdown
                 options={ROLE_FILTROS}
                 value={roleFilter}
                 onChange={setRoleFilter}
                 placeholder="Selecciona rol"
+              />
+              <DFDropdown
+                options={ESTADO_FILTROS}
+                value={statusFilter}
+                onChange={setStatusFilter}
+                placeholder="Selecciona estado"
               />
             </div>
 
@@ -628,11 +642,16 @@ export default function UsersRolesPage() {
                     filteredStaff.map((u) => (
                       <tr key={u.id}>
                         <td>
-                          <div>
-                            <span className={styles.tableName}>
-                              {u.username}
+                          <div className={styles.userCell}>
+                            <span className={styles.avatar}>
+                              {iniciales(u.username)}
                             </span>
-                            <p>{u.email}</p>
+                            <div>
+                              <span className={styles.tableName}>
+                                {u.username}
+                              </span>
+                              <p>{u.email}</p>
+                            </div>
                           </div>
                         </td>
                         {mostrarColumnaNegocio && (
@@ -677,31 +696,6 @@ export default function UsersRolesPage() {
                 </tbody>
               </table>
             )}
-          </div>
-
-          <div className={styles.roles}>
-            <span className={styles.statsTitle}>Roles</span>
-            <span className={styles.description}>
-              Roles fijos del sistema. Se asignan al invitar a alguien al equipo.
-            </span>
-            <div className={styles.roleCards}>
-              <div className={styles.roleCard}>
-                <span className={styles.statsTitle}>Gerente General</span>
-                <p>Gestiona una sucursal completa</p>
-              </div>
-              <div className={styles.roleCard}>
-                <span className={styles.statsTitle}>Supervisor</span>
-                <p>Supervisa turnos y caja</p>
-              </div>
-              <div className={styles.roleCard}>
-                <span className={styles.statsTitle}>Cajero</span>
-                <p>Maneja caja y pedidos</p>
-              </div>
-              <div className={styles.roleCard}>
-                <span className={styles.statsTitle}>Staff</span>
-                <p>Operaciones basicas</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
