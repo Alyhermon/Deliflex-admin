@@ -16,6 +16,130 @@
   margin-bottom: 2.5rem;
 }
 
+.storeSwitcher {
+  margin-bottom: 1.75rem;
+}
+
+.storeSwitcherLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.storeSwitcherWrap {
+  position: relative;
+}
+
+.storeSwitcherRole {
+  margin-top: 8px;
+  padding: 0 2px;
+  font-size: 11.5px;
+  color: #6b7280;
+}
+
+.storeSwitcherRole strong {
+  color: #d1d5db;
+  font-weight: 600;
+}
+
+.storeSwitcherControl {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-family: inherit;
+}
+
+.storeSwitcherControl:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.storeSwitcherIcon {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.storeSwitcherValue {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  color: #e5e7eb;
+  font-weight: 600;
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.storeSwitcherChevron {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: #9ca3af;
+  transition: transform 0.15s ease;
+}
+
+.storeSwitcherChevronOpen {
+  transform: rotate(180deg);
+}
+
+.storeSwitcherPopup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+  overflow-y: auto;
+  max-height: 260px;
+  z-index: 30;
+  padding: 6px;
+  /* El contenido sigue siendo scrolleable con mouse/touch/teclado; solo se
+     oculta la barra nativa para que no se vea como un control aparte. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.storeSwitcherPopup::-webkit-scrollbar {
+  display: none;
+}
+
+.storeSwitcherOption {
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.storeSwitcherOption:hover {
+  background: #f3f4f6;
+}
+
+.storeSwitcherOptionActive {
+  background: #eef1f5;
+  color: #121b27;
+  font-weight: 700;
+}
+
+.storeSwitcherDivider {
+  height: 1px;
+  background: #eee;
+  margin: 4px 2px;
+}
+
 .menu {
   display: flex;
   flex-direction: column;
@@ -37,6 +161,15 @@
 
 .active {
   background-color: #f97316;
+}
+
+.menuItemDisabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.menuItemDisabled:hover {
+  background-color: transparent;
 }
 
 .roleContext {

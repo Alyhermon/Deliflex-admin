@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AdminLayout from "../components/layout/adminLayout";
@@ -8,6 +8,7 @@ import { useAuth } from "../hooks/useAuth";
 import Skeleton, {
   SkeletonStatCards,
 } from "../components/components-items/skeleton/skeleton";
+import Toast from "../components/components-items/toast/toast";
 import styles from "./dashboard.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -17,7 +18,8 @@ import {
   faBoxOpen,
   faTags,
   faArrowRight,
-  faLock,
+  faCheck,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
 type PendingStore = {
@@ -55,10 +57,34 @@ export default function DashboardPage() {
 
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actingStoreId, setActingStoreId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "info" | "danger";
+  } | null>(null);
 
   // 100 = SUPER_ADMIN (la duena de la plataforma): ve TODOS los negocios.
   // 90  = ADMIN normal: solo ve el total de sus propios negocios.
   const esSuperAdmin = Number(user?.global_role_id) >= 100;
+
+  const cargarResumen = useCallback(async () => {
+    if (!user) return;
+
+    const url = esSuperAdmin
+      ? "http://localhost:3001/register-business/dashboard-summary"
+      : `http://localhost:3001/register-business/accessible/${user.id}/dashboard-summary`;
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+
+      setSummary(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, esSuperAdmin]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -69,25 +95,48 @@ export default function DashboardPage() {
       return;
     }
 
-    const url = esSuperAdmin
-      ? "http://localhost:3001/register-business/dashboard-summary"
-      : `http://localhost:3001/register-business/accessible/${user.id}/dashboard-summary`;
-
-    const cargar = async () => {
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-
-        setSummary(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    cargar();
+    cargarResumen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user, esSuperAdmin, router]);
+
+  // Unica decision que le toca a la plataforma: aprobar deja el negocio
+  // ACTIVE, declinar lo deja INACTIVE (no lo borra, solo no queda publicado).
+  const decidirNegocio = async (
+    storeId: string,
+    status: "ACTIVE" | "INACTIVE",
+  ) => {
+    setActingStoreId(storeId);
+
+    try {
+      const res = await fetch(
+        `http://localhost:3001/register-business/store/${storeId}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        },
+      );
+
+      if (!res.ok) throw new Error("No se pudo actualizar el negocio");
+
+      setToast({
+        message:
+          status === "ACTIVE"
+            ? "Negocio aprobado"
+            : "Negocio declinado",
+        type: status === "ACTIVE" ? "success" : "danger",
+      });
+
+      await cargarResumen();
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "No se pudo actualizar",
+        type: "danger",
+      });
+    } finally {
+      setActingStoreId(null);
+    }
+  };
 
   const hoyCrudo = new Date().toLocaleDateString("es-DO", {
     weekday: "long",
@@ -114,13 +163,19 @@ export default function DashboardPage() {
           <SkeletonStatCards count={5} />
 
           <div className={styles.content}>
-            <div className={`${styles.panel} ${styles.panelPending}`}>
-              <Skeleton width="60%" height={14} style={{ marginBottom: 16 }} />
-              <Skeleton height={44} radius={10} style={{ marginBottom: 10 }} />
-              <Skeleton height={44} radius={10} />
-            </div>
+            {esSuperAdmin && (
+              <div className={`${styles.panel} ${styles.panelPending}`}>
+                <Skeleton width="60%" height={14} style={{ marginBottom: 16 }} />
+                <Skeleton height={44} radius={10} style={{ marginBottom: 10 }} />
+                <Skeleton height={44} radius={10} />
+              </div>
+            )}
 
-            <div className={`${styles.panel} ${styles.panelStatus}`}>
+            <div
+              className={`${styles.panel} ${styles.panelStatus} ${
+                esSuperAdmin ? "" : styles.panelStatusFull
+              }`}
+            >
               <Skeleton width="50%" height={14} style={{ marginBottom: 16 }} />
               <Skeleton height={10} radius={999} />
             </div>
@@ -208,69 +263,70 @@ export default function DashboardPage() {
         </div>
 
         <div className={styles.content}>
-          <div className={`${styles.panel} ${styles.panelPending}`}>
-            <div className={styles.panelHead}>
-              <h3>Negocios pendientes de aprobación</h3>
-              <Link href="/stores" className={styles.panelLink}>
-                Ver todos <FontAwesomeIcon icon={faArrowRight} size="2xs" />
-              </Link>
-            </div>
-
-            {summary.pendingApproval.length === 0 ? (
-              <div className={styles.emptyState}>
-                <FontAwesomeIcon
-                  icon={faCircleCheck}
-                  className={styles.emptyIcon}
-                />
-                No hay negocios esperando aprobación.
+          {/* Aprobar o rechazar un negocio es una decision de la plataforma,
+              no de quien lo administra: solo la super admin la ve. */}
+          {esSuperAdmin && (
+            <div className={`${styles.panel} ${styles.panelPending}`}>
+              <div className={styles.panelHead}>
+                <h3>Negocios pendientes de aprobación</h3>
+                <Link href="/stores" className={styles.panelLink}>
+                  Ver todos <FontAwesomeIcon icon={faArrowRight} size="2xs" />
+                </Link>
               </div>
-            ) : (
-              summary.pendingApproval.map((store) =>
-                esSuperAdmin ? (
-                  <Link
-                    key={store.id}
-                    href={`/stores/${store.id}`}
-                    className={styles.pendingItem}
-                  >
-                    <div className={styles.pendingInfo}>
+
+              {summary.pendingApproval.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <FontAwesomeIcon
+                    icon={faCircleCheck}
+                    className={styles.emptyIcon}
+                  />
+                  No hay negocios esperando aprobación.
+                </div>
+              ) : (
+                summary.pendingApproval.map((store) => (
+                  <div key={store.id} className={styles.pendingItem}>
+                    <Link
+                      href={`/stores/${store.id}`}
+                      className={styles.pendingInfo}
+                    >
                       <span className={styles.pendingName}>{store.name}</span>
                       <span className={styles.pendingMeta}>
                         {store.category || "Sin categoría"} ·{" "}
                         {haceTiempo(store.created_at)}
                       </span>
-                    </div>
+                    </Link>
 
-                    <span className={styles.pendingBadge}>
-                      <FontAwesomeIcon icon={faClock} /> Pendiente
-                    </span>
-                  </Link>
-                ) : (
-                  // Un negocio pendiente todavia no lo aprobo la
-                  // plataforma: hasta que eso pase, nadie que no sea el
-                  // super admin puede entrar a administrarlo.
-                  <div
-                    key={store.id}
-                    className={`${styles.pendingItem} ${styles.pendingItemLocked}`}
-                    title="Este negocio esta pendiente de aprobacion"
-                  >
-                    <div className={styles.pendingInfo}>
-                      <span className={styles.pendingName}>{store.name}</span>
-                      <span className={styles.pendingMeta}>
-                        {store.category || "Sin categoría"} ·{" "}
-                        {haceTiempo(store.created_at)}
-                      </span>
+                    <div className={styles.pendingActions}>
+                      <button
+                        type="button"
+                        className={styles.declineBtn}
+                        disabled={actingStoreId === store.id}
+                        onClick={() => decidirNegocio(store.id, "INACTIVE")}
+                        title="Declinar negocio"
+                      >
+                        <FontAwesomeIcon icon={faXmark} /> Declinar
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.approveBtn}
+                        disabled={actingStoreId === store.id}
+                        onClick={() => decidirNegocio(store.id, "ACTIVE")}
+                        title="Aprobar negocio"
+                      >
+                        <FontAwesomeIcon icon={faCheck} /> Aprobar
+                      </button>
                     </div>
-
-                    <span className={styles.pendingBadge}>
-                      <FontAwesomeIcon icon={faLock} /> Pendiente
-                    </span>
                   </div>
-                ),
-              )
-            )}
-          </div>
+                ))
+              )}
+            </div>
+          )}
 
-          <div className={`${styles.panel} ${styles.panelStatus}`}>
+          <div
+            className={`${styles.panel} ${styles.panelStatus} ${
+              esSuperAdmin ? "" : styles.panelStatusFull
+            }`}
+          >
             <div className={styles.panelHead}>
               <h3>Estado de los negocios</h3>
             </div>
@@ -323,6 +379,14 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </AdminLayout>
   );
 }

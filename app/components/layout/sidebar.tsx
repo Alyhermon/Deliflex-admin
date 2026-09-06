@@ -1,11 +1,11 @@
 "use client";
 
-import { useRouter, usePathname, useParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBarcode,
   faShop,
-  faChartLine,
+  faReceipt,
   faCalculator,
   faChartColumn,
   faGear,
@@ -13,9 +13,11 @@ import {
   faCircleUser,
   faBox,
   faShieldHalved,
+  faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useAuth, getRoleForStore, tieneAlgunRolDeGestion } from "../../hooks/useAuth";
+import { useActiveStore, ALL_STORES_ID } from "../../hooks/useActiveStore";
 import Skeleton from "../components-items/skeleton/skeleton";
 import styles from "./sidebar.module.css";
 
@@ -23,12 +25,15 @@ interface MenuItem {
   name: string;
   path: string;
   icon?: ReactNode;
+  // Prefijo real de la seccion (ej. "/menu"), para saber si esta activa
+  // aunque `path` este apuntando de respaldo a "/stores" por no haber
+  // todavia un negocio activo elegido.
+  sectionPrefix?: string;
 }
 
-// Los items que dependen de una tienda (Inventario, Finanzas) apuntan al
-// picker por defecto, pero si ya estamos dentro de una tienda puntual
-// (storeId en la URL) deben seguir apuntando a ESA misma tienda, no
-// mandarte de vuelta al selector.
+// Los items que dependen de un negocio (Menu, Inventario, Finanzas, Pedidos)
+// siguen al negocio activo elegido arriba en el selector. Sin negocio
+// activo, mandan a "Negocios" a elegir uno en vez de a un picker aparte.
 const buildMenuItems = (storeId: string | null): MenuItem[] => [
   {
     name: "Dashboard",
@@ -42,23 +47,27 @@ const buildMenuItems = (storeId: string | null): MenuItem[] => [
   },
   {
     name: "Menú",
-    path: storeId ? `/menu/${storeId}` : "/menu",
+    path: storeId ? `/menu/${storeId}` : "/stores",
     icon: <FontAwesomeIcon icon={faBarcode} />,
+    sectionPrefix: "/menu",
   },
   {
     name: "Inventario",
-    path: storeId ? `/inventory/${storeId}` : "/inventory",
+    path: storeId ? `/inventory/${storeId}` : "/stores",
     icon: <FontAwesomeIcon icon={faBox} />,
+    sectionPrefix: "/inventory",
   },
   {
-    name: "Operaciones",
-    path: "/operaciones",
-    icon: <FontAwesomeIcon icon={faChartLine} />,
+    name: "Pedidos",
+    path: storeId ? `/pedidos/${storeId}` : "/stores",
+    icon: <FontAwesomeIcon icon={faReceipt} />,
+    sectionPrefix: "/pedidos",
   },
   {
     name: "Finanzas",
-    path: storeId ? `/finanzas/${storeId}` : "/finanzas",
+    path: storeId ? `/finanzas/${storeId}` : "/stores",
     icon: <FontAwesomeIcon icon={faCalculator} />,
+    sectionPrefix: "/finanzas",
   },
   {
     name: "Usuarios y Roles",
@@ -72,47 +81,115 @@ const buildMenuItems = (storeId: string | null): MenuItem[] => [
   },
   {
     name: "Login",
-    path: "core/login",
+    path: "/core/login",
     icon: <FontAwesomeIcon icon={faCircleUser} />,
   },
 ];
 
+// Si estas dentro de una seccion de negocio (Menu/Inventario/Finanzas/
+// Pedidos/detalle de Negocios) y cambias el negocio activo, te quedas en
+// la MISMA seccion pero para el negocio nuevo, en vez de perder el lugar
+// donde estabas.
+const SECCIONES_POR_NEGOCIO = ["menu", "inventory", "finanzas", "pedidos", "stores"];
+
+function construirRutaParaNegocio(pathname: string, nuevoStoreId: string): string | null {
+  const segmentos = pathname.split("/").filter(Boolean);
+  if (segmentos.length < 2) return null;
+  if (!SECCIONES_POR_NEGOCIO.includes(segmentos[0])) return null;
+
+  const resto = segmentos.slice(2);
+  return `/${segmentos[0]}/${nuevoStoreId}${resto.length ? "/" + resto.join("/") : ""}`;
+}
+
+function esItemActivo(item: MenuItem, pathname: string): boolean {
+  if (item.sectionPrefix) return pathname.startsWith(`${item.sectionPrefix}/`);
+  if (item.path === "/stores") return pathname === "/stores" || pathname.startsWith("/stores/");
+  return pathname === item.path;
+}
+
+// Mismos role_id que reparte el modal de invitar en Usuarios y Roles.
+const ROLE_LABELS: Record<number, string> = {
+  100: "Super Administrador",
+  90: "Administrador",
+  80: "Gerente General",
+  70: "Supervisor",
+  60: "Cajero",
+  50: "Staff",
+};
+
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const params = useParams();
   const { user, loading } = useAuth();
+  const {
+    stores,
+    loading: loadingStores,
+    activeStoreId,
+    setActiveStoreId,
+  } = useActiveStore();
 
-  // "storeId" en /inventory/[storeId] y /finanzas/[storeId]; "id" en
-  // /stores/[id] (el detalle de negocio, donde tambien se "entra" a una
-  // tienda puntual al hacer click en una tarjeta de "Negocios").
-  const storeId =
-    typeof params?.storeId === "string"
-      ? params.storeId
-      : typeof params?.id === "string"
-        ? params.id
-        : null;
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const switcherRef = useRef<HTMLDivElement>(null);
 
-  // Rol con el que operas EN LA TIENDA que estas viendo ahora mismo
-  // (null si todavia no elegiste ninguna, o si esta no es tuya).
-  const rolEnEstaTienda = getRoleForStore(user, storeId);
+  useEffect(() => {
+    if (!switcherOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!switcherRef.current?.contains(event.target as Node)) {
+        setSwitcherOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSwitcherOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [switcherOpen]);
+
+  // Nombres que se repiten entre negocios (ej. varias sucursales con el
+  // mismo nombre): a esos hay que agregarles la categoria en el selector
+  // para poder distinguirlos, si no, no hay forma de saber cual es cual.
+  const nombresRepetidos = new Set(
+    Object.entries(
+      stores.reduce<Record<string, number>>((acc, s) => {
+        acc[s.name] = (acc[s.name] ?? 0) + 1;
+        return acc;
+      }, {}),
+    )
+      .filter(([, count]) => count > 1)
+      .map(([name]) => name),
+  );
+
+  // "Todos los negocios" no es un negocio real: para todo lo que depende
+  // de un negocio puntual (rol, links de Menu/Inventario/etc.) cuenta
+  // igual que no haber elegido ninguno todavia.
+  const realStoreId = activeStoreId === ALL_STORES_ID ? null : activeStoreId;
+
+  // Rol con el que operas EN EL NEGOCIO activo ahora mismo (null si
+  // todavia no elegiste ninguno, o si ese negocio no es tuyo).
+  const rolEnEstaTienda = getRoleForStore(user, realStoreId);
 
   const esAdminPlataforma = Number(user?.global_role_id ?? 0) >= 90;
   const puedeGestionarEquipo = tieneAlgunRolDeGestion(user);
 
-  const menuItems = buildMenuItems(storeId);
+  const menuItems = buildMenuItems(realStoreId);
 
   let items: MenuItem[];
 
-  if (storeId && rolEnEstaTienda !== null) {
-    // Ya elegiste una tienda: el menu se ajusta a lo que puedes hacer
+  if (realStoreId && rolEnEstaTienda !== null) {
+    // Ya elegiste un negocio: el menu se ajusta a lo que puedes hacer
     // AHI, no a tu mejor rol en otro negocio distinto.
     if (rolEnEstaTienda === 60) {
       items = menuItems.filter(
         (item) =>
           item.name === "Finanzas" ||
           item.path === "/stores" ||
-          item.path === "core/login",
+          item.path === "/core/login",
       );
     } else if (rolEnEstaTienda === 50) {
       items = menuItems.filter((item) => item.path !== "/users-rols");
@@ -120,7 +197,7 @@ export default function Sidebar() {
       items = menuItems;
     }
   } else {
-    // Todavia no hay una tienda especifica seleccionada: se ve el menu
+    // Todavia no hay un negocio especifico seleccionado: se ve el menu
     // general, con "Usuarios y Roles" visible solo si en ALGUN negocio
     // (el que sea) puede de verdad gestionar equipo.
     items = menuItems.filter(
@@ -131,6 +208,45 @@ export default function Sidebar() {
   // Con que rol y en que negocio entraste: para alguien que es staff en
   // varios negocios a la vez, esto le aclara donde tiene cual sombrero.
   const staffBusinesses = user?.staff_businesses ?? [];
+
+  const etiquetaNegocio = (s: (typeof stores)[number]) =>
+    nombresRepetidos.has(s.name)
+      ? `${s.name} · ${s.category || "Sin categoría"}`
+      : s.name;
+
+  const etiquetaActiva =
+    activeStoreId === ALL_STORES_ID
+      ? "Todos los negocios"
+      : (stores.find((s) => s.id === activeStoreId) &&
+          etiquetaNegocio(stores.find((s) => s.id === activeStoreId)!)) ||
+        "Selecciona un negocio";
+
+  // Por id, no por nombre: puede haber mas de un negocio con el mismo
+  // nombre (ej. varias sucursales "Cocorao Zona Colonial"), y elegir por
+  // nombre terminaria siempre en la primera que coincida.
+  const handleElegirNegocio = (nuevoStoreId: string) => {
+    if (!nuevoStoreId) return;
+
+    setActiveStoreId(nuevoStoreId);
+    setSwitcherOpen(false);
+
+    if (nuevoStoreId === ALL_STORES_ID) {
+      // "Todos" no tiene una vista propia para Menu/Inventario/Finanzas/
+      // Pedidos ni para el detalle de un negocio puntual: si estabas ahi,
+      // te manda de vuelta a la lista en vez de dejarte en una pantalla
+      // que ya no tiene sentido para lo que elegiste.
+      const segmentos = pathname.split("/").filter(Boolean);
+      if (segmentos.length >= 2 && SECCIONES_POR_NEGOCIO.includes(segmentos[0])) {
+        router.push("/stores");
+      }
+      return;
+    }
+
+    const rutaEnNuevoNegocio = construirRutaParaNegocio(pathname, nuevoStoreId);
+    if (rutaEnNuevoNegocio && rutaEnNuevoNegocio !== pathname) {
+      router.push(rutaEnNuevoNegocio);
+    }
+  };
 
   // Mientras no sabemos quien es (o que rol tiene), armar el menu real
   // es puro adivinar: mostrar unos items y luego hacerlos aparecer o
@@ -156,19 +272,91 @@ export default function Sidebar() {
     <div className={styles.sidebar}>
       <h1 className={styles.logo}>DELIFLEX</h1>
 
+      {user && (
+        <div className={styles.storeSwitcher} ref={switcherRef}>
+          <span className={styles.storeSwitcherLabel}>Negocio actual</span>
+          {loadingStores ? (
+            <Skeleton height={36} radius={8} />
+          ) : (
+            <div className={styles.storeSwitcherWrap}>
+              <button
+                type="button"
+                className={styles.storeSwitcherControl}
+                onClick={() => setSwitcherOpen((v) => !v)}
+              >
+                <FontAwesomeIcon icon={faShop} className={styles.storeSwitcherIcon} />
+                <span className={styles.storeSwitcherValue}>{etiquetaActiva}</span>
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`${styles.storeSwitcherChevron} ${
+                    switcherOpen ? styles.storeSwitcherChevronOpen : ""
+                  }`}
+                />
+              </button>
+
+              {switcherOpen && (
+                <div className={styles.storeSwitcherPopup}>
+                  <div
+                    className={`${styles.storeSwitcherOption} ${
+                      activeStoreId === ALL_STORES_ID ? styles.storeSwitcherOptionActive : ""
+                    }`}
+                    onClick={() => handleElegirNegocio(ALL_STORES_ID)}
+                  >
+                    Todos los negocios
+                  </div>
+
+                  {stores.length > 0 && <div className={styles.storeSwitcherDivider} />}
+
+                  {stores.map((s) => (
+                    <div
+                      key={s.id}
+                      className={`${styles.storeSwitcherOption} ${
+                        activeStoreId === s.id ? styles.storeSwitcherOptionActive : ""
+                      }`}
+                      onClick={() => handleElegirNegocio(s.id)}
+                    >
+                      {etiquetaNegocio(s)}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Comportamiento por rol a la vista: si estas viendo un negocio
+              puntual, aqui se ve con que rol operas justo en ese negocio,
+              no tu mejor rol en otro negocio distinto. */}
+          {realStoreId && rolEnEstaTienda !== null && (
+            <div className={styles.storeSwitcherRole}>
+              Tu rol aquí: <strong>{ROLE_LABELS[rolEnEstaTienda] ?? "—"}</strong>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className={styles.menu}>
-        {items.map((item) => (
-          <div
-            key={item.name}
-            onClick={() => router.push(item.path)}
-            className={`${styles.menuItem} ${
-              pathname === item.path ? styles.active : ""
-            }`}
-          >
-            {item.icon}
-            {item.name}
-          </div>
-        ))}
+        {items.map((item) => {
+          // Con "Todos los negocios" elegido, las secciones de un solo
+          // negocio (Menu/Inventario/Pedidos/Finanzas) no tienen que
+          // mostrar: se bloquean en vez de mandarte a una pantalla vacia.
+          const disabled = Boolean(item.sectionPrefix) && !realStoreId;
+
+          return (
+            <div
+              key={item.name}
+              onClick={() => {
+                if (!disabled) router.push(item.path);
+              }}
+              className={`${styles.menuItem} ${
+                esItemActivo(item, pathname) ? styles.active : ""
+              } ${disabled ? styles.menuItemDisabled : ""}`}
+              title={disabled ? "Elige un negocio para ver esto" : undefined}
+            >
+              {item.icon}
+              {item.name}
+            </div>
+          );
+        })}
       </div>
 
       {user && (

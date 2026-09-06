@@ -54,12 +54,14 @@
 .header h1 {
   margin: 0 0 4px;
   font-size: 25px;
+  color: white;
   font-weight: 700;
 }
 
 .header p {
   margin: 0;
   opacity: 0.94;
+  color: white;
   font-size: 14px;
   max-width: 460px;
 }
@@ -182,6 +184,10 @@
   min-width: 0;
 }
 
+.panelStatusFull {
+  flex: 1 1 100%;
+}
+
 .panelHead {
   display: flex;
   align-items: baseline;
@@ -223,18 +229,13 @@
   border-bottom: none;
 }
 
-/* Un negocio pendiente solo se puede abrir para revisarlo/aprobarlo si
-   eres el super admin; para el resto es solo informativo. */
-.pendingItemLocked {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
 .pendingInfo {
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  text-decoration: none;
+  color: inherit;
 }
 
 .pendingName {
@@ -251,19 +252,48 @@
   color: #9a9a9a;
 }
 
-.pendingBadge {
+.pendingActions {
   flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+}
+
+.declineBtn,
+.approveBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #fff4ea;
-  color: #b45309;
-  border: 1px solid #ffe1c2;
-  padding: 5px 11px;
+  border: none;
+  padding: 7px 12px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
+  cursor: pointer;
   white-space: nowrap;
+}
+
+.declineBtn:disabled,
+.approveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.declineBtn {
+  background: #fff1f1;
+  color: #e53935;
+}
+
+.declineBtn:hover:not(:disabled) {
+  background: #ffe3e3;
+}
+
+.approveBtn {
+  background: #eefbf1;
+  color: #2da44e;
+}
+
+.approveBtn:hover:not(:disabled) {
+  background: #dcf5e3;
 }
 
 .emptyState {
