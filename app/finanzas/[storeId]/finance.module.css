@@ -24,20 +24,26 @@
   font-size: 14px;
 }
 
-/* ---- Selector de periodo ---- */
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .periodToggle {
   display: flex;
   gap: 6px;
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  padding: 4px;
+  padding: 8px;
 }
 
 .periodBtn {
   border: none;
   background: none;
-  padding: 8px 14px;
+  padding: 10px 14px;
   border-radius: 7px;
   font-size: 13px;
   font-weight: 600;
@@ -55,7 +61,25 @@
   color: white;
 }
 
-/* ---- Tarjetas de metricas ---- */
+.rangePicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+.rangeDateWrap {
+  width: 128px;
+}
+
+.rangeSeparator {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
 .statsGrid {
   display: flex;
   flex-wrap: wrap;
@@ -210,6 +234,7 @@
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
+  color: #1a1a1a;
   margin-bottom: 8px;
 }
 

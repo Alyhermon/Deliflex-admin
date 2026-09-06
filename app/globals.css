@@ -12,15 +12,22 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Todo el panel es de fondo claro (tarjetas blancas fijas en todas
+   partes), asi que el texto siempre va en negro - nunca se diseño una
+   version oscura, y el modo oscuro del sistema no debe aclararlo. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+strong {
+  color: #1a1a1a;
 }

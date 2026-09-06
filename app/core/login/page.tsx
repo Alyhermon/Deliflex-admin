@@ -5,14 +5,13 @@ import DFInput from "../../components/components-items/input";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faKey } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Toast from "@/app/components/components-items/toast/toast";
+import { ACTIVE_STORE_STORAGE_KEY } from "@/app/hooks/useActiveStore";
 
 export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const [toast, setToast] = useState<{
     message: string;
     type: "error" | "success" | "warning";
@@ -64,7 +63,20 @@ export default function DashboardPage() {
       console.log("Cookie status:", cookieRes.status);
       console.log("Token que se envía:", data.access_token);
 
-      router.push("/dashboard");
+      // El negocio activo elegido por la sesion anterior puede ni
+      // siquiera ser de este usuario: sin esto, quedaria seleccionado
+      // (o roto) hasta que alguien lo cambiara a mano.
+      try {
+        localStorage.removeItem(ACTIVE_STORE_STORAGE_KEY);
+      } catch {
+        // Sin localStorage disponible: no hay nada que limpiar.
+      }
+
+      // Navegacion dura, no router.push: el usuario y la lista de negocios
+      // se guardan en un contexto montado en el layout raiz (no se
+      // remonta al cambiar de ruta), asi que un push normal dejaria
+      // viendo los negocios del usuario anterior hasta un refresh manual.
+      window.location.href = "/dashboard";
     } catch (error) {
       console.error(error);
       alert("Error de conexión");
