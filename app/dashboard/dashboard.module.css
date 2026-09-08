@@ -79,15 +79,36 @@
 }
 
 /* ---- Tarjetas de metricas ---- */
-.statsGrid {
-  display: flex;
-  flex-wrap: wrap;
+/* Grid en vez de flex-wrap: cada tarjeta ocupa una columna real que se
+   reparte el ancho disponible, asi que en pantallas angostas bajan
+   ordenadas de a una o dos por fila en vez de estirarse desparejo o
+   quedar una sola sueltas en la ultima fila. */
+.statsSection {
+  margin-bottom: 22px;
+}
+
+.statsSectionTitle {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #8a8a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statsHighlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
-  margin-bottom: 24px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
 }
 
 .statCard {
-  flex: 1 1 180px;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -141,6 +162,16 @@
   color: #7c3aed;
 }
 
+.iconTeal {
+  background: linear-gradient(135deg, #e6fbf8, #c9f4ed);
+  color: #0d9488;
+}
+
+.iconGold {
+  background: linear-gradient(135deg, #fbf3df, #f5e3ae);
+  color: #b8860b;
+}
+
 .statBody {
   min-width: 0;
 }
@@ -164,6 +195,37 @@
   flex-wrap: wrap;
   gap: 20px;
   align-items: flex-start;
+}
+
+/* ---- Graficas ---- */
+.chartsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: stretch;
+  margin-top: 20px;
+}
+
+.chartPanel {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.chartSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.donutRow {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.donutSvg {
+  flex-shrink: 0;
 }
 
 .panel {
@@ -367,4 +429,31 @@
   padding: 60px 0;
   text-align: center;
   color: #9a9a9a;
+}
+
+@media (max-width: 560px) {
+  .header {
+    padding: 22px 20px;
+  }
+
+  .header h1 {
+    font-size: 21px;
+  }
+
+  .fecha {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .statsHighlights,
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 380px) {
+  .statsHighlights,
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
 }

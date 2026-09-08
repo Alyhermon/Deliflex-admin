@@ -20,6 +20,11 @@ import {
   faArrowRight,
   faCheck,
   faXmark,
+  faSackDollar,
+  faStar,
+  faReceipt,
+  faTicket,
+  faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 
 type PendingStore = {
@@ -37,7 +42,37 @@ type Summary = {
   inactiveStores: number;
   totalProducts: number;
   activePromotions: number;
+  totalRevenue?: number;
+  boostRevenue?: number;
+  totalOrders?: number;
+  avgTicket?: number;
+  totalCustomers?: number;
+  revenueTrend?: { month: string; total: number }[];
+  byCategory?: { category: string; total: number }[];
   pendingApproval: PendingStore[];
+};
+
+const CATEGORY_COLORS = [
+  "#ff7a00",
+  "#2f7cf6",
+  "#7c3aed",
+  "#0d9488",
+  "#b8860b",
+  "#2da44e",
+  "#e53935",
+  "#9a9a9a",
+];
+
+const dinero = (valor: number | string) =>
+  `RD$${Number(valor).toLocaleString("es-DO", { maximumFractionDigits: 0 })}`;
+
+const mesCorto = (ym: string) => {
+  const [y, m] = ym.split("-").map(Number);
+  const texto = new Date(y, m - 1, 1).toLocaleDateString("es-DO", {
+    month: "short",
+  });
+  const limpio = texto.replace(".", "");
+  return limpio.charAt(0).toUpperCase() + limpio.slice(1);
 };
 
 const haceTiempo = (iso: string) => {
@@ -161,7 +196,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <SkeletonStatCards count={5} />
+          <SkeletonStatCards count={esSuperAdmin ? 10 : 5} />
 
           <div className={styles.content}>
             {esSuperAdmin && (
@@ -207,59 +242,139 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <span className={`${styles.statIcon} ${styles.iconOrange}`}>
-              <FontAwesomeIcon icon={faShop} />
-            </span>
-            <div className={styles.statBody}>
-              <div className={styles.statValue}>{summary.totalStores}</div>
-              <div className={styles.statLabel}>
-                {esSuperAdmin ? "Negocios registrados" : "Mis negocios"}
+        {esSuperAdmin && (
+          <div className={styles.statsSection}>
+            <h3 className={styles.statsSectionTitle}>Ingresos</h3>
+            <div className={styles.statsHighlights}>
+              <div className={styles.statCard}>
+                <span className={`${styles.statIcon} ${styles.iconTeal}`}>
+                  <FontAwesomeIcon icon={faSackDollar} />
+                </span>
+                <div className={styles.statBody}>
+                  <div className={styles.statValue}>
+                    {dinero(summary.totalRevenue ?? 0)}
+                  </div>
+                  <div className={styles.statLabel}>
+                    Ingresos totales de la plataforma
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.statCard}>
+                <span className={`${styles.statIcon} ${styles.iconGold}`}>
+                  <FontAwesomeIcon icon={faStar} />
+                </span>
+                <div className={styles.statBody}>
+                  <div className={styles.statValue}>
+                    {dinero(summary.boostRevenue ?? 0)}
+                  </div>
+                  <div className={styles.statLabel}>
+                    Ingresos por Negocios Destacados
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.statCard}>
+                <span className={`${styles.statIcon} ${styles.iconGold}`}>
+                  <FontAwesomeIcon icon={faTicket} />
+                </span>
+                <div className={styles.statBody}>
+                  <div className={styles.statValue}>
+                    {dinero(summary.avgTicket ?? 0)}
+                  </div>
+                  <div className={styles.statLabel}>Ticket promedio</div>
+                </div>
               </div>
             </div>
           </div>
+        )}
 
-          <div className={styles.statCard}>
-            <span className={`${styles.statIcon} ${styles.iconGreen}`}>
-              <FontAwesomeIcon icon={faCircleCheck} />
-            </span>
-            <div className={styles.statBody}>
-              <div className={styles.statValue}>{summary.activeStores}</div>
-              <div className={styles.statLabel}>Negocios activos</div>
-            </div>
-          </div>
-
-          <div className={styles.statCard}>
-            <span className={`${styles.statIcon} ${styles.iconAmber}`}>
-              <FontAwesomeIcon icon={faClock} />
-            </span>
-            <div className={styles.statBody}>
-              <div className={styles.statValue}>{summary.pendingStores}</div>
-              <div className={styles.statLabel}>Por aprobar</div>
-            </div>
-          </div>
-
-          <div className={styles.statCard}>
-            <span className={`${styles.statIcon} ${styles.iconBlue}`}>
-              <FontAwesomeIcon icon={faBoxOpen} />
-            </span>
-            <div className={styles.statBody}>
-              <div className={styles.statValue}>{summary.totalProducts}</div>
-              <div className={styles.statLabel}>Productos en menús</div>
-            </div>
-          </div>
-
-          <div className={styles.statCard}>
-            <span className={`${styles.statIcon} ${styles.iconPurple}`}>
-              <FontAwesomeIcon icon={faTags} />
-            </span>
-            <div className={styles.statBody}>
-              <div className={styles.statValue}>
-                {summary.activePromotions}
+        <div className={styles.statsSection}>
+          <h3 className={styles.statsSectionTitle}>
+            {esSuperAdmin ? "Métricas generales de los negocios" : "Resumen"}
+          </h3>
+          <div className={styles.statsGrid}>
+            <div className={styles.statCard}>
+              <span className={`${styles.statIcon} ${styles.iconOrange}`}>
+                <FontAwesomeIcon icon={faShop} />
+              </span>
+              <div className={styles.statBody}>
+                <div className={styles.statValue}>{summary.totalStores}</div>
+                <div className={styles.statLabel}>
+                  {esSuperAdmin ? "Negocios registrados" : "Mis negocios"}
+                </div>
               </div>
-              <div className={styles.statLabel}>Promociones activas</div>
             </div>
+
+            <div className={styles.statCard}>
+              <span className={`${styles.statIcon} ${styles.iconGreen}`}>
+                <FontAwesomeIcon icon={faCircleCheck} />
+              </span>
+              <div className={styles.statBody}>
+                <div className={styles.statValue}>{summary.activeStores}</div>
+                <div className={styles.statLabel}>Negocios activos</div>
+              </div>
+            </div>
+
+            <div className={styles.statCard}>
+              <span className={`${styles.statIcon} ${styles.iconAmber}`}>
+                <FontAwesomeIcon icon={faClock} />
+              </span>
+              <div className={styles.statBody}>
+                <div className={styles.statValue}>{summary.pendingStores}</div>
+                <div className={styles.statLabel}>Por aprobar</div>
+              </div>
+            </div>
+
+            <div className={styles.statCard}>
+              <span className={`${styles.statIcon} ${styles.iconBlue}`}>
+                <FontAwesomeIcon icon={faBoxOpen} />
+              </span>
+              <div className={styles.statBody}>
+                <div className={styles.statValue}>{summary.totalProducts}</div>
+                <div className={styles.statLabel}>Productos en menús</div>
+              </div>
+            </div>
+
+            <div className={styles.statCard}>
+              <span className={`${styles.statIcon} ${styles.iconPurple}`}>
+                <FontAwesomeIcon icon={faTags} />
+              </span>
+              <div className={styles.statBody}>
+                <div className={styles.statValue}>
+                  {summary.activePromotions}
+                </div>
+                <div className={styles.statLabel}>Promociones activas</div>
+              </div>
+            </div>
+
+            {esSuperAdmin && (
+              <>
+                <div className={styles.statCard}>
+                  <span className={`${styles.statIcon} ${styles.iconTeal}`}>
+                    <FontAwesomeIcon icon={faReceipt} />
+                  </span>
+                  <div className={styles.statBody}>
+                    <div className={styles.statValue}>
+                      {summary.totalOrders ?? 0}
+                    </div>
+                    <div className={styles.statLabel}>Pedidos totales</div>
+                  </div>
+                </div>
+
+                <div className={styles.statCard}>
+                  <span className={`${styles.statIcon} ${styles.iconBlue}`}>
+                    <FontAwesomeIcon icon={faUsers} />
+                  </span>
+                  <div className={styles.statBody}>
+                    <div className={styles.statValue}>
+                      {summary.totalCustomers ?? 0}
+                    </div>
+                    <div className={styles.statLabel}>Clientes registrados</div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -379,6 +494,53 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {(summary.revenueTrend || summary.byCategory) && (
+          <div className={styles.chartsRow}>
+            <div className={`${styles.panel} ${styles.chartPanel}`}>
+              <div className={styles.panelHead}>
+                <h3>Ingresos mensuales</h3>
+              </div>
+              <BarChart
+                data={(summary.revenueTrend ?? []).map((r) => ({
+                  label: mesCorto(r.month),
+                  value: r.total,
+                }))}
+              />
+            </div>
+
+            <div className={`${styles.panel} ${styles.chartPanel}`}>
+              <div className={styles.panelHead}>
+                <h3>
+                  {esSuperAdmin ? "Negocios por categoría" : "Tus negocios por categoría"}
+                </h3>
+              </div>
+              <div className={styles.donutRow}>
+                <DonutChart
+                  data={(summary.byCategory ?? []).map((c, i) => ({
+                    label: c.category,
+                    value: c.total,
+                    color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+                  }))}
+                />
+                <div className={styles.statusLegend}>
+                  {(summary.byCategory ?? []).map((c, i) => (
+                    <div key={c.category} className={styles.legendRow}>
+                      <span
+                        className={styles.dot}
+                        style={{
+                          background: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+                        }}
+                      />
+                      <span className={styles.legendLabel}>{c.category}</span>
+                      <span className={styles.legendValue}>{c.total}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {toast && (
@@ -389,5 +551,176 @@ export default function DashboardPage() {
         />
       )}
     </AdminLayout>
+  );
+}
+
+// ---------- Grafica de barras: ingresos por mes ----------
+
+function BarChart({ data }: { data: { label: string; value: number }[] }) {
+  const width = 320;
+  const height = 160;
+  const padTop = 16;
+  const padBottom = 24;
+  const padLeft = 28;
+  const padRight = 6;
+
+  const max = Math.max(...data.map((d) => d.value), 1);
+  const plotHeight = height - padTop - padBottom;
+  const slot = (width - padLeft - padRight) / (data.length || 1);
+  const barWidth = Math.min(30, slot * 0.55);
+
+  const compacto = (v: number) => {
+    if (v >= 1000) return `${Math.round(v / 100) / 10}k`;
+    return `${Math.round(v)}`;
+  };
+
+  if (data.every((d) => d.value === 0)) {
+    return (
+      <div className={styles.emptyState}>Todavía no hay ingresos registrados.</div>
+    );
+  }
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className={styles.chartSvg}>
+      {[0, 0.5, 1].map((f) => {
+        const y = padTop + plotHeight * (1 - f);
+        return (
+          <g key={f}>
+            <line
+              x1={padLeft}
+              y1={y}
+              x2={width - padRight}
+              y2={y}
+              stroke="#f1f1f1"
+              strokeWidth={1}
+            />
+            <text x={2} y={y + 3} fontSize="8" fill="#b0aaa2">
+              {compacto(max * f)}
+            </text>
+          </g>
+        );
+      })}
+
+      {data.map((d, i) => {
+        const barHeight = max > 0 ? (d.value / max) * plotHeight : 0;
+        const x = padLeft + slot * i + (slot - barWidth) / 2;
+        const y = padTop + plotHeight - barHeight;
+        const esUltimo = i === data.length - 1;
+
+        return (
+          <g key={i}>
+            {esUltimo && d.value > 0 && (
+              <text
+                x={x + barWidth / 2}
+                y={y - 6}
+                textAnchor="middle"
+                fontSize="9"
+                fontWeight="700"
+                fill="#c94800"
+              >
+                {compacto(d.value)}
+              </text>
+            )}
+            <rect
+              x={x}
+              y={y}
+              width={barWidth}
+              height={Math.max(barHeight, 1)}
+              rx={4}
+              fill={esUltimo ? "#ff7a00" : "#ffdcb0"}
+            />
+            <text
+              x={x + barWidth / 2}
+              y={height - 6}
+              textAnchor="middle"
+              fontSize="9"
+              fill="#9a9a9a"
+            >
+              {d.label}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ---------- Grafica de pastel: negocios por categoria ----------
+
+function DonutChart({
+  data,
+  size = 120,
+  strokeWidth = 20,
+}: {
+  data: { label: string; value: number; color: string }[];
+  size?: number;
+  strokeWidth?: number;
+}) {
+  const total = data.reduce((acc, d) => acc + d.value, 0);
+
+  if (total === 0) {
+    return (
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        width={size}
+        height={size}
+        className={styles.donutSvg}
+      >
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={(size - strokeWidth) / 2}
+          fill="none"
+          stroke="#f1f1f1"
+          strokeWidth={strokeWidth}
+        />
+      </svg>
+    );
+  }
+
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
+
+  return (
+    <svg
+      viewBox={`0 0 ${size} ${size}`}
+      width={size}
+      height={size}
+      className={styles.donutSvg}
+    >
+      <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+        {data.map((d, i) => {
+          const fraction = d.value / total;
+          const dash = fraction * circumference;
+          const circle = (
+            <circle
+              key={i}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke={d.color}
+              strokeWidth={strokeWidth}
+              strokeDasharray={`${dash} ${circumference - dash}`}
+              strokeDashoffset={-offset}
+            />
+          );
+          offset += dash;
+          return circle;
+        })}
+      </g>
+      <text
+        x={size / 2}
+        y={size / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="16"
+        fontWeight="800"
+        fill="#1a1a1a"
+      >
+        {total}
+      </text>
+    </svg>
   );
 }
