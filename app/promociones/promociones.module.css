@@ -1,0 +1,974 @@
+.container {
+  padding: 4px 0 20px;
+}
+
+/* ---- Cabecera ---- */
+.header {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(120deg, #ff7a00 0%, #ff5a00 60%, #ff3d00 100%);
+  color: white;
+  padding: 30px 32px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 12px 30px rgba(255, 90, 0, 0.28);
+}
+
+.header::before,
+.header::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  pointer-events: none;
+}
+
+.header::before {
+  width: 320px;
+  height: 320px;
+  top: -160px;
+  right: -60px;
+}
+
+.header::after {
+  width: 200px;
+  height: 200px;
+  bottom: -120px;
+  right: 140px;
+}
+
+.headerTop {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header h1 {
+  margin: 0 0 4px;
+  font-size: 25px;
+  color: white;
+  font-weight: 700;
+}
+
+.header p {
+  margin: 0;
+  opacity: 0.94;
+  color: white;
+  font-size: 14px;
+  max-width: 520px;
+}
+
+.headerActions {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btnGhost,
+.btnSolid {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.btnGhost {
+  background: rgba(255, 255, 255, 0.16);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.btnGhost:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.btnSolid {
+  background: white;
+  color: #c94800;
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.35);
+}
+
+.btnSolid:hover {
+  background: #fff7f0;
+}
+
+/* ---- Tarjetas de metricas (mismo patron que Dashboard) ---- */
+.statsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.statCard {
+  flex: 1 1 190px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: white;
+  padding: 18px 20px;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.05);
+  border: 1px solid #f1f1f1;
+}
+
+.statIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.iconOrange {
+  background: linear-gradient(135deg, #fff1e2, #ffe1c2);
+  color: #ff7a00;
+}
+
+.iconGreen {
+  background: linear-gradient(135deg, #e7fbef, #d3f5df);
+  color: #059669;
+}
+
+.iconAmber {
+  background: linear-gradient(135deg, #fff8e1, #ffedb8);
+  color: #b45309;
+}
+
+.iconRed {
+  background: linear-gradient(135deg, #fdecec, #ffd9d9);
+  color: #e53935;
+}
+
+.statBody {
+  min-width: 0;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  font-size: 12.5px;
+  color: #8a8a8a;
+  margin-top: 2px;
+}
+
+.statHint {
+  font-size: 11.5px;
+  color: #b8860b;
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+/* ---- Secciones ---- */
+.section {
+  margin-bottom: 28px;
+}
+
+.sectionHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.sectionHead h2 {
+  margin: 0 0 3px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.sectionHead p {
+  margin: 0;
+  font-size: 13px;
+  color: #8a8a8a;
+}
+
+/* ---- Planes ---- */
+.plansGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.planCard {
+  position: relative;
+  background: white;
+  border: 1px solid #f1f1f1;
+  border-radius: 16px;
+  padding: 20px 20px 18px;
+  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.planFeatured {
+  border-color: rgba(255, 122, 0, 0.35);
+  box-shadow: 0 16px 30px -18px rgba(255, 90, 0, 0.35);
+}
+
+.planFeatured::before {
+  content: "Más elegido";
+  position: absolute;
+  top: -11px;
+  right: 18px;
+  background: linear-gradient(120deg, #ff8a1f, #ff3d00);
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 6px 14px -6px rgba(255, 80, 0, 0.6);
+}
+
+.planCardInactive {
+  opacity: 0.55;
+}
+
+.planTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.planName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.planIconBtns {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.planIconBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 1px solid #eee;
+  background: #fafafa;
+  color: #9a9a9a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.planIconBtn:hover {
+  border-color: #ff7a00;
+  color: #ff7a00;
+}
+
+.planPrice {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.planAmount {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+}
+
+.planCadence {
+  font-size: 12.5px;
+  color: #8a8a8a;
+  font-weight: 600;
+}
+
+.planFeatures {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.planFeatures li {
+  display: flex;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #4a4a4a;
+  line-height: 1.4;
+}
+
+.planFeatures li svg {
+  color: #2da44e;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.planFoot {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px dashed #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #8a8a8a;
+  font-weight: 600;
+}
+
+.planFoot span.count {
+  color: #1a1a1a;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.addPlanCard {
+  border: 1.5px dashed #e0d9d0;
+  background: #fefaf7;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #b8860b;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 180px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.addPlanCard:hover {
+  border-color: #ff7a00;
+  background: #fff8f0;
+  color: #ff7a00;
+}
+
+.addPlanCard svg {
+  font-size: 20px;
+}
+
+/* ---- Tarjetas de "Tus negocios" (vista de dueno/gerente) ---- */
+.myBizGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.myBizCard {
+  background: white;
+  border: 1px solid #f1f1f1;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.myBizHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.myBizHint {
+  margin: 4px 0 10px;
+  font-size: 12.5px;
+  color: #9a9a9a;
+}
+
+.myBizStatusRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.myBizPlan {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.myBizMeta {
+  font-size: 12.5px;
+  color: #8a8a8a;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Filtros ---- */
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #eee;
+  background: white;
+  color: #8a8a8a;
+  border-radius: 999px;
+  padding: 6px 8px 6px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+/* El numero vive en su propia pastilla: separado de la palabra y con el
+   tono del estado que filtra, para reconocerlo de un vistazo. */
+.chipCount {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: #f4f4f5;
+  color: #8a8a8a;
+  text-align: center;
+}
+
+.chipAll .chipCount {
+  background: #f1f1f2;
+  color: #4b5563;
+}
+
+.chipToneActive {
+  color: #059669;
+}
+.chipToneActive .chipCount {
+  background: #eafaf8;
+  color: #059669;
+}
+
+.chipTonePending {
+  color: #b8860b;
+}
+.chipTonePending .chipCount {
+  background: #fbf3df;
+  color: #b8860b;
+}
+
+.chipToneOverdue {
+  color: #e53935;
+}
+.chipToneOverdue .chipCount {
+  background: #fdecec;
+  color: #e53935;
+}
+
+.chipTonePaused {
+  color: #6b7280;
+}
+.chipTonePaused .chipCount {
+  background: #f1f1f2;
+  color: #6b7280;
+}
+
+.chip:hover {
+  border-color: #d9d9d9;
+}
+
+.chipActive {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: white;
+}
+
+/* Seleccionado el fondo ya es oscuro: el numero pasa a blanco translucido
+   para que no compita con el tono del estado. */
+.chipActive .chipCount {
+  background: rgba(255, 255, 255, 0.16);
+  color: white;
+}
+
+/* ---- Tabla ---- */
+.tableContainer {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #f1f1f1;
+  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.05);
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9a9a9a;
+  font-weight: 700;
+  padding: 13px 16px;
+  border-bottom: 1px solid #f1f1f1;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 12px 16px;
+  font-size: 13.5px;
+  color: #1a1a1a;
+  border-bottom: 1px solid #f4f4f4;
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: #fdfbf9;
+}
+
+.bizCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff3e6;
+  color: #ff7a00;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.bizName {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.bizCat {
+  font-size: 11.5px;
+  color: #9a9a9a;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.pillActive {
+  background: #eafaf8;
+  color: #059669;
+}
+.pillActive::before {
+  background: #059669;
+}
+
+.pillPending {
+  background: #fbf3df;
+  color: #b8860b;
+}
+.pillPending::before {
+  background: #b8860b;
+}
+
+.pillOverdue {
+  background: #fdecec;
+  color: #e53935;
+}
+.pillOverdue::before {
+  background: #e53935;
+}
+
+.pillPaused {
+  background: #f1f1f2;
+  color: #6b7280;
+}
+.pillPaused::before {
+  background: #6b7280;
+}
+
+.pillCancelled {
+  background: #f1f1f2;
+  color: #9a9a9a;
+}
+.pillCancelled::before {
+  background: #9a9a9a;
+}
+
+.due {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dueSoon {
+  color: #b8860b;
+}
+
+.dueLate {
+  color: #e53935;
+}
+
+.dueOk {
+  color: #9a9a9a;
+}
+
+.rowActions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.rowBtn {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 11px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rowBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rowBtnPrimary {
+  background: #eefbf1;
+  color: #2da44e;
+}
+.rowBtnPrimary:hover:not(:disabled) {
+  background: #dcf5e3;
+}
+
+.rowBtnSecondary {
+  background: #f5f5f5;
+  color: #6b7280;
+}
+.rowBtnSecondary:hover:not(:disabled) {
+  background: #eaeaea;
+}
+
+.emptyState {
+  padding: 40px 0;
+  text-align: center;
+  color: #9a9a9a;
+  font-size: 13.5px;
+}
+
+.cargando {
+  padding: 60px 0;
+  text-align: center;
+  color: #9a9a9a;
+}
+
+/* ---- Formularios de los modales ---- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.formRow {
+  display: flex;
+  gap: 14px;
+}
+
+.formRow > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.textInput,
+.textArea {
+  width: 100%;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: #1a1a1a;
+  font-family: inherit;
+}
+
+.textInput:focus,
+.textArea:focus {
+  outline: none;
+  border-color: #ff7a00;
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.1);
+}
+
+.textArea {
+  resize: vertical;
+  min-height: 84px;
+}
+
+.fieldHint {
+  font-size: 11.5px;
+  color: #9a9a9a;
+  margin-top: 5px;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4a4a4a;
+  font-weight: 600;
+}
+
+.submitBtn {
+  align-self: flex-start;
+  background: linear-gradient(120deg, #ff8a1f, #ff5a00);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---- Ojito de detalle en la tabla ---- */
+.rowIconBtn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #eee;
+  background: white;
+  color: #6b7280;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rowIconBtn:hover {
+  border-color: #ff7a00;
+  color: #ff7a00;
+}
+
+/* Hay un banner esperando visto bueno: se avisa sin gritar. */
+.rowIconBtnAlert {
+  border-color: #b8860b;
+  background: #fbf3df;
+  color: #b8860b;
+}
+
+.bannerBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+/* ---- Ficha de detalle ---- */
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.detailLabel {
+  font-size: 11.5px;
+  color: #9a9a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.detailValue {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* ---- Banner ---- */
+.bannerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.bannerImg {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #f1f1f1;
+  display: block;
+}
+
+.bannerEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 26px 14px;
+  border: 1px dashed #ddd;
+  border-radius: 12px;
+  color: #9a9a9a;
+  font-size: 13px;
+  text-align: center;
+}
+
+.bannerNote {
+  margin: 8px 0 4px;
+  font-size: 13px;
+  color: #4b5563;
+  font-style: italic;
+}
+
+.bannerReject {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: #e53935;
+}
+
+.bannerActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.rowBtnDanger {
+  background: #e53935;
+  border-color: #e53935;
+  color: white;
+}
+
+/* ---- Subir imagen ---- */
+.uploadBox {
+  display: block;
+  border: 1px dashed #ff7a00;
+  border-radius: 12px;
+  padding: 10px;
+  cursor: pointer;
+  background: #fffaf6;
+}
+
+.uploadHint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 10px;
+  color: #ff7a00;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.uploadPreview {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+/* ---- Banner en la tarjeta del negocio ---- */
+.myBizBanner {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f1f1;
+}
+
+.myBizBannerImg {
+  width: 100%;
+  height: 92px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #f1f1f1;
+  display: block;
+}
+
+.myBizBannerFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}

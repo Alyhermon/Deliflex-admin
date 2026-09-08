@@ -14,7 +14,7 @@ type OwnedStore = {
   store_name: string;
 };
 
-type User = {
+export type User = {
   id: string;
   email: string;
   username: string;
@@ -73,4 +73,16 @@ export function tieneAlgunRolDeGestion(user: User | null): boolean {
   if (Number(user.global_role_id ?? 0) >= 90) return true;
 
   return (user.staff_businesses ?? []).some((sb) => sb.role_id >= 70);
+}
+
+// Dueno o Gerente General (rol >= 80) en AL MENOS un negocio, o super
+// admin. "Negocios Destacados" (pagar para aparecer resaltado en la app)
+// es una decision de quien dirige el negocio, no de un Supervisor/Cajero/
+// Staff - por eso el umbral es mas alto que tieneAlgunRolDeGestion.
+export function tieneRolGerencial(user: User | null): boolean {
+  if (!user) return false;
+  if (Number(user.global_role_id ?? 0) >= 100) return true;
+  if ((user.owned_stores ?? []).length > 0) return true;
+
+  return (user.staff_businesses ?? []).some((sb) => sb.role_id >= 80);
 }
