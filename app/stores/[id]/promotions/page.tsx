@@ -19,6 +19,41 @@ type Category = {
   name: string;
 };
 
+type LoyaltyCard = {
+  id: string;
+  store_id: string;
+  name: string;
+  stamps_required: number;
+  reward_description: string;
+  is_active: boolean;
+  background_image_url: string | null;
+};
+
+type LoyaltyForm = {
+  name: string;
+  stampsRequired: string;
+  rewardDescription: string;
+  backgroundImageUrl: string;
+};
+
+const LOYALTY_FORM_VACIO: LoyaltyForm = {
+  name: "",
+  stampsRequired: "10",
+  rewardDescription: "",
+  backgroundImageUrl: "",
+};
+
+type LoyaltyCustomer = {
+  customerId: string;
+  fullName: string;
+  phone: string | null;
+  totalStamps: number;
+  redeemedCount: number;
+  pendingStamps: number;
+  rewardsReady: number;
+  lastStampAt: string | null;
+};
+
 type Promotion = {
   id: string;
   type: string;
@@ -33,6 +68,16 @@ type Promotion = {
   ends_at: string | null;
   is_active: boolean;
   is_running: boolean;
+  // Opcionales: el backend todavia puede no devolver estos campos.
+  show_on_home?: boolean;
+  show_on_menu?: boolean;
+  show_on_offers?: boolean;
+  show_on_coupons?: boolean;
+  show_on_gifts?: boolean;
+  show_on_games?: boolean;
+  code?: string | null;
+  max_uses?: number | null;
+  one_use_per_customer?: boolean;
 };
 
 // Sobre que aplica la promocion.
@@ -56,6 +101,13 @@ type PromotionForm = {
   conHoras: boolean;
   showOnHome: boolean;
   showOnMenu: boolean;
+  showOnOffers: boolean;
+  showOnCoupons: boolean;
+  showOnGifts: boolean;
+  showOnGames: boolean;
+  code: string;
+  maxUses: string;
+  oneUsePerCustomer: boolean;
   notifyCustomers: boolean;
 };
 
@@ -64,6 +116,7 @@ type FormErrors = {
   value?: string;
   fechas?: string;
   alcance?: string;
+  code?: string;
 };
 
 const TIPOS = [
@@ -92,6 +145,77 @@ const ALCANCES: { id: Alcance; title: string; desc: string }[] = [
   },
 ];
 
+// Donde se muestra la promocion dentro de la app del cliente.
+type Ubicacion =
+  | "showOnHome"
+  | "showOnMenu"
+  | "showOnOffers"
+  | "showOnCoupons"
+  | "showOnGifts"
+  | "showOnGames";
+
+type UbicacionCampo =
+  | "show_on_home"
+  | "show_on_menu"
+  | "show_on_offers"
+  | "show_on_coupons"
+  | "show_on_gifts"
+  | "show_on_games";
+
+// `id` es la llave del formulario (lo que mandamos al backend) y `campo`
+// la que devuelve la API al leer, que viene en snake_case.
+const UBICACIONES: {
+  id: Ubicacion;
+  campo: UbicacionCampo;
+  title: string;
+  desc: string;
+}[] = [
+  {
+    id: "showOnHome",
+    campo: "show_on_home",
+    title: "Página principal",
+    desc: "Banner destacado al abrir la app",
+  },
+  {
+    id: "showOnMenu",
+    campo: "show_on_menu",
+    title: "Menú",
+    desc: "Junto a los productos del negocio",
+  },
+  {
+    id: "showOnOffers",
+    campo: "show_on_offers",
+    title: "Ofertas",
+    desc: "Sección de descuentos y rebajas",
+  },
+  {
+    id: "showOnCoupons",
+    campo: "show_on_coupons",
+    title: "Cupones",
+    desc: "Sección de códigos para canjear",
+  },
+  {
+    id: "showOnGifts",
+    campo: "show_on_gifts",
+    title: "Regalos",
+    desc: "Sección de premios y cortesías",
+  },
+  {
+    id: "showOnGames",
+    campo: "show_on_games",
+    title: "Juegos",
+    desc: "Sección de dinámicas y sorteos",
+  },
+];
+
+// En que secciones quedo publicada una promocion ya guardada. Si el
+// backend todavia no manda los campos la lista sale vacia y no
+// mostramos nada, en vez de decir que no se ve en ningun lado.
+const ubicacionesDe = (promotion: Promotion) =>
+  UBICACIONES.filter((ubicacion) => promotion[ubicacion.campo]).map(
+    (ubicacion) => ubicacion.title,
+  );
+
 const TODO_EL_MENU = "Todo el menú";
 
 const FORM_VACIO: PromotionForm = {
@@ -112,6 +236,13 @@ const FORM_VACIO: PromotionForm = {
   conHoras: false,
   showOnHome: false,
   showOnMenu: false,
+  showOnOffers: false,
+  showOnCoupons: false,
+  showOnGifts: false,
+  showOnGames: false,
+  code: "",
+  maxUses: "",
+  oneUsePerCustomer: false,
   notifyCustomers: false,
 };
 
@@ -123,7 +254,11 @@ export default function PromotionsPage({
   const { id } = use(params);
   const router = useRouter();
 
+  const [activeTab, setActiveTab] = useState<"promocion" | "fidelidad">(
+    "promocion",
+  );
   const [storeName, setStoreName] = useState("Negocio");
+  const [storeBannerUrl, setStoreBannerUrl] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -167,7 +302,10 @@ export default function PromotionsPage({
           (store: { id: string }) => store.id === id,
         );
 
-        if (foundStore) setStoreName(foundStore.name);
+        if (foundStore) {
+          setStoreName(foundStore.name);
+          setStoreBannerUrl(foundStore.banner_url || "");
+        }
       } catch (error) {
         console.error(error);
       }
@@ -237,6 +375,235 @@ export default function PromotionsPage({
     if (id) loadPromotions();
   }, [id, loadPromotions]);
 
+  // ---------- Tarjeta de cliente frecuente (sellos por visita) ----------
+
+  const [loyaltyCard, setLoyaltyCard] = useState<LoyaltyCard | null>(null);
+  const [loyaltyLoading, setLoyaltyLoading] = useState(true);
+  const [loyaltyForm, setLoyaltyForm] = useState<LoyaltyForm>(LOYALTY_FORM_VACIO);
+  const [loyaltyErrors, setLoyaltyErrors] = useState<{
+    stampsRequired?: string;
+    rewardDescription?: string;
+  }>({});
+  const [loyaltySaving, setLoyaltySaving] = useState(false);
+  const [loyaltyDeleting, setLoyaltyDeleting] = useState(false);
+  const [loyaltyUploading, setLoyaltyUploading] = useState(false);
+  const [confirmDeleteLoyalty, setConfirmDeleteLoyalty] = useState(false);
+
+  const loadLoyalty = useCallback(async () => {
+    try {
+      const res = await fetch(`http://localhost:3001/loyalty/store/${id}`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      const card: LoyaltyCard | null = data?.id ? data : null;
+
+      setLoyaltyCard(card);
+      setLoyaltyForm(
+        card
+          ? {
+              name: card.name,
+              stampsRequired: String(card.stamps_required),
+              rewardDescription: card.reward_description,
+              backgroundImageUrl: card.background_image_url || "",
+            }
+          : LOYALTY_FORM_VACIO,
+      );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoyaltyLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (id) loadLoyalty();
+  }, [id, loadLoyalty]);
+
+  // ---------- Clientes con sellos (progreso real, de pedidos entregados) ----------
+
+  const [loyaltyCustomers, setLoyaltyCustomers] = useState<LoyaltyCustomer[]>([]);
+  const [loyaltyCustomersLoading, setLoyaltyCustomersLoading] = useState(true);
+  const [redeemingId, setRedeemingId] = useState<string | null>(null);
+
+  const loadLoyaltyCustomers = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:3001/loyalty/store/${id}/customers`,
+        { credentials: "include" },
+      );
+      const data = await res.json();
+
+      setLoyaltyCustomers(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoyaltyCustomersLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (id && loyaltyCard) loadLoyaltyCustomers();
+  }, [id, loyaltyCard, loadLoyaltyCustomers]);
+
+  const canjearRecompensa = async (customerId: string) => {
+    setRedeemingId(customerId);
+
+    try {
+      const res = await fetch(
+        `http://localhost:3001/loyalty/store/${id}/customers/${customerId}/redeem`,
+        { credentials: "include", method: "POST" },
+      );
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message || "No se pudo canjear");
+
+      setToast({ message: "Recompensa canjeada", type: "success" });
+      await loadLoyaltyCustomers();
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "No se pudo canjear",
+        type: "danger",
+      });
+    } finally {
+      setRedeemingId(null);
+    }
+  };
+
+  const formatUltimaVisita = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString("es-DO") : "—";
+
+  const guardarLoyalty = async () => {
+    const nextErrors: typeof loyaltyErrors = {};
+    const sellos = Number(loyaltyForm.stampsRequired);
+
+    if (!Number.isInteger(sellos) || sellos < 2 || sellos > 100) {
+      nextErrors.stampsRequired = "Debe ser un número entero entre 2 y 100";
+    }
+
+    if (!loyaltyForm.rewardDescription.trim()) {
+      nextErrors.rewardDescription = "Describe la recompensa";
+    }
+
+    setLoyaltyErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setLoyaltySaving(true);
+
+    try {
+      const res = await fetch(`http://localhost:3001/loyalty/store/${id}`, {
+        credentials: "include",
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: loyaltyForm.name.trim() || undefined,
+          stampsRequired: sellos,
+          rewardDescription: loyaltyForm.rewardDescription.trim(),
+          backgroundImageUrl: loyaltyForm.backgroundImageUrl || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "No se pudo guardar la tarjeta");
+
+      setLoyaltyCard(data);
+      setToast({ message: "Tarjeta de fidelidad guardada", type: "success" });
+    } catch (error) {
+      setToast({
+        message:
+          error instanceof Error ? error.message : "No se pudo guardar la tarjeta",
+        type: "danger",
+      });
+    } finally {
+      setLoyaltySaving(false);
+    }
+  };
+
+  const alternarLoyaltyActiva = async () => {
+    if (!loyaltyCard) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:3001/loyalty/store/${id}/status`,
+        {
+          credentials: "include",
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: !loyaltyCard.is_active }),
+        },
+      );
+
+      if (!res.ok) throw new Error("No se pudo actualizar la tarjeta");
+
+      const data = await res.json();
+      setLoyaltyCard(data);
+      setToast({
+        message: data.is_active ? "Tarjeta activada" : "Tarjeta desactivada",
+        type: "success",
+      });
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "No se pudo actualizar",
+        type: "danger",
+      });
+    }
+  };
+
+  const eliminarLoyalty = async () => {
+    setLoyaltyDeleting(true);
+
+    try {
+      const res = await fetch(`http://localhost:3001/loyalty/store/${id}`, {
+        credentials: "include",
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("No se pudo eliminar la tarjeta");
+
+      setLoyaltyCard(null);
+      setLoyaltyForm(LOYALTY_FORM_VACIO);
+      setConfirmDeleteLoyalty(false);
+      setToast({ message: "Tarjeta de fidelidad eliminada", type: "danger" });
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "No se pudo eliminar",
+        type: "danger",
+      });
+    } finally {
+      setLoyaltyDeleting(false);
+    }
+  };
+
+  const subirImagenLoyalty = async (file: File) => {
+    setLoyaltyUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "tarjetas-fidelidad");
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error);
+
+      setLoyaltyForm((prev) => ({ ...prev, backgroundImageUrl: data.url }));
+      setToast({ message: "Imagen subida correctamente", type: "success" });
+    } catch (error) {
+      console.error(error);
+      setToast({
+        message:
+          error instanceof Error ? error.message : "No se pudo subir la imagen",
+        type: "danger",
+      });
+    } finally {
+      setLoyaltyUploading(false);
+    }
+  };
+
   // El descuento es el unico tipo que necesita un porcentaje.
   const necesitaValor = form.type === "discount";
 
@@ -247,6 +614,11 @@ export default function PromotionsPage({
     form.alcance === "producto"
       ? productoElegido?.imageUrl || ""
       : form.imageUrl;
+
+  // Secciones de la app donde el negocio marco que se vea la promocion.
+  const ubicacionesElegidas = UBICACIONES.filter(
+    (ubicacion) => form[ubicacion.id],
+  ).map((ubicacion) => ubicacion.title);
 
   const subirImagen = async (file: File) => {
     setUploading(true);
@@ -331,6 +703,10 @@ export default function PromotionsPage({
       nextErrors.alcance = "Sube la imagen del producto nuevo";
     }
 
+    if (form.showOnCoupons && !form.code.trim()) {
+      nextErrors.code = "El código es obligatorio para un cupón";
+    }
+
     const inicio = combinar(form.startsAt, form.startsTime);
     const fin = combinar(form.endsAt, form.endsTime);
 
@@ -369,6 +745,16 @@ export default function PromotionsPage({
           endsAt: fin,
           showOnHome: form.showOnHome,
           showOnMenu: form.showOnMenu,
+          showOnOffers: form.showOnOffers,
+          showOnCoupons: form.showOnCoupons,
+          showOnGifts: form.showOnGifts,
+          showOnGames: form.showOnGames,
+          code: form.showOnCoupons ? form.code.trim().toUpperCase() : undefined,
+          maxUses:
+            form.showOnCoupons && form.maxUses ? Number(form.maxUses) : undefined,
+          oneUsePerCustomer: form.showOnCoupons
+            ? form.oneUsePerCustomer
+            : undefined,
           notifyCustomers: form.notifyCustomers,
         }),
       });
@@ -458,12 +844,35 @@ export default function PromotionsPage({
         />
 
         <div className={styles.header}>
-          <h1>Crear promoción</h1>
+          <h1>Promociones</h1>
           <p>
-            Impulsa más ventas creando promociones atractivas para tus clientes.
+            Impulsa más ventas creando promociones y fideliza a tus clientes
+            con una tarjeta de sellos.
           </p>
         </div>
 
+        <div className={styles.tabsBar}>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${
+              activeTab === "promocion" ? styles.tabButtonActive : ""
+            }`}
+            onClick={() => setActiveTab("promocion")}
+          >
+            Crear promoción
+          </button>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${
+              activeTab === "fidelidad" ? styles.tabButtonActive : ""
+            }`}
+            onClick={() => setActiveTab("fidelidad")}
+          >
+            Tarjeta de fidelidad
+          </button>
+        </div>
+
+        {activeTab === "promocion" && (
         <div className={styles.content}>
           <div className={styles.form}>
             <section className={styles.section}>
@@ -734,20 +1143,102 @@ export default function PromotionsPage({
 
             <section className={styles.section}>
               <h3>
-                <span className={styles.step}>5</span> Visibilidad
+                <span className={styles.step}>5</span> ¿Dónde quieres que se
+                vea la promoción?
               </h3>
 
-              <div className={styles.checks}>
-                <DFCheckbox
-                  label="Página principal"
-                  checked={form.showOnHome}
-                  onChange={(checked) => handleChange("showOnHome", checked)}
-                />
-                <DFCheckbox
-                  label="Menú"
-                  checked={form.showOnMenu}
-                  onChange={(checked) => handleChange("showOnMenu", checked)}
-                />
+              <p className={styles.hint}>
+                Marca las secciones de la app donde quieres que aparezca. Puedes
+                elegir más de una.
+              </p>
+
+              <div className={styles.checksGrid}>
+                {UBICACIONES.map((ubicacion) => (
+                  <div key={ubicacion.id} className={styles.checkItem}>
+                    <DFCheckbox
+                      label={ubicacion.title}
+                      checked={form[ubicacion.id]}
+                      onChange={(checked) =>
+                        handleChange(ubicacion.id, checked)
+                      }
+                    />
+                    <span className={styles.checkDesc}>{ubicacion.desc}</span>
+                  </div>
+                ))}
+              </div>
+
+              <p className={styles.hint}>
+                {ubicacionesElegidas.length > 0
+                  ? `Se verá en: ${ubicacionesElegidas.join(", ")}.`
+                  : "Sin ubicaciones marcadas la promoción queda guardada pero no se muestra a los clientes."}
+              </p>
+
+              {form.showOnCoupons && (
+                <div className={styles.couponBox}>
+                  <h4>Código del cupón</h4>
+                  <p className={styles.hint}>
+                    El cliente lo escribe al pagar para canjear esta
+                    promoción. Se guarda en mayúsculas.
+                  </p>
+
+                  <div className={styles.field}>
+                    <input
+                      className={`${styles.couponCodeInput} ${
+                        errors.code ? styles.inputError : ""
+                      }`}
+                      placeholder="Ej. BIENVENIDO10"
+                      value={form.code}
+                      maxLength={30}
+                      onChange={(e) => {
+                        setErrors((prev) => ({ ...prev, code: undefined }));
+                        handleChange(
+                          "code",
+                          e.target.value.toUpperCase().replace(/\s+/g, ""),
+                        );
+                      }}
+                    />
+                    {errors.code && (
+                      <span className={styles.errorText}>{errors.code}</span>
+                    )}
+                  </div>
+
+                  <div className={styles.row}>
+                    <div className={styles.field}>
+                      <label className={styles.label}>
+                        Límite de usos totales
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        placeholder="Sin límite"
+                        value={form.maxUses}
+                        onChange={(e) =>
+                          handleChange(
+                            "maxUses",
+                            e.target.value.replace(/[^0-9]/g, ""),
+                          )
+                        }
+                      />
+                    </div>
+
+                    <div className={styles.field}>
+                      <label className={styles.label}>&nbsp;</label>
+                      <label className={styles.couponCheckboxRow}>
+                        <input
+                          type="checkbox"
+                          checked={form.oneUsePerCustomer}
+                          onChange={(e) =>
+                            handleChange("oneUsePerCustomer", e.target.checked)
+                          }
+                        />
+                        Un solo uso por cliente
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className={styles.checksFooter}>
                 <DFCheckbox
                   label="Notificar clientes"
                   checked={form.notifyCustomers}
@@ -835,6 +1326,7 @@ export default function PromotionsPage({
                   const estado = estadoDe(promotion);
                   const imagen =
                     promotion.product_image_url || promotion.image_url;
+                  const secciones = ubicacionesDe(promotion);
 
                   return (
                     <div key={promotion.id} className={styles.listItem}>
@@ -847,7 +1339,7 @@ export default function PromotionsPage({
                           />
                         )}
 
-                        <div>
+                        <div className={styles.listInfo}>
                           <span className={styles.listName}>
                             {promotion.name}
                           </span>
@@ -856,6 +1348,28 @@ export default function PromotionsPage({
                             {promotion.value ? ` · ${promotion.value}%` : ""}
                             {` · ${alcanceDe(promotion)}`}
                           </span>
+
+                          {promotion.code && (
+                            <span className={styles.couponCode}>
+                              Código: {promotion.code}
+                              {promotion.max_uses
+                                ? ` · máx. ${promotion.max_uses} usos`
+                                : ""}
+                              {promotion.one_use_per_customer
+                                ? " · 1 por cliente"
+                                : ""}
+                            </span>
+                          )}
+
+                          {secciones.length > 0 && (
+                            <div className={styles.listTags}>
+                              {secciones.map((seccion) => (
+                                <span key={seccion} className={styles.listTag}>
+                                  {seccion}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -875,6 +1389,300 @@ export default function PromotionsPage({
             </div>
           </div>
         </div>
+        )}
+
+        {activeTab === "fidelidad" && (
+        <section className={styles.section}>
+          <h3>Tarjeta de cliente frecuente</h3>
+          <p className={styles.hint}>
+            Sellos por visita: el cliente junta uno en cada compra y al
+            completar la tarjeta gana la recompensa que definas.
+          </p>
+
+          {!loyaltyLoading && (
+            <>
+            <div className={styles.loyaltyLayout}>
+              <div className={styles.loyaltyForm}>
+                <div className={styles.row}>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Nombre de la tarjeta</label>
+                    <input
+                      placeholder="Tarjeta de fidelidad"
+                      value={loyaltyForm.name}
+                      onChange={(e) =>
+                        setLoyaltyForm((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className={styles.field}>
+                    <label className={styles.label}>Sellos necesarios</label>
+                    <input
+                      type="number"
+                      min={2}
+                      max={100}
+                      className={loyaltyErrors.stampsRequired ? styles.inputError : ""}
+                      value={loyaltyForm.stampsRequired}
+                      onChange={(e) => {
+                        setLoyaltyErrors((prev) => ({
+                          ...prev,
+                          stampsRequired: undefined,
+                        }));
+                        setLoyaltyForm((prev) => ({
+                          ...prev,
+                          stampsRequired: e.target.value.replace(/[^0-9]/g, ""),
+                        }));
+                      }}
+                    />
+                    {loyaltyErrors.stampsRequired && (
+                      <span className={styles.errorText}>
+                        {loyaltyErrors.stampsRequired}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Recompensa</label>
+                  <input
+                    placeholder="Ej. 1 café gratis"
+                    className={loyaltyErrors.rewardDescription ? styles.inputError : ""}
+                    value={loyaltyForm.rewardDescription}
+                    onChange={(e) => {
+                      setLoyaltyErrors((prev) => ({
+                        ...prev,
+                        rewardDescription: undefined,
+                      }));
+                      setLoyaltyForm((prev) => ({
+                        ...prev,
+                        rewardDescription: e.target.value,
+                      }));
+                    }}
+                  />
+                  {loyaltyErrors.rewardDescription && (
+                    <span className={styles.errorText}>
+                      {loyaltyErrors.rewardDescription}
+                    </span>
+                  )}
+                </div>
+
+                <div className={`${styles.field} ${styles.loyaltyImageField}`}>
+                  <label className={styles.label}>
+                    Imagen de fondo (opcional)
+                  </label>
+                  <p className={styles.hint} style={{ marginTop: 0 }}>
+                    {storeBannerUrl
+                      ? "Si no subes una, se usa la foto de portada de tu negocio."
+                      : "Si no subes una, se usa un color naranja por defecto."}
+                  </p>
+                  <label className={styles.loyaltyUpload}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) subirImagenLoyalty(file);
+                      }}
+                    />
+                    {loyaltyUploading
+                      ? "Subiendo imagen..."
+                      : loyaltyForm.backgroundImageUrl
+                        ? "Cambiar imagen de fondo"
+                        : "Subir imagen de fondo"}
+                  </label>
+
+                  {loyaltyForm.backgroundImageUrl && (
+                    <button
+                      type="button"
+                      className={styles.loyaltyRemoveImg}
+                      onClick={() =>
+                        setLoyaltyForm((prev) => ({
+                          ...prev,
+                          backgroundImageUrl: "",
+                        }))
+                      }
+                    >
+                      {storeBannerUrl
+                        ? "Quitar imagen (usar la foto del negocio)"
+                        : "Quitar imagen (usar color por defecto)"}
+                    </button>
+                  )}
+                </div>
+
+                <div className={styles.loyaltyActions}>
+                  <button
+                    className={styles.submit}
+                    onClick={guardarLoyalty}
+                    disabled={loyaltySaving}
+                  >
+                    {loyaltySaving
+                      ? "Guardando..."
+                      : loyaltyCard
+                        ? "Guardar cambios"
+                        : "Crear tarjeta"}
+                  </button>
+
+                  {loyaltyCard && (
+                    <>
+                      <button
+                        type="button"
+                        className={styles.loyaltyToggle}
+                        onClick={alternarLoyaltyActiva}
+                      >
+                        {loyaltyCard.is_active ? "Desactivar" : "Activar"}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.deleteBtn}
+                        onClick={() => setConfirmDeleteLoyalty(true)}
+                      >
+                        Eliminar tarjeta
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.loyaltyPreview}>
+                <span className={styles.loyaltyPreviewLabel}>
+                  Así la ve el cliente
+                </span>
+
+                <div
+                  className={`${styles.loyaltyCard} ${
+                    !loyaltyForm.backgroundImageUrl && !storeBannerUrl
+                      ? styles.loyaltyCardNoImage
+                      : ""
+                  }`}
+                  style={
+                    loyaltyForm.backgroundImageUrl || storeBannerUrl
+                      ? {
+                          backgroundImage: `url(${
+                            loyaltyForm.backgroundImageUrl || storeBannerUrl
+                          })`,
+                        }
+                      : undefined
+                  }
+                >
+                  <div className={styles.loyaltyCardOverlay}>
+                    <span className={styles.loyaltyCardName}>
+                      {loyaltyForm.name || "Tarjeta de fidelidad"}
+                    </span>
+
+                    <div className={styles.cardStampsRow}>
+                      {Array.from({
+                        length: Math.max(Number(loyaltyForm.stampsRequired) || 0, 0),
+                      }).map((_, i) => (
+                        <span
+                          key={i}
+                          className={`${styles.cardStamp} ${
+                            i === 0 ? styles.cardStampFilled : ""
+                          }`}
+                        />
+                      ))}
+                    </div>
+
+                    <p className={styles.loyaltyCardReward}>
+                      Cada {loyaltyForm.stampsRequired || "…"} compras:{" "}
+                      <strong>
+                        {loyaltyForm.rewardDescription || "elige una recompensa"}
+                      </strong>
+                    </p>
+                  </div>
+                </div>
+
+                {loyaltyCard && (
+                  <span
+                    className={
+                      loyaltyCard.is_active ? styles.pillActive : styles.pill
+                    }
+                  >
+                    {loyaltyCard.is_active ? "Activa" : "Desactivada"}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {loyaltyCard && (
+              <div className={styles.loyaltyCustomers}>
+                <h4>Clientes con sellos</h4>
+
+                {loyaltyCustomersLoading ? (
+                  <p className={styles.hint}>Cargando...</p>
+                ) : loyaltyCustomers.length === 0 ? (
+                  <p className={styles.empty}>
+                    Todavía ningún cliente ha ganado un sello aquí. Se suman
+                    solos cuando un pedido se marca "Entregado".
+                  </p>
+                ) : (
+                  <div className={styles.loyaltyTableWrap}>
+                    <table className={styles.loyaltyTable}>
+                      <thead>
+                        <tr>
+                          <th>Cliente</th>
+                          <th>Sellos</th>
+                          <th>Recompensas listas</th>
+                          <th>Canjeadas</th>
+                          <th>Última visita</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {loyaltyCustomers.map((customer) => (
+                          <tr key={customer.customerId}>
+                            <td>
+                              <span className={styles.listName}>
+                                {customer.fullName}
+                              </span>
+                              {customer.phone && (
+                                <span className={styles.listMeta}>
+                                  {customer.phone}
+                                </span>
+                              )}
+                            </td>
+                            <td>{customer.totalStamps}</td>
+                            <td>
+                              {customer.rewardsReady > 0 ? (
+                                <span className={styles.pillActive}>
+                                  {customer.rewardsReady}
+                                </span>
+                              ) : (
+                                <span className={styles.pill}>0</span>
+                              )}
+                            </td>
+                            <td>{customer.redeemedCount}</td>
+                            <td>{formatUltimaVisita(customer.lastStampAt)}</td>
+                            <td>
+                              <button
+                                type="button"
+                                className={styles.loyaltyRedeemBtn}
+                                disabled={
+                                  customer.rewardsReady <= 0 ||
+                                  redeemingId === customer.customerId
+                                }
+                                onClick={() =>
+                                  canjearRecompensa(customer.customerId)
+                                }
+                              >
+                                Canjear recompensa
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+            </>
+          )}
+        </section>
+        )}
 
         {toast && (
           <Toast
@@ -898,6 +1706,17 @@ export default function PromotionsPage({
           loading={deleting}
           onConfirm={deletePromotion}
           onCancel={() => setPromotionToDelete(null)}
+        />
+
+        <ConfirmDialog
+          isOpen={confirmDeleteLoyalty}
+          title="Eliminar tarjeta de fidelidad"
+          message="¿Seguro que deseas eliminar la tarjeta de cliente frecuente de este negocio?"
+          note="Los clientes dejarán de ver esta tarjeta en la app."
+          confirmLabel="Si, eliminar"
+          loading={loyaltyDeleting}
+          onConfirm={eliminarLoyalty}
+          onCancel={() => setConfirmDeleteLoyalty(false)}
         />
       </div>
     </AdminLayout>

@@ -16,6 +16,36 @@
   margin: 0;
 }
 
+/* ---- Pestañas: Crear promoción / Tarjeta de fidelidad ---- */
+.tabsBar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.tabButton {
+  border: none;
+  background: none;
+  padding: 12px 4px;
+  margin-right: 20px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #8a8a8a;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tabButton:hover {
+  color: #ff5a00;
+}
+
+.tabButtonActive {
+  color: #ff5a00;
+  border-bottom-color: #ff5a00;
+}
+
 .content {
   display: flex;
   flex-wrap: wrap;
@@ -390,4 +420,345 @@
 .fechaHora > * {
   flex: 1 1 130px;
   min-width: 0;
+}
+
+/* ---- Visibilidad: donde se ve la promocion ---- */
+.checksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.checkItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+}
+
+.checkItem:hover {
+  border-color: #ff5a00;
+}
+
+.checkDesc {
+  font-size: 12.5px;
+  color: #8a8a8a;
+  padding-left: 26px;
+}
+
+.checksFooter {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #eee;
+}
+
+/* Secciones donde quedo publicada cada promocion de la lista */
+.listInfo {
+  min-width: 0;
+}
+
+.listTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.listTag {
+  font-size: 11px;
+  color: #ff5a00;
+  background: #fff1e8;
+  border-radius: 20px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+/* ---- Cupon: aparece solo cuando se marca la ubicacion "Cupones" ---- */
+.couponBox {
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: #fff8f0;
+  border: 1px dashed #ffcb94;
+  border-radius: 10px;
+}
+
+.couponBox h4 {
+  margin: 0 0 4px;
+  font-size: 13.5px;
+  color: #1a1a1a;
+}
+
+.couponBox .field {
+  margin-top: 10px;
+  flex: 1 1 auto;
+}
+
+.couponCodeInput {
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.couponCheckboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #444;
+  cursor: pointer;
+  padding: 10px 0;
+}
+
+.couponCode {
+  display: inline-block;
+  margin-top: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #b8860b;
+  background: #fbf3df;
+  border-radius: 6px;
+  padding: 2px 8px;
+  width: fit-content;
+  font-family: ui-monospace, monospace;
+}
+
+/* ---- Tarjeta de cliente frecuente ---- */
+.loyaltyLayout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 6px;
+}
+
+.loyaltyForm {
+  flex: 2 1 340px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Mas pegada al campo de Recompensa de arriba, para que se lean como
+   parte del mismo bloque en vez de dos secciones sueltas. */
+.loyaltyImageField {
+  margin-top: -6px;
+  gap: 4px;
+}
+
+.loyaltyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.loyaltyToggle {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: white;
+  color: #444;
+  cursor: pointer;
+  font-size: 13.5px;
+}
+
+.loyaltyToggle:hover {
+  border-color: #ff5a00;
+  color: #ff5a00;
+}
+
+.loyaltyPreview {
+  flex: 1 1 260px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.loyaltyPreviewLabel {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #b8860b;
+}
+
+/* Sube su propia imagen; reusa el mismo patron dashed que .upload */
+.loyaltyUpload {
+  display: block;
+  border: 2px dashed #ff5a00;
+  padding: 14px;
+  text-align: center;
+  border-radius: 10px;
+  color: #ff5a00;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.loyaltyRemoveImg {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 2px 0;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #8a8a8a;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ---- La tarjeta como tal: imagen de fondo (o degradado por defecto),
+   con los sellos y la recompensa superpuestos ---- */
+.loyaltyCard {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18);
+}
+
+.loyaltyCardNoImage {
+  background-image: linear-gradient(135deg, #ff8a1f 0%, #ff5a00 55%, #ff3d00 100%);
+}
+
+.loyaltyCardOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.1) 45%,
+    rgba(0, 0, 0, 0.78) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px 18px;
+  color: white;
+}
+
+.loyaltyCardName {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.92;
+  margin-bottom: 10px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.cardStampsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.cardStamp {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.14);
+  flex-shrink: 0;
+}
+
+.cardStampFilled {
+  background: #ff7a00;
+  border-color: #ff7a00;
+}
+
+.loyaltyCardReward {
+  margin: 0;
+  font-size: 13px;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* globals.css pone `strong { color: #1a1a1a }` a nivel de toda la app
+   (para las tarjetas blancas del resto del panel) - aqui el texto va
+   sobre una foto/degradado oscuro, asi que necesita quedarse blanco. */
+.loyaltyCardReward strong {
+  color: white;
+}
+
+/* ---- Clientes con sellos (progreso real) ---- */
+.loyaltyCustomers {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.loyaltyCustomers h4 {
+  margin: 0 0 12px;
+}
+
+.loyaltyTableWrap {
+  overflow-x: auto;
+}
+
+.loyaltyTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px;
+}
+
+.loyaltyTable th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9a9a9a;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+}
+
+.loyaltyTable td {
+  padding: 10px 12px;
+  font-size: 13.5px;
+  border-bottom: 1px solid #f4f4f4;
+  vertical-align: middle;
+}
+
+.loyaltyTable tr:last-child td {
+  border-bottom: none;
+}
+
+.loyaltyTable .listName {
+  display: block;
+}
+
+.loyaltyTable .listMeta {
+  display: block;
+  margin-top: 1px;
+}
+
+.loyaltyRedeemBtn {
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #eefbf1;
+  color: #059669;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.loyaltyRedeemBtn:hover:not(:disabled) {
+  background: #dcf5e3;
+}
+
+.loyaltyRedeemBtn:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
 }
