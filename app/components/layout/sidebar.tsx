@@ -14,9 +14,16 @@ import {
   faBox,
   faShieldHalved,
   faChevronDown,
+  faStar,
+  faLightbulb,
 } from "@fortawesome/free-solid-svg-icons";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { useAuth, getRoleForStore, tieneAlgunRolDeGestion } from "../../hooks/useAuth";
+import {
+  useAuth,
+  getRoleForStore,
+  tieneAlgunRolDeGestion,
+  tieneRolGerencial,
+} from "../../hooks/useAuth";
 import { useActiveStore, ALL_STORES_ID } from "../../hooks/useActiveStore";
 import Skeleton from "../components-items/skeleton/skeleton";
 import styles from "./sidebar.module.css";
@@ -73,6 +80,16 @@ const buildMenuItems = (storeId: string | null): MenuItem[] => [
     name: "Usuarios y Roles",
     path: "/users-rols",
     icon: <FontAwesomeIcon icon={faUser} />,
+  },
+  {
+    name: "Destacados",
+    path: "/promociones",
+    icon: <FontAwesomeIcon icon={faStar} />,
+  },
+  {
+    name: "Mi Roadmap",
+    path: "/roadmap",
+    icon: <FontAwesomeIcon icon={faLightbulb} />,
   },
   {
     name: "Configuraciones",
@@ -176,6 +193,13 @@ export default function Sidebar() {
 
   const esAdminPlataforma = Number(user?.global_role_id ?? 0) >= 90;
   const puedeGestionarEquipo = tieneAlgunRolDeGestion(user);
+  // "Destacados" (pagar para aparecer resaltado en la app) le toca a quien
+  // DIRIGE el negocio - dueno, gerente general, o super admin - no a un
+  // Supervisor/Cajero/Staff.
+  const puedeVerDestacados = tieneRolGerencial(user);
+  // "Mi Roadmap" es una lista privada de la super admin sobre la app en
+  // general - ni siquiera un Administrador dueno de negocios la ve.
+  const esSuperAdmin = Number(user?.global_role_id ?? 0) >= 100;
 
   const menuItems = buildMenuItems(realStoreId);
 
@@ -206,6 +230,11 @@ export default function Sidebar() {
       (item) => item.path !== "/users-rols" || puedeGestionarEquipo,
     );
   }
+
+  items = items.filter(
+    (item) => item.path !== "/promociones" || puedeVerDestacados,
+  );
+  items = items.filter((item) => item.path !== "/roadmap" || esSuperAdmin);
 
   // Con que rol y en que negocio entraste: para alguien que es staff en
   // varios negocios a la vez, esto le aclara donde tiene cual sombrero.
