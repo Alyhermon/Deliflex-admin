@@ -41,6 +41,8 @@ type OrderItem = {
 type OrderDetail = Order & {
   driver_name: string | null;
   items: OrderItem[];
+  coupon_code: string | null;
+  coupon_name: string | null;
 };
 
 type Summary = {
@@ -112,6 +114,10 @@ export default function OrdersTab({ id }: { id: string }) {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [updating, setUpdating] = useState(false);
 
+  const [couponInput, setCouponInput] = useState("");
+  const [couponError, setCouponError] = useState("");
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "info" | "danger";
@@ -163,6 +169,9 @@ export default function OrdersTab({ id }: { id: string }) {
   }, [id]);
 
   useEffect(() => {
+    setCouponInput("");
+    setCouponError("");
+
     if (!selectedId) {
       setDetail(null);
       return;
@@ -248,6 +257,45 @@ export default function OrdersTab({ id }: { id: string }) {
       });
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const aplicarCupon = async () => {
+    if (!detail || !couponInput.trim()) return;
+
+    setApplyingCoupon(true);
+    setCouponError("");
+
+    try {
+      const res = await fetch(
+        `http://localhost:3001/orders/${detail.id}/coupon`,
+        {
+          credentials: "include",
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: couponInput }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "No se pudo aplicar el cupón");
+      }
+
+      setDetail((prev) =>
+        prev
+          ? { ...prev, coupon_code: data.couponCode, coupon_name: data.promotionName }
+          : prev,
+      );
+      setCouponInput("");
+      setToast({ message: "Cupón aplicado", type: "success" });
+    } catch (error) {
+      setCouponError(
+        error instanceof Error ? error.message : "No se pudo aplicar el cupón",
+      );
+    } finally {
+      setApplyingCoupon(false);
     }
   };
 
@@ -389,10 +437,14 @@ export default function OrdersTab({ id }: { id: string }) {
               <>
                 <div className={styles.detailsHeader}>
                   <div style={{ flex: 1 }}>
-                    <Skeleton width="55%" height={20} style={{ marginBottom: 10 }} />
-                    <Skeleton width="35%" height={13} />
+                    <Skeleton width="55%" height={20} />
                   </div>
                   <Skeleton width={90} height={28} radius={999} />
+                </div>
+
+                <div className={styles.actions}>
+                  <Skeleton width={120} height={48} radius={14} />
+                  <Skeleton width={170} height={48} radius={14} />
                 </div>
 
                 <div className={styles.detailsGrid}>
@@ -429,18 +481,12 @@ export default function OrdersTab({ id }: { id: string }) {
                     <Skeleton width={90} height={28} style={{ marginLeft: "auto" }} />
                   </div>
                 </div>
-
-                <div className={styles.actions}>
-                  <Skeleton width={120} height={48} radius={14} />
-                  <Skeleton width={170} height={48} radius={14} />
-                </div>
               </>
             ) : (
               <>
                 <div className={styles.detailsHeader}>
                   <div>
                     <h2>Pedido {detail.order_code ?? detail.id.slice(0, 8)}</h2>
-                    <p>{detail.customer_name ?? "Cliente sin nombre"}</p>
                   </div>
 
                   <span
@@ -450,58 +496,6 @@ export default function OrdersTab({ id }: { id: string }) {
                   >
                     {ESTADO_META[detail.status]?.label ?? detail.status}
                   </span>
-                </div>
-
-                <div className={styles.detailsGrid}>
-                  <div>
-                    <span className={styles.detailLabel}>Cliente</span>
-                    <p>{detail.customer_name ?? "—"}</p>
-                    <p>{detail.customer_phone ?? "—"}</p>
-                  </div>
-
-                  <div>
-                    <span className={styles.detailLabel}>Tipo de pedido</span>
-                    <p>{TIPO_META[detail.order_type] ?? detail.order_type}</p>
-                  </div>
-
-                  <div>
-                    <span className={styles.detailLabel}>Fecha</span>
-                    <p>{fechaHora(detail.created_at)}</p>
-                  </div>
-                </div>
-
-                <div className={styles.productsSection}>
-                  <span className={styles.detailLabel}>Productos</span>
-
-                  {detail.items.length === 0 ? (
-                    <div className={styles.productRow}>Sin productos</div>
-                  ) : (
-                    detail.items.map((item) => (
-                      <div key={item.id} className={styles.productRow}>
-                        <span>
-                          {item.quantity}x {item.product_name}
-                        </span>
-                        <span>{dinero(item.subtotal)}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                <div className={styles.notesSection}>
-                  <span className={styles.detailLabel}>Notas del cliente</span>
-                  <p>{detail.notes || "Sin notas"}</p>
-                </div>
-
-                <div className={styles.paymentTotal}>
-                  <div>
-                    <span className={styles.detailLabel}>Método de pago</span>
-                    <p>{detail.payment_method === "cash" ? "Efectivo" : "Tarjeta"}</p>
-                  </div>
-
-                  <div className={styles.totalBox}>
-                    <span>Total</span>
-                    <strong>{dinero(detail.total)}</strong>
-                  </div>
                 </div>
 
                 <div className={styles.actions}>
@@ -588,6 +582,109 @@ export default function OrdersTab({ id }: { id: string }) {
                       Este pedido ya está finalizado.
                     </p>
                   )}
+                </div>
+
+                <div className={styles.detailsGrid}>
+                  <div>
+                    <span className={styles.detailLabel}>Cliente</span>
+                    <p>{detail.customer_name ?? "—"}</p>
+                    <p>{detail.customer_phone ?? "—"}</p>
+                  </div>
+
+                  <div>
+                    <span className={styles.detailLabel}>Tipo de pedido</span>
+                    <p>{TIPO_META[detail.order_type] ?? detail.order_type}</p>
+                  </div>
+
+                  <div>
+                    <span className={styles.detailLabel}>Fecha</span>
+                    <p>{fechaHora(detail.created_at)}</p>
+                  </div>
+                </div>
+
+                <div className={styles.productsSection}>
+                  <span className={styles.detailLabel}>Productos</span>
+
+                  {detail.items.length === 0 ? (
+                    <div className={styles.productRow}>Sin productos</div>
+                  ) : (
+                    detail.items.map((item) => (
+                      <div key={item.id} className={styles.productRow}>
+                        <div className={styles.productInfo}>
+                          <span className={styles.productName}>
+                            {item.product_name}
+                          </span>
+                          <span className={styles.productMeta}>
+                            {item.quantity} x {dinero(item.unit_price)}
+                          </span>
+                        </div>
+
+                        <span className={styles.productSubtotal}>
+                          {dinero(item.subtotal)}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className={styles.notesSection}>
+                  <span className={styles.detailLabel}>Notas del cliente</span>
+                  <p>{detail.notes || "Sin notas"}</p>
+                </div>
+
+                <div className={styles.couponSection}>
+                  <span className={styles.detailLabel}>Cupón</span>
+
+                  {detail.coupon_code ? (
+                    <div className={styles.couponApplied}>
+                      <span className={styles.couponAppliedCode}>
+                        {detail.coupon_code}
+                      </span>
+                      <span className={styles.couponAppliedName}>
+                        {detail.coupon_name}
+                      </span>
+                    </div>
+                  ) : detail.status === "CANCELLED" ? (
+                    <p className={styles.hint}>—</p>
+                  ) : (
+                    <div className={styles.couponForm}>
+                      <input
+                        className={couponError ? styles.couponInputError : ""}
+                        placeholder="Código que dio el cliente"
+                        value={couponInput}
+                        maxLength={30}
+                        onChange={(e) => {
+                          setCouponError("");
+                          setCouponInput(
+                            e.target.value.toUpperCase().replace(/\s+/g, ""),
+                          );
+                        }}
+                      />
+                      <button
+                        type="button"
+                        disabled={applyingCoupon || !couponInput.trim()}
+                        onClick={aplicarCupon}
+                      >
+                        {applyingCoupon ? "Aplicando..." : "Aplicar"}
+                      </button>
+                    </div>
+                  )}
+
+                  {couponError && (
+                    <span className={styles.errorText}>{couponError}</span>
+                  )}
+                </div>
+
+                <div className={styles.paymentTotal}>
+                  <div>
+                    <span className={styles.detailLabel}>Método de pago</span>
+                    <p>{detail.payment_method === "cash" ? "Efectivo" : "Tarjeta"}</p>
+                  </div>
+
+                  <div className={styles.totalBox}>
+                    <span>Total</span>
+                    <strong>{dinero(detail.total)}</strong>
+                  </div>
                 </div>
               </>
             )}
