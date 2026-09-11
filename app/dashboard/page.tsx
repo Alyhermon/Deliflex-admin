@@ -113,6 +113,15 @@ export default function DashboardPage() {
       const res = await fetch(url, { credentials: "include" });
       const data = await res.json();
 
+      // Si la peticion falla (401, 500, etc.) el cuerpo no trae la forma
+      // de Summary - sin este chequeo, renderizar con datos a medias
+      // revienta toda la pantalla en vez de solo mostrar vacio.
+      if (!res.ok || !Array.isArray(data.pendingApproval)) {
+        console.error("Resumen del dashboard invalido:", data);
+        setSummary(null);
+        return;
+      }
+
       setSummary(data);
     } catch (error) {
       console.error(error);
