@@ -243,7 +243,7 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
     const cargarNombre = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3001/register-business/edit/${storeId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/register-business/edit/${storeId}`,
           { credentials: "include" },
         );
         const data = await res.json();
@@ -266,8 +266,8 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
 
       try {
         const [resLista, resResumen] = await Promise.all([
-          fetch(`http://localhost:3001/inventory/store/${storeId}`, { credentials: "include" }),
-          fetch(`http://localhost:3001/inventory/summary/${storeId}`, { credentials: "include" }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/inventory/store/${storeId}`, { credentials: "include" }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/inventory/summary/${storeId}`, { credentials: "include" }),
         ]);
 
         if (!resLista.ok || !resResumen.ok) throw new Error("fetch fallido");
@@ -370,8 +370,8 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
     try {
       const esEdicion = editingIngredient !== null;
       const url = esEdicion
-        ? `http://localhost:3001/inventory/${editingIngredient!.id}?storeId=${storeId}`
-        : `http://localhost:3001/inventory/store/${storeId}`;
+        ? `${process.env.NEXT_PUBLIC_API_URL}/inventory/${editingIngredient!.id}?storeId=${storeId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/inventory/store/${storeId}`;
 
       const res = await fetch(url, {
         credentials: "include",
@@ -418,7 +418,7 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/inventory/${ingredientToDelete.id}?storeId=${storeId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/inventory/${ingredientToDelete.id}?storeId=${storeId}`,
         { credentials: "include", method: "DELETE" },
       );
 
@@ -468,7 +468,7 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/inventory/store/${storeId}/movement`,
+        `${process.env.NEXT_PUBLIC_API_URL}/inventory/store/${storeId}/movement`,
         {
           credentials: "include",
           method: "POST",
@@ -513,7 +513,7 @@ export default function InventoryScreen({ storeId, onStoreNameLoaded }: Props) {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/inventory/${ing.id}/movements?storeId=${storeId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/inventory/${ing.id}/movements?storeId=${storeId}`,
         { credentials: "include" },
       );
       const data = await res.json();

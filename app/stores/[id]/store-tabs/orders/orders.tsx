@@ -129,8 +129,8 @@ export default function OrdersTab({ id }: { id: string }) {
 
       try {
         const [resOrders, resSummary] = await Promise.all([
-          fetch(`http://localhost:3001/orders/store/${id}`, { credentials: "include" }),
-          fetch(`http://localhost:3001/orders/summary/${id}`, { credentials: "include" }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/store/${id}`, { credentials: "include" }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/summary/${id}`, { credentials: "include" }),
         ]);
 
         if (!resOrders.ok || !resSummary.ok) throw new Error("fetch fallido");
@@ -179,7 +179,7 @@ export default function OrdersTab({ id }: { id: string }) {
 
     setLoadingDetail(true);
 
-    fetch(`http://localhost:3001/orders/${selectedId}`, { credentials: "include" })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${selectedId}`, { credentials: "include" })
       .then((res) => res.json())
       .then(setDetail)
       .catch((error) => {
@@ -228,7 +228,7 @@ export default function OrdersTab({ id }: { id: string }) {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/orders/${detail.id}/status`,
+        `${process.env.NEXT_PUBLIC_API_URL}/orders/${detail.id}/status`,
         {
           credentials: "include",
           method: "PATCH",
@@ -248,7 +248,7 @@ export default function OrdersTab({ id }: { id: string }) {
         type: nuevoEstado === "CANCELLED" ? "danger" : "success",
       });
 
-      const resSummary = await fetch(`http://localhost:3001/orders/summary/${id}`, { credentials: "include" });
+      const resSummary = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/summary/${id}`, { credentials: "include" });
       setSummary(await resSummary.json());
     } catch (error) {
       setToast({
@@ -268,7 +268,7 @@ export default function OrdersTab({ id }: { id: string }) {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/orders/${detail.id}/coupon`,
+        `${process.env.NEXT_PUBLIC_API_URL}/orders/${detail.id}/coupon`,
         {
           credentials: "include",
           method: "PATCH",

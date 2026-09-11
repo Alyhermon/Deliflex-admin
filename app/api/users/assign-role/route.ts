@@ -10,7 +10,7 @@ export async function PATCH(request: NextRequest) {
 
   const body = await request.json();
 
-  const res = await fetch("http://localhost:3001/users/assign-role", {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/assign-role`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

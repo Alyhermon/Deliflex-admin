@@ -18,7 +18,7 @@ export async function DELETE(
   }
 
   const res = await fetch(
-    `http://localhost:3001/users/staff/${staffId}?businessId=${encodeURIComponent(businessId)}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/users/staff/${staffId}?businessId=${encodeURIComponent(businessId)}`,
     {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },

@@ -136,8 +136,8 @@ export default function EditStorePage({
     const cargar = async () => {
       try {
         const [resDatos, resCategorias] = await Promise.all([
-          fetch(`http://localhost:3001/register-business/edit/${id}`, { credentials: "include" }),
-          fetch("http://localhost:3001/register-business/categories", { credentials: "include" }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/register-business/edit/${id}`, { credentials: "include" }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/register-business/categories`, { credentials: "include" }),
         ]);
 
         if (!resDatos.ok) {
@@ -231,7 +231,7 @@ export default function EditStorePage({
 
     try {
       const res = await fetch(
-        `http://localhost:3001/register-business/store/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/register-business/store/${id}`,
         {
           credentials: "include",
           method: "PATCH",

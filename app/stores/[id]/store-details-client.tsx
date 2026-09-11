@@ -48,7 +48,7 @@ export default function StoreDetailPage({ id }: { id: string }) {
     const loadStore = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3001/register-business/${id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/register-business/${id}`,
           { credentials: "include" },
         );
 
@@ -78,7 +78,7 @@ export default function StoreDetailPage({ id }: { id: string }) {
     const loadSchedule = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3001/register-business/edit/${id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/register-business/edit/${id}`,
           { credentials: "include" },
         );
         const data = await res.json();

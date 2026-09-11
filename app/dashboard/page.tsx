@@ -106,8 +106,8 @@ export default function DashboardPage() {
     if (!user) return;
 
     const url = esSuperAdmin
-      ? "http://localhost:3001/register-business/dashboard-summary"
-      : `http://localhost:3001/register-business/accessible/${user.id}/dashboard-summary`;
+      ? `${process.env.NEXT_PUBLIC_API_URL}/register-business/dashboard-summary`
+      : `${process.env.NEXT_PUBLIC_API_URL}/register-business/accessible/${user.id}/dashboard-summary`;
 
     try {
       const res = await fetch(url, { credentials: "include" });
@@ -144,7 +144,7 @@ export default function DashboardPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/register-business/store/${storeId}/status`,
+        `${process.env.NEXT_PUBLIC_API_URL}/register-business/store/${storeId}/status`,
         {
           credentials: "include",
           method: "PATCH",

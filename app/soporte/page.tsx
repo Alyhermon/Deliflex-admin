@@ -13,7 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import styles from "./soporte.module.css";
 
-const API = "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 type Status = "NUEVO" | "EN_PROGRESO" | "FINALIZADO";
 

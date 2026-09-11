@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const login = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3001/auth/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         credentials: "include",
         method: "POST",
         headers: {

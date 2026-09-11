@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   }
 
   const res = await fetch(
-    `http://localhost:3001/users/staff?businessId=${encodeURIComponent(businessId)}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/users/staff?businessId=${encodeURIComponent(businessId)}`,
     { headers: { Authorization: `Bearer ${token}` } },
   );
 

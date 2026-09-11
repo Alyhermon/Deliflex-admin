@@ -15,7 +15,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
 import styles from "./roadmap.module.css";
 
-const API = "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 type Status = "PENDING" | "IN_PROGRESS" | "DONE";
 type Priority = "LOW" | "MEDIUM" | "HIGH";

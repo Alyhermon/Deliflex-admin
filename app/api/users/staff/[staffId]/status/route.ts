@@ -15,7 +15,7 @@ export async function PATCH(
   const body = await request.json();
 
   const res = await fetch(
-    `http://localhost:3001/users/staff/${staffId}/status`,
+    `${process.env.NEXT_PUBLIC_API_URL}/users/staff/${staffId}/status`,
     {
       method: "PATCH",
       headers: {

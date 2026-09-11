@@ -34,7 +34,7 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
-const API = "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 type BoostPlan = {
   id: string;

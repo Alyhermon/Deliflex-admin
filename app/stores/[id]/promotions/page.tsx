@@ -291,7 +291,7 @@ export default function PromotionsPage({
     const loadStore = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3001/register-business/${id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/register-business/${id}`,
           { credentials: "include" },
         );
 
@@ -314,7 +314,7 @@ export default function PromotionsPage({
     const loadCategories = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3001/products/categories/${id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/products/categories/${id}`,
           { credentials: "include" },
         );
 
@@ -328,7 +328,7 @@ export default function PromotionsPage({
 
     const loadProducts = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/products/store/${id}`, { credentials: "include" });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/store/${id}`, { credentials: "include" });
         const data = await res.json();
         const lista = Array.isArray(data) ? data : data.data || [];
 
@@ -352,7 +352,7 @@ export default function PromotionsPage({
   const loadPromotions = useCallback(
     async (reintentar = true) => {
       try {
-        const res = await fetch(`http://localhost:3001/promotions/store/${id}`, { credentials: "include" });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/promotions/store/${id}`, { credentials: "include" });
         const data = await res.json();
 
         setPromotions(Array.isArray(data) ? data : []);
@@ -391,7 +391,7 @@ export default function PromotionsPage({
 
   const loadLoyalty = useCallback(async () => {
     try {
-      const res = await fetch(`http://localhost:3001/loyalty/store/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/loyalty/store/${id}`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -428,7 +428,7 @@ export default function PromotionsPage({
   const loadLoyaltyCustomers = useCallback(async () => {
     try {
       const res = await fetch(
-        `http://localhost:3001/loyalty/store/${id}/customers`,
+        `${process.env.NEXT_PUBLIC_API_URL}/loyalty/store/${id}/customers`,
         { credentials: "include" },
       );
       const data = await res.json();
@@ -450,7 +450,7 @@ export default function PromotionsPage({
 
     try {
       const res = await fetch(
-        `http://localhost:3001/loyalty/store/${id}/customers/${customerId}/redeem`,
+        `${process.env.NEXT_PUBLIC_API_URL}/loyalty/store/${id}/customers/${customerId}/redeem`,
         { credentials: "include", method: "POST" },
       );
 
@@ -490,7 +490,7 @@ export default function PromotionsPage({
     setLoyaltySaving(true);
 
     try {
-      const res = await fetch(`http://localhost:3001/loyalty/store/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/loyalty/store/${id}`, {
         credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -523,7 +523,7 @@ export default function PromotionsPage({
 
     try {
       const res = await fetch(
-        `http://localhost:3001/loyalty/store/${id}/status`,
+        `${process.env.NEXT_PUBLIC_API_URL}/loyalty/store/${id}/status`,
         {
           credentials: "include",
           method: "PATCH",
@@ -552,7 +552,7 @@ export default function PromotionsPage({
     setLoyaltyDeleting(true);
 
     try {
-      const res = await fetch(`http://localhost:3001/loyalty/store/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/loyalty/store/${id}`, {
         credentials: "include",
         method: "DELETE",
       });
@@ -725,7 +725,7 @@ export default function PromotionsPage({
     try {
       const categoria = categories.find((c) => c.name === form.categoryName);
 
-      const res = await fetch(`http://localhost:3001/promotions/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/promotions/${id}`, {
         credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -791,7 +791,7 @@ export default function PromotionsPage({
 
     try {
       const res = await fetch(
-        `http://localhost:3001/promotions/${promotionToDelete.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/promotions/${promotionToDelete.id}`,
         { credentials: "include", method: "DELETE" },
       );
 

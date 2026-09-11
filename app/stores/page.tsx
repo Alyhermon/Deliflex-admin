@@ -97,8 +97,8 @@ export default function StoresPage() {
   }
 
   const url = esSuperAdmin
-    ? "http://localhost:3001/register-business/all"
-    : `http://localhost:3001/register-business/accessible/${user.id}`;
+    ? `${process.env.NEXT_PUBLIC_API_URL}/register-business/all`
+    : `${process.env.NEXT_PUBLIC_API_URL}/register-business/accessible/${user.id}`;
 
   const loadStores = async () => {
     try {

@@ -119,7 +119,7 @@ export default function FinanceScreen({ storeId, onStoreNameLoaded }: Props) {
     const cargarNombre = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3001/register-business/edit/${storeId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/register-business/edit/${storeId}`,
           { credentials: "include" },
         );
         const data = await res.json();
@@ -148,10 +148,10 @@ export default function FinanceScreen({ storeId, onStoreNameLoaded }: Props) {
           : `days=${days}`;
 
         const [resSummary, resDaily, resOrders] = await Promise.all([
-          fetch(`http://localhost:3001/finance/summary/${storeId}?${query}`, { credentials: "include" }),
-          fetch(`http://localhost:3001/finance/daily/${storeId}?${query}`, { credentials: "include" }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/finance/summary/${storeId}?${query}`, { credentials: "include" }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/finance/daily/${storeId}?${query}`, { credentials: "include" }),
           fetch(
-            `http://localhost:3001/finance/orders/${storeId}?${query}&limit=20`,
+            `${process.env.NEXT_PUBLIC_API_URL}/finance/orders/${storeId}?${query}&limit=20`,
             { credentials: "include" },
           ),
         ]);

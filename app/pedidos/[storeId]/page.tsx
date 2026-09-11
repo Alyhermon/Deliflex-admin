@@ -25,7 +25,7 @@ export default function StoreOrdersPage({
     const cargarNombre = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3001/register-business/edit/${storeId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/register-business/edit/${storeId}`,
           { credentials: "include" },
         );
         const data = await res.json();

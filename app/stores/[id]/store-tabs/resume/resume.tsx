@@ -34,7 +34,7 @@ useEffect(() => {
   const loadStore = async () => {
     try {
       const res = await fetch(
-        `http://localhost:3001/register-business/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/register-business/${id}`,
         { credentials: "include" }
       );
 
@@ -79,7 +79,7 @@ useEffect(() => {
   const loadCount = async () => {
     try {
       const res = await fetch(
-        `http://localhost:3001/products/count/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/products/count/${id}`,
         { credentials: "include" }
       );
 
@@ -99,7 +99,7 @@ useEffect(() => {
 
   const loadSchedule = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/register-business/edit/${id}`, { credentials: "include" });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register-business/edit/${id}`, { credentials: "include" });
       const data = await res.json();
       const schedules: ScheduleRow[] = Array.isArray(data.schedules)
         ? data.schedules
@@ -119,7 +119,7 @@ useEffect(() => {
 
   const loadPromotions = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/promotions/count/${id}`, { credentials: "include" });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/promotions/count/${id}`, { credentials: "include" });
       const data = await res.json();
 
       setActivePromotions(data.total ?? 0);
@@ -138,7 +138,7 @@ useEffect(() => {
 
   const loadTopProducts = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/products/store/${id}`, { credentials: "include" });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/store/${id}`, { credentials: "include" });
       const data = await res.json();
       const products = Array.isArray(data) ? data : data.data || [];
 
@@ -174,7 +174,7 @@ useEffect(() => {
 
   const loadIngresosHoy = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/finance/summary/${id}?days=1`, { credentials: "include" });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/finance/summary/${id}?days=1`, { credentials: "include" });
       const data = await res.json();
       setIngresosHoy(data.totalRevenue ?? 0);
     } catch (error) {
@@ -190,7 +190,7 @@ useEffect(() => {
 
   const loadPedidosPendientes = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/orders/summary/${id}`, { credentials: "include" });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/summary/${id}`, { credentials: "include" });
       const data = await res.json();
       setPedidosPendientes(data.pending ?? 0);
     } catch (error) {

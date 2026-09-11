@@ -228,7 +228,7 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
     const cargarNombre = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3001/register-business/edit/${storeId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/register-business/edit/${storeId}`,
           { credentials: "include" },
         );
         const data = await res.json();
@@ -248,7 +248,7 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
   const cargarCategorias = useCallback(async () => {
     try {
       const res = await fetch(
-        `http://localhost:3001/products/categories/${storeId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/products/categories/${storeId}`,
         { credentials: "include" },
       );
       const data = await res.json();
@@ -264,7 +264,7 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
 
       try {
         const [resProductos] = await Promise.all([
-          fetch(`http://localhost:3001/products/store/${storeId}`, { credentials: "include" }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/store/${storeId}`, { credentials: "include" }),
           cargarCategorias(),
         ]);
 
@@ -369,7 +369,7 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/products/categories/${storeId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/products/categories/${storeId}`,
         {
           credentials: "include",
           method: "POST",
@@ -412,8 +412,8 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
     try {
       const esEdicion = editingProduct !== null;
       const url = esEdicion
-        ? `http://localhost:3001/products/${editingProduct!.id}`
-        : `http://localhost:3001/products/${storeId}`;
+        ? `${process.env.NEXT_PUBLIC_API_URL}/products/${editingProduct!.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/products/${storeId}`;
 
       const res = await fetch(url, {
         credentials: "include",
@@ -463,7 +463,7 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/products/${productToDelete.id}?storeId=${storeId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productToDelete.id}?storeId=${storeId}`,
         { credentials: "include", method: "DELETE" },
       );
 
@@ -487,7 +487,7 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
 
   const toggleDisponible = async (p: Product) => {
     try {
-      const res = await fetch(`http://localhost:3001/products/${p.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${p.id}`, {
         credentials: "include",
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -519,7 +519,7 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
 
   const toggleDestacado = async (p: Product) => {
     try {
-      const res = await fetch(`http://localhost:3001/products/${p.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${p.id}`, {
         credentials: "include",
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
