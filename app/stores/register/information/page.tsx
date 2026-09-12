@@ -17,11 +17,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useRegisterBusiness } from "../RegisterBusinessContext";
 import LoadingDots from "../../../components/components-items/loading-dots/loading-dots";
+import { formatPhone, formatTaxId } from "../format-utils";
 
 type Category = { id: string; category_name: string };
 
 export default function InformationPage() {
-  const { form, update } = useRegisterBusiness();
+  const { form, update, fieldErrors, clearFieldError } = useRegisterBusiness();
   const [categories, setCategories] = useState<Category[]>([]);
   const [ubicando, setUbicando] = useState(false);
   const [ubicacionError, setUbicacionError] = useState("");
@@ -44,6 +45,7 @@ export default function InformationPage() {
   const handleCategoryChange = (label: string) => {
     const found = categories.find((c) => c.category_name === label);
     update({ categoryLabel: label, categoryId: found?.id ?? "" });
+    clearFieldError("categoryId");
   };
 
   const subirBanner = async (file: File) => {
@@ -61,6 +63,7 @@ export default function InformationPage() {
       if (!res.ok) throw new Error(data.error);
 
       update({ bannerUrl: data.url });
+      clearFieldError("bannerUrl");
     } catch (err) {
       setBannerError(
         err instanceof Error ? err.message : "No se pudo subir la imagen",
@@ -173,8 +176,10 @@ export default function InformationPage() {
                 )}
               </div>
             </div>
-            {bannerError && (
-              <span className={styles.errorText}>{bannerError}</span>
+            {(bannerError || fieldErrors.bannerUrl) && (
+              <span className={styles.errorText}>
+                {bannerError || fieldErrors.bannerUrl}
+              </span>
             )}
           </div>
 
@@ -187,7 +192,11 @@ export default function InformationPage() {
                 <DFInput
                   placeholder="Nombre del negocio"
                   value={form.nameBusisness}
-                  onChange={(e) => update({ nameBusisness: e.target.value })}
+                  onChange={(e) => {
+                    update({ nameBusisness: e.target.value });
+                    clearFieldError("nameBusisness");
+                  }}
+                  error={fieldErrors.nameBusisness}
                   icon={<FontAwesomeIcon color="#ed7b17" icon={faShop} />}
                 />
                 <DFInput
@@ -201,10 +210,12 @@ export default function InformationPage() {
                 <DFInput
                   placeholder="Cédula o RNC del negocio"
                   value={form.taxId}
-                  onChange={(e) =>
-                    update({ taxId: e.target.value.replace(/\D/g, "") })
-                  }
-                  maxLength={11}
+                  onChange={(e) => {
+                    update({ taxId: formatTaxId(e.target.value) });
+                    clearFieldError("taxId");
+                  }}
+                  maxLength={13}
+                  error={fieldErrors.taxId}
                   icon={<FontAwesomeIcon color="#ed7b17" icon={faIdCard} />}
                 />
               </div>
@@ -224,6 +235,7 @@ export default function InformationPage() {
                   value={form.categoryLabel}
                   onChange={handleCategoryChange}
                   placeholder="Tipo de negocio *"
+                  error={fieldErrors.categoryId}
                   fullWidth
                 />
                 <span className={styles.hint}>
@@ -263,7 +275,10 @@ export default function InformationPage() {
                 <DFInput
                   placeholder="Telefono de contacto"
                   value={form.phoneBusiness}
-                  onChange={(e) => update({ phoneBusiness: e.target.value })}
+                  onChange={(e) =>
+                    update({ phoneBusiness: formatPhone(e.target.value) })
+                  }
+                  maxLength={12}
                   icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
                 />
               </div>
@@ -271,7 +286,10 @@ export default function InformationPage() {
                 <DFInput
                   placeholder="Telefono del negocio"
                   value={form.storePhone}
-                  onChange={(e) => update({ storePhone: e.target.value })}
+                  onChange={(e) =>
+                    update({ storePhone: formatPhone(e.target.value) })
+                  }
+                  maxLength={12}
                   icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
                 />
               </div>
@@ -286,7 +304,11 @@ export default function InformationPage() {
               <DFInput
                 placeholder="Direccion del negocio"
                 value={form.storeAddress}
-                onChange={(e) => update({ storeAddress: e.target.value })}
+                onChange={(e) => {
+                  update({ storeAddress: e.target.value });
+                  clearFieldError("storeAddress");
+                }}
+                error={fieldErrors.storeAddress}
                 icon={<FontAwesomeIcon color="#ed7b17" icon={faStore} />}
               />
             </div>
@@ -305,21 +327,23 @@ export default function InformationPage() {
                 placeholder="Latitud"
                 type="number"
                 value={form.latitude ?? ""}
-                onChange={(e) =>
+                onChange={(e) => {
                   update({
                     latitude: e.target.value ? Number(e.target.value) : null,
-                  })
-                }
+                  });
+                  clearFieldError("latitude");
+                }}
               />
               <DFInput
                 placeholder="Longitud"
                 type="number"
                 value={form.longitude ?? ""}
-                onChange={(e) =>
+                onChange={(e) => {
                   update({
                     longitude: e.target.value ? Number(e.target.value) : null,
-                  })
-                }
+                  });
+                  clearFieldError("latitude");
+                }}
               />
               <button
                 type="button"
@@ -331,8 +355,10 @@ export default function InformationPage() {
                 {ubicando ? "Ubicando..." : "Usar mi ubicación actual"}
               </button>
             </div>
-            {ubicacionError && (
-              <span className={styles.errorText}>{ubicacionError}</span>
+            {(ubicacionError || fieldErrors.latitude) && (
+              <span className={styles.errorText}>
+                {ubicacionError || fieldErrors.latitude}
+              </span>
             )}
           </div>
         </div>

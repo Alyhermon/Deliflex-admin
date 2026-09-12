@@ -13,6 +13,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useRegisterBusiness } from "../RegisterBusinessContext";
 import { to24Hour } from "../time-format";
+import { soloDigitos } from "../format-utils";
 
 const TIPOS_DOCUMENTO = [
   "Cédula o RNC",
@@ -90,7 +91,7 @@ export default function ConfirmationPage() {
       setError("Falta el nombre del negocio (paso Información)");
       return;
     }
-    if (!/^\d{9}$|^\d{11}$/.test(form.taxId)) {
+    if (!/^\d{9}$|^\d{11}$/.test(soloDigitos(form.taxId))) {
       setError("La cédula/RNC debe tener 9 u 11 dígitos (paso Información)");
       return;
     }
@@ -120,7 +121,7 @@ export default function ConfirmationPage() {
             nameBusisness: form.nameBusisness,
             email: form.email,
             phoneBusiness: form.phoneBusiness,
-            taxId: form.taxId,
+            taxId: soloDigitos(form.taxId),
             categoryId: form.categoryId || undefined,
             storeName: form.nameBusisness,
             description: form.description || undefined,

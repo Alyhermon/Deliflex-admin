@@ -99,20 +99,37 @@ const FORM_INICIAL: RegisterBusinessForm = {
   documents: [],
 };
 
+// Errores puntuales por campo (para pintarlos justo debajo de cada input,
+// en vez de un solo mensaje generico en la parte de abajo del paso).
+export type FieldErrors = Partial<Record<keyof RegisterBusinessForm, string>>;
+
 type ContextValue = {
   form: RegisterBusinessForm;
   update: (patch: Partial<RegisterBusinessForm>) => void;
   updateSchedule: (dayOfWeek: number, patch: Partial<DaySchedule>) => void;
   applyGenericHoursToAllDays: (openTime: string, closeTime: string) => void;
+  fieldErrors: FieldErrors;
+  setFieldErrors: (errors: FieldErrors) => void;
+  clearFieldError: (campo: keyof RegisterBusinessForm) => void;
 };
 
 const RegisterBusinessContext = createContext<ContextValue | null>(null);
 
 export function RegisterBusinessProvider({ children }: { children: ReactNode }) {
   const [form, setForm] = useState<RegisterBusinessForm>(FORM_INICIAL);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const update = (patch: Partial<RegisterBusinessForm>) => {
     setForm((prev) => ({ ...prev, ...patch }));
+  };
+
+  const clearFieldError = (campo: keyof RegisterBusinessForm) => {
+    setFieldErrors((prev) => {
+      if (!prev[campo]) return prev;
+      const next = { ...prev };
+      delete next[campo];
+      return next;
+    });
   };
 
   const updateSchedule = (dayOfWeek: number, patch: Partial<DaySchedule>) => {
@@ -137,7 +154,15 @@ export function RegisterBusinessProvider({ children }: { children: ReactNode }) 
 
   return (
     <RegisterBusinessContext.Provider
-      value={{ form, update, updateSchedule, applyGenericHoursToAllDays }}
+      value={{
+        form,
+        update,
+        updateSchedule,
+        applyGenericHoursToAllDays,
+        fieldErrors,
+        setFieldErrors,
+        clearFieldError,
+      }}
     >
       {children}
     </RegisterBusinessContext.Provider>

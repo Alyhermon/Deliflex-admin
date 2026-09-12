@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./stepper.module.css";
 import {
   RegisterBusinessProvider,
   useRegisterBusiness,
+  FieldErrors,
 } from "./RegisterBusinessContext";
+import { soloDigitos } from "./format-utils";
 
 const steps = [
   { path: "/stores/register/information", label: "Información" },
@@ -18,44 +20,44 @@ const steps = [
 function CreateLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "";
   const router = useRouter();
-  const { form } = useRegisterBusiness();
-  const [error, setError] = useState("");
+  const { form, setFieldErrors } = useRegisterBusiness();
 
   const normalizedPath = pathname.replace(/\/$/, "");
   const stepIndex = steps.findIndex((s) => s.path === normalizedPath);
   const currentStep = stepIndex >= 0 ? stepIndex + 1 : 0;
 
   const next = () => {
-    setError("");
+    setFieldErrors({});
 
     // El paso de Informacion trae los datos que el backend exige de verdad
     // (taxId, coordenadas): sin esto completo no tiene sentido dejar avanzar,
-    // el envio final fallaria igual.
+    // el envio final fallaria igual. Cada error se pinta debajo de su campo,
+    // no como mensaje generico.
     if (stepIndex === 0) {
+      const errors: FieldErrors = {};
+
       if (!form.nameBusisness.trim()) {
-        setError("Escribe el nombre del negocio");
-        return;
+        errors.nameBusisness = "El nombre del negocio es obligatorio";
       }
-      if (!/^\d{9}$|^\d{11}$/.test(form.taxId)) {
-        setError("La cédula (11 dígitos) o el RNC (9 dígitos) es obligatorio");
-        return;
+      if (!/^\d{9}$|^\d{11}$/.test(soloDigitos(form.taxId))) {
+        errors.taxId = "La cédula (11 dígitos) o el RNC (9 dígitos) es obligatorio";
       }
       if (!form.categoryId) {
-        setError("Selecciona una categoría para tu negocio");
-        return;
+        errors.categoryId = "Selecciona una categoría para tu negocio";
       }
       if (!form.storeAddress.trim()) {
-        setError("Escribe la dirección del negocio");
-        return;
+        errors.storeAddress = "La dirección es obligatoria";
       }
       if (form.latitude == null || form.longitude == null) {
-        setError(
-          "Falta la ubicación del negocio (usa 'Usar mi ubicación actual' o escríbela a mano)",
-        );
-        return;
+        errors.latitude =
+          "Falta la ubicación del negocio (usa 'Usar mi ubicación actual' o escríbela a mano)";
       }
       if (!form.bannerUrl) {
-        setError("Sube una foto del negocio antes de continuar");
+        errors.bannerUrl = "Sube una foto del negocio antes de continuar";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
         return;
       }
     }
@@ -66,7 +68,7 @@ function CreateLayoutInner({ children }: { children: React.ReactNode }) {
   };
 
   const prev = () => {
-    setError("");
+    setFieldErrors({});
     if (stepIndex > 0) {
       router.push(steps[stepIndex - 1].path);
     }
@@ -107,8 +109,6 @@ function CreateLayoutInner({ children }: { children: React.ReactNode }) {
       <div className={styles.contentWrapper}>
         <div className={styles.card}>
           {children}
-
-          {error && <p className={styles.stepError}>{error}</p>}
 
           {/* En el ultimo paso, Confirmacion trae su propio boton de envio -
               aqui solo queda "Atras" para no duplicar la accion final. */}
