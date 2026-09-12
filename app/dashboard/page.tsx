@@ -910,11 +910,6 @@ function DonutChart({
 
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  // Un pequeño hueco entre cada porcion, para que se lean como piezas
-  // separadas en vez de un anillo solido - solo tiene sentido si hay mas
-  // de una porcion con valor real.
-  const conHueco = data.filter((d) => d.value > 0).length > 1;
-  const hueco = conHueco ? 3 : 0;
   let offset = 0;
 
   return (
@@ -951,8 +946,7 @@ function DonutChart({
       >
         {data.map((d, i) => {
           const fraction = d.value / total;
-          const rawDash = fraction * circumference;
-          const dash = Math.max(rawDash - hueco, 0);
+          const dash = fraction * circumference;
           const circle = (
             <circle
               key={i}
@@ -962,12 +956,11 @@ function DonutChart({
               fill="none"
               stroke={d.color}
               strokeWidth={strokeWidth}
-              strokeLinecap="round"
               strokeDasharray={`${dash} ${circumference - dash}`}
               strokeDashoffset={-offset}
             />
           );
-          offset += rawDash;
+          offset += dash;
           return circle;
         })}
       </g>
