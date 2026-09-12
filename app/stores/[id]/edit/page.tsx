@@ -9,6 +9,8 @@ import {
   faLocationDot,
   faClock,
   faLock,
+  faCamera,
+  faImage,
 } from "@fortawesome/free-solid-svg-icons";
 import AdminLayout from "../../../components/layout/adminLayout";
 import Breadcrumb from "../../../components/components-items/breadcrumb/breadcrumb";
@@ -40,6 +42,7 @@ type EditForm = {
   storeEmail: string;
   categoryName: string;
   isStreetLocation: boolean;
+  bannerUrl: string;
 };
 
 type FormErrors = Partial<Record<keyof EditForm, string>> & {
@@ -102,6 +105,8 @@ export default function EditStorePage({
   const [categories, setCategories] = useState<StoreCategory[]>([]);
   const [horarios, setHorarios] = useState<Horario[]>(horariosPorDefecto());
   const [errors, setErrors] = useState<FormErrors>({});
+  const [subiendoBanner, setSubiendoBanner] = useState(false);
+  const [bannerError, setBannerError] = useState("");
 
   const [toast, setToast] = useState<{
     message: string;
@@ -120,6 +125,7 @@ export default function EditStorePage({
     storeEmail: "",
     categoryName: "",
     isStreetLocation: false,
+    bannerUrl: "",
   });
 
   const handleChange = <K extends keyof EditForm>(
@@ -162,6 +168,7 @@ export default function EditStorePage({
           storeEmail: datos.store_email ?? "",
           categoryName: datos.category_name ?? "",
           isStreetLocation: Boolean(datos.is_street_location),
+          bannerUrl: datos.banner_url ?? "",
         });
 
         // Los dias que no estan guardados se muestran como cerrados.
@@ -201,6 +208,29 @@ export default function EditStorePage({
     cargar();
   }, [id]);
 
+  const subirBanner = async (file: File) => {
+    setSubiendoBanner(true);
+    setBannerError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "Banner-business");
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error);
+
+      handleChange("bannerUrl", data.url);
+    } catch (err) {
+      setBannerError(
+        err instanceof Error ? err.message : "No se pudo subir la imagen",
+      );
+    } finally {
+      setSubiendoBanner(false);
+    }
+  };
+
   const cambiarHorario = (
     dayOfWeek: number,
     campo: keyof Horario,
@@ -236,9 +266,10 @@ export default function EditStorePage({
           credentials: "include",
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          // Solo se mandan los horarios: el resto es de solo lectura y el
-          // backend usa COALESCE, asi que lo omitido se queda como esta.
+          // El resto de los campos es de solo lectura salvo el banner: el
+          // backend usa COALESCE, asi que lo que no se manda se queda como esta.
           body: JSON.stringify({
+            bannerUrl: form.bannerUrl || undefined,
             schedules: horarios.map((h) => ({
               dayOfWeek: h.dayOfWeek,
               openTime: h.isClosed ? undefined : h.openTime,
@@ -258,7 +289,7 @@ export default function EditStorePage({
       }
 
       setToast({
-        message: "Horarios actualizados correctamente",
+        message: "Negocio actualizado correctamente",
         type: "success",
       });
     } catch (error) {
@@ -305,10 +336,60 @@ export default function EditStorePage({
         <div className={styles.header}>
           <h1>Editar negocio</h1>
           <p>
-            Ajusta los horarios de {form.storeName || "tu negocio"}. El resto de
-            los datos llega desde la plantilla del cliente.
+            Ajusta la foto y los horarios de {form.storeName || "tu negocio"}.
+            El resto de los datos llega desde la plantilla del cliente.
           </p>
         </div>
+
+        <section className={styles.section}>
+          <div className={styles.sectionHead}>
+            <span className={styles.sectionIcon}>
+              <FontAwesomeIcon icon={faImage} />
+            </span>
+            <h3>Foto del negocio</h3>
+          </div>
+          <p className={styles.sectionDesc}>
+            La imagen que representa el negocio en la lista de negocios.
+          </p>
+
+          <div className={styles.bannerRow}>
+            <div
+              className={
+                form.bannerUrl ? styles.bannerPreview : styles.bannerPlaceholder
+              }
+            >
+              {form.bannerUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={form.bannerUrl} alt="Banner del negocio" />
+              ) : (
+                <FontAwesomeIcon icon={faCamera} />
+              )}
+            </div>
+
+            <label className={styles.uploadBtn}>
+              <FontAwesomeIcon icon={faCamera} />
+              {subiendoBanner
+                ? "Subiendo..."
+                : form.bannerUrl
+                  ? "Cambiar foto"
+                  : "Subir foto del negocio"}
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                disabled={subiendoBanner}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) subirBanner(file);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          </div>
+          {bannerError && (
+            <span className={styles.errorText}>{bannerError}</span>
+          )}
+        </section>
 
         <section className={styles.section}>
           <div className={styles.sectionHead}>
