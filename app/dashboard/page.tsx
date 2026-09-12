@@ -455,11 +455,13 @@ export default function DashboardPage() {
               </div>
 
               {summary.pendingApproval.length === 0 ? (
-                <div className={styles.emptyState}>
-                  <span className={styles.emptyIconWrap}>
-                    <FontAwesomeIcon icon={faShop} className={styles.emptyIcon} />
-                  </span>
-                  No hay negocios esperando aprobación.
+                <div className={styles.emptyStateFill}>
+                  <div className={styles.emptyState}>
+                    <span className={styles.emptyIconWrap}>
+                      <FontAwesomeIcon icon={faShop} className={styles.emptyIcon} />
+                    </span>
+                    No hay negocios esperando aprobación.
+                  </div>
                 </div>
               ) : (
                 summary.pendingApproval.map((store) => (
@@ -787,7 +789,7 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
 
   if (data.every((d) => d.value === 0)) {
     return (
-      <div className={styles.emptyState}>Todavía no hay ingresos registrados.</div>
+      <div className={styles.chartEmpty}>Todavía no hay ingresos registrados.</div>
     );
   }
 
@@ -1170,7 +1172,7 @@ function LineChart({ data }: { data: { label: string; value: number }[] }) {
 
   if (data.every((d) => d.value === 0)) {
     return (
-      <div className={styles.emptyState}>Todavía no hay cobros registrados.</div>
+      <div className={styles.chartEmpty}>Todavía no hay cobros registrados.</div>
     );
   }
 
