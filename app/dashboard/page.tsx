@@ -401,10 +401,9 @@ export default function DashboardPage() {
 
               {summary.pendingApproval.length === 0 ? (
                 <div className={styles.emptyState}>
-                  <FontAwesomeIcon
-                    icon={faCircleCheck}
-                    className={styles.emptyIcon}
-                  />
+                  <span className={styles.emptyIconWrap}>
+                    <FontAwesomeIcon icon={faShop} className={styles.emptyIcon} />
+                  </span>
                   No hay negocios esperando aprobación.
                 </div>
               ) : (
@@ -456,19 +455,27 @@ export default function DashboardPage() {
               <h3>Estado de los negocios</h3>
             </div>
 
-            <div className={styles.statusBar}>
-              <div
-                className={styles.segActive}
-                style={{ width: `${(activeStores / base) * 100}%` }}
-              />
-              <div
-                className={styles.segPending}
-                style={{ width: `${(pendingStores / base) * 100}%` }}
-              />
-              <div
-                className={styles.segInactive}
-                style={{ width: `${(inactiveStores / base) * 100}%` }}
-              />
+            <div className={styles.statusBarTrack}>
+              <div className={styles.statusBar}>
+                {activeStores > 0 && (
+                  <div
+                    className={styles.segActive}
+                    style={{ width: `${(activeStores / base) * 100}%` }}
+                  />
+                )}
+                {pendingStores > 0 && (
+                  <div
+                    className={styles.segPending}
+                    style={{ width: `${(pendingStores / base) * 100}%` }}
+                  />
+                )}
+                {inactiveStores > 0 && (
+                  <div
+                    className={styles.segInactive}
+                    style={{ width: `${(inactiveStores / base) * 100}%` }}
+                  />
+                )}
+              </div>
             </div>
 
             <div className={styles.statusLegend}>
@@ -533,18 +540,32 @@ export default function DashboardPage() {
                   }))}
                 />
                 <div className={styles.statusLegend}>
-                  {(summary.byCategory ?? []).map((c, i) => (
-                    <div key={c.category} className={styles.legendRow}>
-                      <span
-                        className={styles.dot}
-                        style={{
-                          background: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
-                        }}
-                      />
-                      <span className={styles.legendLabel}>{c.category}</span>
-                      <span className={styles.legendValue}>{c.total}</span>
-                    </div>
-                  ))}
+                  {(() => {
+                    const categorias = summary.byCategory ?? [];
+                    const totalCategorias = categorias.reduce(
+                      (acc, c) => acc + c.total,
+                      0,
+                    );
+
+                    return categorias.map((c, i) => (
+                      <div key={c.category} className={styles.legendRow}>
+                        <span
+                          className={styles.legendSwatch}
+                          style={{
+                            background: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+                          }}
+                        />
+                        <span className={styles.legendLabel}>{c.category}</span>
+                        <span className={styles.legendPct}>
+                          {totalCategorias > 0
+                            ? Math.round((c.total / totalCategorias) * 100)
+                            : 0}
+                          %
+                        </span>
+                        <span className={styles.legendValue}>{c.total}</span>
+                      </div>
+                    ));
+                  })()}
                 </div>
               </div>
             </div>
@@ -567,16 +588,16 @@ export default function DashboardPage() {
 
 function BarChart({ data }: { data: { label: string; value: number }[] }) {
   const width = 320;
-  const height = 160;
-  const padTop = 16;
-  const padBottom = 24;
-  const padLeft = 28;
+  const height = 180;
+  const padTop = 28;
+  const padBottom = 26;
+  const padLeft = 30;
   const padRight = 6;
 
   const max = Math.max(...data.map((d) => d.value), 1);
   const plotHeight = height - padTop - padBottom;
   const slot = (width - padLeft - padRight) / (data.length || 1);
-  const barWidth = Math.min(30, slot * 0.55);
+  const barWidth = Math.min(26, slot * 0.5);
 
   const compacto = (v: number) => {
     if (v >= 1000) return `${Math.round(v / 100) / 10}k`;
@@ -591,6 +612,26 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className={styles.chartSvg}>
+      <defs>
+        <linearGradient id="barActivo" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ff9a3d" />
+          <stop offset="100%" stopColor="#ff7a00" />
+        </linearGradient>
+        <linearGradient id="barMuted" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffe6c7" />
+          <stop offset="100%" stopColor="#ffd9ab" />
+        </linearGradient>
+        <filter id="barSombra" x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow
+            dx="0"
+            dy="2"
+            stdDeviation="2.5"
+            floodColor="#ff7a00"
+            floodOpacity="0.25"
+          />
+        </filter>
+      </defs>
+
       {[0, 0.5, 1].map((f) => {
         const y = padTop + plotHeight * (1 - f);
         return (
@@ -600,15 +641,25 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
               y1={y}
               x2={width - padRight}
               y2={y}
-              stroke="#f1f1f1"
+              stroke="#eee7de"
               strokeWidth={1}
+              strokeDasharray="2 4"
             />
-            <text x={2} y={y + 3} fontSize="8" fill="#b0aaa2">
+            <text x={0} y={y + 3} fontSize="8" fill="#b0aaa2">
               {compacto(max * f)}
             </text>
           </g>
         );
       })}
+
+      <line
+        x1={padLeft}
+        y1={padTop + plotHeight}
+        x2={width - padRight}
+        y2={padTop + plotHeight}
+        stroke="#e6ddd1"
+        strokeWidth={1}
+      />
 
       {data.map((d, i) => {
         const barHeight = max > 0 ? (d.value / max) * plotHeight : 0;
@@ -621,10 +672,10 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
             {esUltimo && d.value > 0 && (
               <text
                 x={x + barWidth / 2}
-                y={y - 6}
+                y={y - 9}
                 textAnchor="middle"
-                fontSize="9"
-                fontWeight="700"
+                fontSize="10"
+                fontWeight="800"
                 fill="#c94800"
               >
                 {compacto(d.value)}
@@ -634,16 +685,18 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
               x={x}
               y={y}
               width={barWidth}
-              height={Math.max(barHeight, 1)}
-              rx={4}
-              fill={esUltimo ? "#ff7a00" : "#ffdcb0"}
+              height={Math.max(barHeight, 2)}
+              rx={7}
+              fill={esUltimo ? "url(#barActivo)" : "url(#barMuted)"}
+              filter={esUltimo ? "url(#barSombra)" : undefined}
             />
             <text
               x={x + barWidth / 2}
-              y={height - 6}
+              y={height - 8}
               textAnchor="middle"
-              fontSize="9"
-              fill="#9a9a9a"
+              fontSize="9.5"
+              fontWeight={esUltimo ? 700 : 500}
+              fill={esUltimo ? "#c94800" : "#a89f93"}
             >
               {d.label}
             </text>
@@ -658,8 +711,8 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
 
 function DonutChart({
   data,
-  size = 120,
-  strokeWidth = 20,
+  size = 148,
+  strokeWidth = 22,
 }: {
   data: { label: string; value: number; color: string }[];
   size?: number;
@@ -689,6 +742,11 @@ function DonutChart({
 
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
+  // Un pequeño hueco entre cada porcion, para que se lean como piezas
+  // separadas en vez de un anillo solido - solo tiene sentido si hay mas
+  // de una porcion con valor real.
+  const conHueco = data.filter((d) => d.value > 0).length > 1;
+  const hueco = conHueco ? 3 : 0;
   let offset = 0;
 
   return (
@@ -698,10 +756,35 @@ function DonutChart({
       height={size}
       className={styles.donutSvg}
     >
-      <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+      <defs>
+        <filter id="donutSombra" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow
+            dx="0"
+            dy="3"
+            stdDeviation="4"
+            floodColor="#1a1a1a"
+            floodOpacity="0.12"
+          />
+        </filter>
+      </defs>
+
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="#f4f2ef"
+        strokeWidth={strokeWidth}
+      />
+
+      <g
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        filter="url(#donutSombra)"
+      >
         {data.map((d, i) => {
           const fraction = d.value / total;
-          const dash = fraction * circumference;
+          const rawDash = fraction * circumference;
+          const dash = Math.max(rawDash - hueco, 0);
           const circle = (
             <circle
               key={i}
@@ -711,24 +794,38 @@ function DonutChart({
               fill="none"
               stroke={d.color}
               strokeWidth={strokeWidth}
+              strokeLinecap="round"
               strokeDasharray={`${dash} ${circumference - dash}`}
               strokeDashoffset={-offset}
             />
           );
-          offset += dash;
+          offset += rawDash;
           return circle;
         })}
       </g>
+
       <text
         x={size / 2}
-        y={size / 2}
+        y={size / 2 - 6}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="16"
+        fontSize="24"
         fontWeight="800"
         fill="#1a1a1a"
       >
         {total}
+      </text>
+      <text
+        x={size / 2}
+        y={size / 2 + 14}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="9.5"
+        fontWeight="600"
+        letterSpacing="0.4"
+        fill="#a89f93"
+      >
+        NEGOCIOS
       </text>
     </svg>
   );
