@@ -22,5 +22,15 @@ export function formatTaxId(valor: string): string {
   return `${d.slice(0, 3)}-${d.slice(3, 10)}-${d.slice(10)}`;
 }
 
+// RNC del negocio: 1-30-12345-6 (1-2-5-1, 9 digitos).
+export function formatRnc(valor: string): string {
+  const d = valor.replace(/\D/g, "").slice(0, 9);
+
+  if (d.length <= 1) return d;
+  if (d.length <= 3) return `${d.slice(0, 1)}-${d.slice(1)}`;
+  if (d.length <= 8) return `${d.slice(0, 1)}-${d.slice(1, 3)}-${d.slice(3)}`;
+  return `${d.slice(0, 1)}-${d.slice(1, 3)}-${d.slice(3, 8)}-${d.slice(8)}`;
+}
+
 // Para mandar al backend: sin guiones, solo los digitos.
 export const soloDigitos = (valor: string) => valor.replace(/\D/g, "");

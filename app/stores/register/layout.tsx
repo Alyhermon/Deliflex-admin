@@ -36,14 +36,32 @@ function CreateLayoutInner({ children }: { children: React.ReactNode }) {
     if (stepIndex === 0) {
       const errors: FieldErrors = {};
 
+      if (!/^\d{11}$/.test(soloDigitos(form.taxId))) {
+        errors.taxId = "La cédula debe tener 11 dígitos";
+      }
+      if (form.rnc && !/^\d{9}$/.test(soloDigitos(form.rnc))) {
+        errors.rnc = "El RNC debe tener 9 dígitos";
+      }
       if (!form.nameBusisness.trim()) {
         errors.nameBusisness = "El nombre del negocio es obligatorio";
       }
-      if (!/^\d{9}$|^\d{11}$/.test(soloDigitos(form.taxId))) {
-        errors.taxId = "La cédula (11 dígitos) o el RNC (9 dígitos) es obligatorio";
-      }
       if (!form.categoryId) {
         errors.categoryId = "Selecciona una categoría para tu negocio";
+      }
+      if (!form.ownerFirstName.trim()) {
+        errors.ownerFirstName = "El nombre del propietario es obligatorio";
+      }
+      if (!form.ownerLastName.trim()) {
+        errors.ownerLastName = "El apellido del propietario es obligatorio";
+      }
+      if (!form.ownerBirthDate) {
+        errors.ownerBirthDate = "La fecha de nacimiento es obligatoria";
+      }
+      if (!form.email.trim()) {
+        errors.email = "El correo es obligatorio";
+      }
+      if (!form.phoneBusiness.trim()) {
+        errors.phoneBusiness = "El teléfono de contacto es obligatorio";
       }
       if (!form.storeAddress.trim()) {
         errors.storeAddress = "La dirección es obligatoria";

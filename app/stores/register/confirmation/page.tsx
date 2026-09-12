@@ -91,12 +91,32 @@ export default function ConfirmationPage() {
       setError("Falta el nombre del negocio (paso Información)");
       return;
     }
-    if (!/^\d{9}$|^\d{11}$/.test(soloDigitos(form.taxId))) {
-      setError("La cédula/RNC debe tener 9 u 11 dígitos (paso Información)");
+    if (!/^\d{11}$/.test(soloDigitos(form.taxId))) {
+      setError("La cédula debe tener 11 dígitos (paso Información)");
+      return;
+    }
+    if (form.rnc && !/^\d{9}$/.test(soloDigitos(form.rnc))) {
+      setError("El RNC debe tener 9 dígitos (paso Información)");
       return;
     }
     if (!form.categoryId) {
       setError("Falta seleccionar la categoría del negocio (paso Información)");
+      return;
+    }
+    if (!form.ownerFirstName.trim() || !form.ownerLastName.trim()) {
+      setError("Falta el nombre del propietario (paso Información)");
+      return;
+    }
+    if (!form.ownerBirthDate) {
+      setError("Falta la fecha de nacimiento del propietario (paso Información)");
+      return;
+    }
+    if (!form.email.trim()) {
+      setError("Falta el correo del negocio (paso Información)");
+      return;
+    }
+    if (!form.phoneBusiness.trim()) {
+      setError("Falta el teléfono de contacto (paso Información)");
       return;
     }
     if (form.latitude == null || form.longitude == null) {
@@ -122,6 +142,11 @@ export default function ConfirmationPage() {
             email: form.email,
             phoneBusiness: form.phoneBusiness,
             taxId: soloDigitos(form.taxId),
+            rnc: form.rnc ? soloDigitos(form.rnc) : undefined,
+            ownerFirstName: form.ownerFirstName,
+            ownerLastName: form.ownerLastName,
+            ownerBirthDate: form.ownerBirthDate,
+            socialMedia: form.socialMedia || undefined,
             categoryId: form.categoryId || undefined,
             storeName: form.nameBusisness,
             description: form.description || undefined,
@@ -184,9 +209,13 @@ export default function ConfirmationPage() {
             <h3>Información</h3>
             <p><strong>Negocio:</strong> {form.nameBusisness || "—"}</p>
             <p><strong>Categoría:</strong> {form.categoryLabel || "—"}</p>
-            <p><strong>Cédula/RNC:</strong> {form.taxId || "—"}</p>
+            <p><strong>Cédula:</strong> {form.taxId || "—"}</p>
+            <p><strong>RNC:</strong> {form.rnc || "—"}</p>
+            <p><strong>Propietario:</strong> {[form.ownerFirstName, form.ownerLastName].filter(Boolean).join(" ") || "—"}</p>
+            <p><strong>Fecha de nacimiento:</strong> {form.ownerBirthDate || "—"}</p>
             <p><strong>Dirección:</strong> {form.storeAddress || "—"}</p>
             <p><strong>Email:</strong> {form.email || "—"}</p>
+            <p><strong>Redes sociales:</strong> {form.socialMedia || "—"}</p>
             <p><strong>Teléfono del negocio:</strong> {form.storePhone || "—"}</p>
           </div>
 

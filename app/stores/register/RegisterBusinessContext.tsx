@@ -47,7 +47,10 @@ export type RegisterBusinessForm = {
   categoryId: string;
   categoryLabel: string;
   taxId: string;
+  rnc: string;
+  ownerBirthDate: string;
   email: string;
+  socialMedia: string;
   phoneBusiness: string;
   storePhone: string;
   storeAddress: string;
@@ -78,7 +81,10 @@ const FORM_INICIAL: RegisterBusinessForm = {
   categoryId: "",
   categoryLabel: "",
   taxId: "",
+  rnc: "",
+  ownerBirthDate: "",
   email: "",
+  socialMedia: "",
   phoneBusiness: "",
   storePhone: "",
   storeAddress: "",

@@ -1,27 +1,29 @@
 .container {
   padding: 10px;
-  background: #f7f8fa;
+  background: #fff;
   min-height: 60vh;
 }
 
 .card {
   max-width: 1280px;
   margin: 0 auto;
-  background: white;
-  border-radius: 16px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
 
 .title {
   font-size: 26px;
   font-weight: 600;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
-/* SECCIONES */
+/* SECCIONES: cada una es su propia tarjeta, no un bloque dentro de un
+   contenedor unico - asi se distinguen sin depender de un fondo gris. */
 .section {
-  margin-bottom: 30px;
+  background: #fff;
+  border: 1px solid #eef0f2;
+  border-radius: 16px;
+  padding: 24px 30px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .section h2 {
@@ -108,14 +110,8 @@ textarea {
   border-color: #ff7a00;
 }
 
-.checkboxRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
-  color: #444;
-  margin: 12px 0;
-  cursor: pointer;
+.checkboxWrap {
+  margin: 14px 0;
 }
 
 .coordsRow {
