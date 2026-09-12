@@ -507,12 +507,19 @@
 }
 
 .panelPending {
-  flex: 2 1 420px;
+  flex: 1 1 340px;
   min-width: 0;
 }
 
+.statusColumn {
+  flex: 1.2 1 320px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .panelStatus {
-  flex: 1 1 260px;
   min-width: 0;
 }
 
@@ -531,7 +538,6 @@
 
 .promoCard {
   width: 100%;
-  margin-top: 20px;
 }
 
 .promoSubtitle {
