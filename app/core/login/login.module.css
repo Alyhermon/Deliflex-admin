@@ -19,6 +19,15 @@
   object-position: center;
 }
 
+.contentRow {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+
 .card {
   position: relative;
   z-index: 2;
@@ -31,6 +40,7 @@
   max-width: 420px;
   padding: 48px 36px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  flex-shrink: 0;
 }
 
 .logo {
@@ -69,17 +79,16 @@
   cursor: not-allowed;
 }
 
-/* Ilustracion decorativa: solo hay espacio para ella al lado de la
-   tarjeta en pantallas anchas, nunca debe competir por el mismo lugar
-   que el formulario. */
+/* Ilustracion decorativa: ahora vive al lado de la tarjeta, dentro del
+   mismo flex row, en vez de flotar sola en una esquina de la pantalla. */
 .illustration {
-  position: absolute;
+  position: relative;
   z-index: 1;
-  right: 4%;
-  bottom: 0;
-  width: 32%;
-  max-width: 380px;
-  height: 72%;
+  width: 480px;
+  max-width: 42vw;
+  height: 640px;
+  max-height: 85vh;
+  flex-shrink: 0;
   pointer-events: none;
 }
 

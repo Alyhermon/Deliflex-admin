@@ -12,6 +12,7 @@ export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const [toast, setToast] = useState<{
     message: string;
     type: "error" | "success" | "warning";
@@ -19,6 +20,7 @@ export default function DashboardPage() {
 
   const login = async () => {
     setLoading(true);
+    setLoginError("");
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         credentials: "include",
@@ -32,7 +34,7 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message);
+        setLoginError(data.message || "No se pudo iniciar sesión");
         return;
       }
 
@@ -80,7 +82,7 @@ export default function DashboardPage() {
       window.location.href = "/dashboard";
     } catch (error) {
       console.error(error);
-      alert("Error de conexión");
+      setLoginError("Error de conexión");
     } finally {
       setLoading(false);
     }
@@ -98,6 +100,7 @@ export default function DashboardPage() {
         />
       </div>
 
+      <div className={styles.contentRow}>
       <div className={styles.card}>
         <div className={styles.logo}>
           <Image
@@ -111,17 +114,24 @@ export default function DashboardPage() {
         <div className={styles.input}>
           <DFInput
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setLoginError("");
+            }}
             placeholder="ejemplo@email.com"
             icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
           />
 
           <DFInput
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setLoginError("");
+            }}
             placeholder="Contraseña"
             type="password"
             icon={<FontAwesomeIcon color="#ed7b17" icon={faKey} />}
+            error={loginError}
           />
 
           <button
@@ -141,6 +151,7 @@ export default function DashboardPage() {
           fill
           className={styles.illustrationImg}
         />
+      </div>
       </div>
 
       {toast && (
