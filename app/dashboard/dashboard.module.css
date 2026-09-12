@@ -679,17 +679,15 @@
 }
 
 .segActive {
-  background: linear-gradient(90deg, #04835a, #10b981);
-  box-shadow: 0 1px 3px rgba(4, 131, 90, 0.35);
+  background: #059669;
 }
 
 .segPending {
-  background: linear-gradient(90deg, #ff7a00, #ffab52);
-  box-shadow: 0 1px 3px rgba(255, 122, 0, 0.35);
+  background: #ff7a00;
 }
 
 .segInactive {
-  background: linear-gradient(90deg, #c3c9d1, #dfe3e8);
+  background: #c3c9d1;
 }
 
 .statusLegendCompact {
