@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AdminLayout from "../components/layout/adminLayout";
@@ -74,6 +74,7 @@ type Summary = {
   totalCustomers?: number;
   revenueTrend?: { month: string; total: number }[];
   byCategory?: { category: string; total: number }[];
+  availableYears?: number[];
   pendingApproval: PendingStore[];
 };
 
@@ -123,6 +124,16 @@ export default function DashboardPage() {
     type: "success" | "info" | "danger";
   } | null>(null);
 
+  // El selector de "Ingresos mensuales" siempre tiene un anio real elegido
+  // (arranca en el actual); el de "Negocios por categoria" arranca en
+  // "Total" (sin filtrar), por eso empieza en undefined.
+  const [revenueYear, setRevenueYear] = useState<number>(
+    new Date().getFullYear(),
+  );
+  const [categoryYear, setCategoryYear] = useState<number | undefined>(
+    undefined,
+  );
+
   // 100 = SUPER_ADMIN (la duena de la plataforma): ve TODOS los negocios.
   // 90  = ADMIN normal: solo ve el total de sus propios negocios.
   const esSuperAdmin = Number(user?.global_role_id) >= 100;
@@ -130,12 +141,15 @@ export default function DashboardPage() {
   const cargarResumen = useCallback(async () => {
     if (!user) return;
 
-    const url = esSuperAdmin
+    const base = esSuperAdmin
       ? `${process.env.NEXT_PUBLIC_API_URL}/register-business/dashboard-summary`
       : `${process.env.NEXT_PUBLIC_API_URL}/register-business/accessible/${user.id}/dashboard-summary`;
 
+    const params = new URLSearchParams({ revenueYear: String(revenueYear) });
+    if (categoryYear) params.set("categoryYear", String(categoryYear));
+
     try {
-      const res = await fetch(url, { credentials: "include" });
+      const res = await fetch(`${base}?${params}`, { credentials: "include" });
       const data = await res.json();
 
       // Si la peticion falla (401, 500, etc.) el cuerpo no trae la forma
@@ -153,7 +167,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [user, esSuperAdmin]);
+  }, [user, esSuperAdmin, revenueYear, categoryYear]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -166,7 +180,7 @@ export default function DashboardPage() {
 
     cargarResumen();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user, esSuperAdmin, router]);
+  }, [authLoading, user, esSuperAdmin, router, revenueYear, categoryYear]);
 
   // Unica decision que le toca a la plataforma: aprobar deja el negocio
   // ACTIVE, declinar lo deja INACTIVE (no lo borra, solo no queda publicado).
@@ -480,43 +494,76 @@ export default function DashboardPage() {
               <h3>Estado de los negocios</h3>
             </div>
 
-            <div className={styles.statusRings}>
-              <RingStat
-                icon={faCircleCheck}
-                value={activeStores}
-                total={base}
-                label="Activos"
-                color="#059669"
-                colorLight="#34d399"
-              />
-              <RingStat
-                icon={faClock}
-                value={pendingStores}
-                total={base}
-                label="Pendientes"
-                color="#ff7a00"
-                colorLight="#ffb057"
-              />
-              <RingStat
-                icon={faXmark}
-                value={inactiveStores}
-                total={base}
-                label="Inactivos / cerrados"
-                color="#9aa1ab"
-                colorLight="#c7ccd3"
-              />
+            <div className={styles.statusBarTrack}>
+              <div className={styles.statusBar}>
+                {activeStores > 0 && (
+                  <div
+                    className={styles.segActive}
+                    style={{ width: `${(activeStores / base) * 100}%` }}
+                  />
+                )}
+                {pendingStores > 0 && (
+                  <div
+                    className={styles.segPending}
+                    style={{ width: `${(pendingStores / base) * 100}%` }}
+                  />
+                )}
+                {inactiveStores > 0 && (
+                  <div
+                    className={styles.segInactive}
+                    style={{ width: `${(inactiveStores / base) * 100}%` }}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className={styles.statusLegendCompact}>
+              <div className={styles.statusLegendItem}>
+                <span
+                  className={styles.categoryCount}
+                  style={{ color: "#059669", width: 26, height: 26, fontSize: 11 }}
+                >
+                  {activeStores}
+                </span>
+                <span className={styles.legendLabel}>Activos</span>
+              </div>
+              <div className={styles.statusLegendItem}>
+                <span
+                  className={styles.categoryCount}
+                  style={{ color: "#ff7a00", width: 26, height: 26, fontSize: 11 }}
+                >
+                  {pendingStores}
+                </span>
+                <span className={styles.legendLabel}>Pendientes</span>
+              </div>
+              <div className={styles.statusLegendItem}>
+                <span
+                  className={styles.categoryCount}
+                  style={{ color: "#9aa1ab", width: 26, height: 26, fontSize: 11 }}
+                >
+                  {inactiveStores}
+                </span>
+                <span className={styles.legendLabel}>Inactivos / cerrados</span>
+              </div>
             </div>
           </div>
         </div>
 
         {(summary.revenueTrend || summary.byCategory) && (
           <div className={styles.chartsRow}>
-            <RevenueCard trend={summary.revenueTrend ?? []} />
-
+            <RevenueCard
+              trend={summary.revenueTrend ?? []}
+              year={revenueYear}
+              availableYears={summary.availableYears ?? [revenueYear]}
+              onYearChange={setRevenueYear}
+            />
 
             <CategoryCard
               categorias={summary.byCategory ?? []}
               esSuperAdmin={esSuperAdmin}
+              year={categoryYear}
+              availableYears={summary.availableYears ?? [revenueYear]}
+              onYearChange={setCategoryYear}
             />
           </div>
         )}
@@ -533,78 +580,96 @@ export default function DashboardPage() {
   );
 }
 
-// ---------- Anillo individual: participacion de un estado de negocio ----------
+// ---------- Selector de anio en forma de pildora (reusado por ambas tarjetas) ----------
 
-function RingStat({
-  icon,
+function YearPillSelect({
   value,
-  total,
-  label,
-  color,
-  colorLight,
+  options,
+  onChange,
+  allLabel,
 }: {
-  icon: typeof faCircleCheck;
-  value: number;
-  total: number;
-  label: string;
-  color: string;
-  colorLight: string;
+  value: number | undefined;
+  options: number[];
+  onChange: (year: number | undefined) => void;
+  allLabel?: string;
 }) {
-  const size = 76;
-  const strokeWidth = 8;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const pct = total > 0 ? value / total : 0;
-  const dash = pct * circumference;
-  const gradientId = `ring-${label.replace(/[^a-zA-Z]/g, "")}`;
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onClickFuera = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+
+    document.addEventListener("mousedown", onClickFuera);
+    return () => document.removeEventListener("mousedown", onClickFuera);
+  }, [open]);
+
+  const label = value ?? allLabel ?? "";
 
   return (
-    <div className={styles.ringStat}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={colorLight} />
-            <stop offset="100%" stopColor={color} />
-          </linearGradient>
-        </defs>
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="#f1f0ed"
-          strokeWidth={strokeWidth}
-        />
-        {value > 0 && (
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            fill="none"
-            stroke={`url(#${gradientId})`}
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-            strokeDasharray={`${dash} ${circumference - dash}`}
-            transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          />
-        )}
-        <foreignObject x={0} y={0} width={size} height={size}>
-          <div className={styles.ringIcon} style={{ color }}>
-            <FontAwesomeIcon icon={icon} />
-          </div>
-        </foreignObject>
-      </svg>
-      <div className={styles.ringValue}>{value}</div>
-      <div className={styles.ringLabel}>{label}</div>
+    <div className={styles.yearPillWrap} ref={ref}>
+      <button
+        type="button"
+        className={styles.revenueYearPill}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {label} <FontAwesomeIcon icon={faChevronDown} size="2xs" />
+      </button>
+
+      {open && (
+        <div className={styles.yearPillMenu}>
+          {allLabel && (
+            <button
+              type="button"
+              className={`${styles.yearPillOption} ${
+                value === undefined ? styles.yearPillOptionActive : ""
+              }`}
+              onClick={() => {
+                onChange(undefined);
+                setOpen(false);
+              }}
+            >
+              {allLabel}
+            </button>
+          )}
+          {options.map((y) => (
+            <button
+              key={y}
+              type="button"
+              className={`${styles.yearPillOption} ${
+                value === y ? styles.yearPillOptionActive : ""
+              }`}
+              onClick={() => {
+                onChange(y);
+                setOpen(false);
+              }}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 // ---------- Tarjeta de ingresos: encabezado + barras + resumen ----------
 
-function RevenueCard({ trend }: { trend: { month: string; total: number }[] }) {
+function RevenueCard({
+  trend,
+  year,
+  availableYears,
+  onYearChange,
+}: {
+  trend: { month: string; total: number }[];
+  year: number;
+  availableYears: number[];
+  onYearChange: (year: number) => void;
+}) {
   const data = trend.map((r) => ({ label: mesCorto(r.month), value: r.total }));
-  const anio = trend.length ? trend[trend.length - 1].month.split("-")[0] : String(new Date().getFullYear());
 
   const total = trend.reduce((acc, r) => acc + r.total, 0);
   const actual = trend[trend.length - 1]?.total ?? 0;
@@ -632,9 +697,11 @@ function RevenueCard({ trend }: { trend: { month: string; total: number }[] }) {
           <h3>Ingresos mensuales</h3>
           <p>Total de ingresos por mes</p>
         </div>
-        <span className={styles.revenueYearPill}>
-          {anio} <FontAwesomeIcon icon={faChevronDown} size="2xs" />
-        </span>
+        <YearPillSelect
+          value={year}
+          options={availableYears}
+          onChange={(y) => y !== undefined && onYearChange(y)}
+        />
       </div>
 
       <BarChart data={data} />
@@ -750,12 +817,12 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
         // como una pildora chata, no como un punto) - pero hay que medir
         // "y" desde este alto real, si no la pildora queda colgando por
         // debajo de la linea base en vez de apoyada sobre ella.
-        const alturaMinima = barWidth * 0.45;
+        const alturaMinima = barWidth * 0.3;
         const alturaEfectiva = Math.max(barHeight, alturaMinima);
         const x = padLeft + slot * i + (slot - barWidth) / 2;
         const y = padTop + plotHeight - alturaEfectiva;
         const esUltimo = i === data.length - 1;
-        const rx = barWidth / 2;
+        const rx = 6;
 
         return (
           <g key={i}>
@@ -800,9 +867,15 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
 function CategoryCard({
   categorias,
   esSuperAdmin,
+  year,
+  availableYears,
+  onYearChange,
 }: {
   categorias: { category: string; total: number }[];
   esSuperAdmin: boolean;
+  year: number | undefined;
+  availableYears: number[];
+  onYearChange: (year: number | undefined) => void;
 }) {
   const total = categorias.reduce((acc, c) => acc + c.total, 0);
 
@@ -817,11 +890,15 @@ function CategoryCard({
           <p>
             Distribución de {esSuperAdmin ? "" : "tus "}
             {total} negocio{total === 1 ? "" : "s"}
+            {year ? ` registrados en ${year}` : ""}
           </p>
         </div>
-        <span className={styles.revenueYearPill}>
-          Total <FontAwesomeIcon icon={faChevronDown} size="2xs" />
-        </span>
+        <YearPillSelect
+          value={year}
+          options={availableYears}
+          onChange={onYearChange}
+          allLabel="Total"
+        />
       </div>
 
       <div className={styles.donutRow}>

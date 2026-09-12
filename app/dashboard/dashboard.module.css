@@ -358,6 +358,60 @@
   padding: 7px 12px;
   border-radius: 999px;
   flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.revenueYearPill:hover {
+  background: #ffe4c2;
+}
+
+.yearPillWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.yearPillMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(20, 20, 20, 0.14);
+  border: 1px solid #f1ede6;
+  padding: 6px;
+  min-width: 110px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.yearPillOption {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a4038;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.yearPillOption:hover {
+  background: #fff1e2;
+}
+
+.yearPillOptionActive {
+  background: #ff7a00;
+  color: white;
+}
+
+.yearPillOptionActive:hover {
+  background: #ff7a00;
 }
 
 .revenueFooter {
@@ -602,45 +656,52 @@
   display: block;
 }
 
-/* Distribucion de estado: un anillo de progreso por estado, mismo
-   lenguaje visual que el donut de categorias. */
-.statusRings {
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 6px 0 4px;
+/* Distribucion de estado: una barra segmentada, con una fila compacta
+   debajo (mismo circulo de conteo que las categorias, para que se vea
+   coherente con el resto del dashboard). */
+.statusBarTrack {
+  background: #f3f4f6;
+  border-radius: 999px;
+  padding: 3px;
+  margin-bottom: 18px;
 }
 
-.ringStat {
+.statusBar {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.ringIcon {
   width: 100%;
-  height: 100%;
+  height: 12px;
+  gap: 4px;
+}
+
+.statusBar > div {
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.segActive {
+  background: linear-gradient(90deg, #04835a, #10b981);
+  box-shadow: 0 1px 3px rgba(4, 131, 90, 0.35);
+}
+
+.segPending {
+  background: linear-gradient(90deg, #ff7a00, #ffab52);
+  box-shadow: 0 1px 3px rgba(255, 122, 0, 0.35);
+}
+
+.segInactive {
+  background: linear-gradient(90deg, #c3c9d1, #dfe3e8);
+}
+
+.statusLegendCompact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.statusLegendItem {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 18px;
-}
-
-.ringValue {
-  font-size: 20px;
-  font-weight: 800;
-  color: #1a1a1a;
-  margin-top: 2px;
-}
-
-.ringLabel {
-  font-size: 11.5px;
-  color: #9a9a9a;
-  text-align: center;
-  max-width: 84px;
-  line-height: 1.25;
+  gap: 8px;
 }
 
 .statusLegend {
