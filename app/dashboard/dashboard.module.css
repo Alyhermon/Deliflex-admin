@@ -595,37 +595,34 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  background: transparent;
   border: none;
-  border-radius: 50%;
-  font-size: 16px;
+  font-size: 24px;
   cursor: pointer;
   flex-shrink: 0;
+  line-height: 1;
 }
 
 .declineBtn:disabled,
 .approveBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .declineBtn {
-  background: #fff1f1;
   color: #e53935;
 }
 
 .declineBtn:hover:not(:disabled) {
-  background: #ffe3e3;
+  color: #c62828;
 }
 
 .approveBtn {
-  background: #eefbf1;
   color: #2da44e;
 }
 
 .approveBtn:hover:not(:disabled) {
-  background: #dcf5e3;
+  color: #22863a;
 }
 
 .emptyState {

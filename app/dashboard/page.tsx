@@ -14,7 +14,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faShop,
   faCircleCheck,
-  faCircleXmark,
+  faCheck,
+  faXmark,
   faClock,
   faBoxOpen,
   faTags,
@@ -466,7 +467,7 @@ export default function DashboardPage() {
                         onClick={() => decidirNegocio(store.id, "INACTIVE")}
                         title="Declinar negocio"
                       >
-                        <FontAwesomeIcon icon={faCircleXmark} />
+                        <FontAwesomeIcon icon={faXmark} />
                       </button>
                       <button
                         type="button"
@@ -475,7 +476,7 @@ export default function DashboardPage() {
                         onClick={() => decidirNegocio(store.id, "ACTIVE")}
                         title="Aprobar negocio"
                       >
-                        <FontAwesomeIcon icon={faCircleCheck} />
+                        <FontAwesomeIcon icon={faCheck} />
                       </button>
                     </div>
                   </div>
