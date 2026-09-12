@@ -90,6 +90,18 @@
   box-shadow: 0 22px 45px rgba(0, 0, 0, 0.12);
 }
 
+/* Pendiente de aprobacion: se ve, pero no se puede entrar todavia -
+   eso se aprueba desde el Dashboard, no abriendo el detalle. */
+.cardDisabled {
+  opacity: 0.55;
+  filter: grayscale(0.3);
+}
+
+.cardDisabled:hover {
+  transform: none;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
 .banner {
   position: relative;
   height: 180px;
@@ -207,6 +219,13 @@
 
 .secondaryBtn:hover {
   transform: scale(1.05);
+}
+
+.secondaryBtn:disabled,
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 .primaryBtn {

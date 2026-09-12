@@ -203,8 +203,14 @@ export default function StoresPage() {
           </div>
         ) : (
           <div className={styles.grid}>
-            {filteredStores.map((store) => (
-              <div key={store.id} className={styles.card}>
+            {filteredStores.map((store) => {
+              const pendiente = store.status === "PENDING_APPROVAL";
+
+              return (
+              <div
+                key={store.id}
+                className={`${styles.card} ${pendiente ? styles.cardDisabled : ""}`}
+              >
                 <div className={styles.banner}>
                   <Image
                     src={store.banner_url || "/assets/no-image.png"}
@@ -257,13 +263,19 @@ export default function StoresPage() {
                   <div className={styles.divider}></div>
 
                   <div className={styles.actions}>
-                    <button className={styles.secondaryBtn}>
+                    <button className={styles.secondaryBtn} disabled={pendiente}>
                       <FontAwesomeIcon icon={faEdit} />
                       Editar
                     </button>
 
                     <button
                       className={styles.primaryBtn}
+                      disabled={pendiente}
+                      title={
+                        pendiente
+                          ? "Este negocio está pendiente de aprobación"
+                          : undefined
+                      }
                       onClick={() => router.push(`/stores/${store.id}`)}
                     >
                       Ver detalle →
@@ -271,7 +283,8 @@ export default function StoresPage() {
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
