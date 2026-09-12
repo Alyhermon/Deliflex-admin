@@ -29,7 +29,28 @@ import {
   faArrowTrendDown,
   faChevronDown,
   faChartColumn,
+  faUtensils,
+  faCakeCandles,
+  faMugSaucer,
+  faKitMedical,
+  faCartShopping,
+  faEllipsis,
+  faIceCream,
+  type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
+
+// Un icono propio por categoria para que cada fila del donut se
+// reconozca de un vistazo, en vez de solo un color. "Sin categoria" y
+// cualquier categoria nueva que no este en este mapa caen en faShop.
+const CATEGORY_ICONS: Record<string, IconDefinition> = {
+  Restaurante: faUtensils,
+  Reposteria: faCakeCandles,
+  Cafeteria: faMugSaucer,
+  Farmacias: faKitMedical,
+  Mercado: faCartShopping,
+  Heladeria: faIceCream,
+  "Sin categoría": faEllipsis,
+};
 
 type PendingStore = {
   id: string;
@@ -493,50 +514,10 @@ export default function DashboardPage() {
             <RevenueCard trend={summary.revenueTrend ?? []} />
 
 
-            <div className={`${styles.panel} ${styles.chartPanel}`}>
-              <div className={styles.panelHead}>
-                <h3>
-                  {esSuperAdmin ? "Negocios por categoría" : "Tus negocios por categoría"}
-                </h3>
-              </div>
-              <div className={styles.donutRow}>
-                <DonutChart
-                  data={(summary.byCategory ?? []).map((c, i) => ({
-                    label: c.category,
-                    value: c.total,
-                    color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
-                  }))}
-                />
-                <div className={styles.statusLegend}>
-                  {(() => {
-                    const categorias = summary.byCategory ?? [];
-                    const totalCategorias = categorias.reduce(
-                      (acc, c) => acc + c.total,
-                      0,
-                    );
-
-                    return categorias.map((c, i) => (
-                      <div key={c.category} className={styles.legendRow}>
-                        <span
-                          className={styles.legendSwatch}
-                          style={{
-                            background: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
-                          }}
-                        />
-                        <span className={styles.legendLabel}>{c.category}</span>
-                        <span className={styles.legendPct}>
-                          {totalCategorias > 0
-                            ? Math.round((c.total / totalCategorias) * 100)
-                            : 0}
-                          %
-                        </span>
-                        <span className={styles.legendValue}>{c.total}</span>
-                      </div>
-                    ));
-                  })()}
-                </div>
-              </div>
-            </div>
+            <CategoryCard
+              categorias={summary.byCategory ?? []}
+              esSuperAdmin={esSuperAdmin}
+            />
           </div>
         )}
       </div>
@@ -808,12 +789,92 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
   );
 }
 
+// ---------- Tarjeta de categorias: encabezado + donut + filas con barra ----------
+
+function CategoryCard({
+  categorias,
+  esSuperAdmin,
+}: {
+  categorias: { category: string; total: number }[];
+  esSuperAdmin: boolean;
+}) {
+  const total = categorias.reduce((acc, c) => acc + c.total, 0);
+
+  return (
+    <div className={`${styles.panel} ${styles.chartPanel} ${styles.categoryCard}`}>
+      <div className={styles.revenueHead}>
+        <span className={styles.revenueHeadIcon}>
+          <FontAwesomeIcon icon={faShop} />
+        </span>
+        <div className={styles.revenueHeadTitles}>
+          <h3>{esSuperAdmin ? "Negocios por categoría" : "Tus negocios por categoría"}</h3>
+          <p>
+            Distribución de {esSuperAdmin ? "" : "tus "}
+            {total} negocio{total === 1 ? "" : "s"}
+          </p>
+        </div>
+        <span className={styles.revenueYearPill}>
+          Total <FontAwesomeIcon icon={faChevronDown} size="2xs" />
+        </span>
+      </div>
+
+      <div className={styles.donutRow}>
+        <DonutChart
+          data={categorias.map((c, i) => ({
+            label: c.category,
+            value: c.total,
+            color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+          }))}
+        />
+
+        <div className={styles.categoryList}>
+          {categorias.map((c, i) => {
+            const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
+            const pct = total > 0 ? Math.round((c.total / total) * 100) : 0;
+            const icon = CATEGORY_ICONS[c.category] ?? faShop;
+
+            return (
+              <div
+                key={c.category}
+                className={styles.categoryRow}
+                style={{ background: `color-mix(in srgb, ${color} 9%, white)` }}
+              >
+                <span
+                  className={styles.categoryIcon}
+                  style={{ background: color }}
+                >
+                  <FontAwesomeIcon icon={icon} />
+                </span>
+
+                <div className={styles.categoryMain}>
+                  <span className={styles.categoryName}>{c.category}</span>
+                  <div className={styles.categoryTrack}>
+                    <div
+                      className={styles.categoryFill}
+                      style={{ width: `${pct}%`, background: color }}
+                    />
+                  </div>
+                </div>
+
+                <span className={styles.categoryPct} style={{ color }}>
+                  {pct}%
+                </span>
+                <span className={styles.categoryCount}>{c.total}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------- Grafica de pastel: negocios por categoria ----------
 
 function DonutChart({
   data,
-  size = 148,
-  strokeWidth = 22,
+  size = 200,
+  strokeWidth = 44,
 }: {
   data: { label: string; value: number; color: string }[];
   size?: number;
@@ -904,6 +965,34 @@ function DonutChart({
           return circle;
         })}
       </g>
+
+      {data.map((d, i) => {
+        const fraction = d.value / total;
+        if (fraction <= 0) return null;
+
+        const midFraction = data
+          .slice(0, i)
+          .reduce((acc, prev) => acc + prev.value / total, fraction / 2);
+        const angle = -90 + midFraction * 360;
+        const rad = (angle * Math.PI) / 180;
+        const lx = size / 2 + radius * Math.cos(rad);
+        const ly = size / 2 + radius * Math.sin(rad);
+
+        return (
+          <text
+            key={`pct-${i}`}
+            x={lx}
+            y={ly}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="13.5"
+            fontWeight="800"
+            fill="#fff"
+          >
+            {Math.round(fraction * 100)}%
+          </text>
+        );
+      })}
 
       <text
         x={size / 2}
