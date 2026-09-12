@@ -178,10 +178,8 @@ export default function StoresPage() {
           <SkeletonCardGrid count={3} />
         ) : stores.length === 0 ? (
           <div className={styles.empty}>
-            <h3>No tienes negocios aún</h3>
-            <p>Crea tu primer negocio para empezar</p>
-
-            <button className={styles.btnCreate}>Crear negocio</button>
+            <h3>No hay negocios en Deliflex registrados</h3>
+            <p>Los negocios que se registren en la plataforma aparecerán aquí</p>
           </div>
         ) : filteredStores.length === 0 &&
           (search.trim().length >= 3 || statusSeleccionado) ? (
