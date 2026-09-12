@@ -177,8 +177,6 @@ export default function StoreDetailPage({ id }: { id: string }) {
                 </span>
               </div>
 
-              <span className={styles.subtitle}>ID: #{id}</span>
-
               <p className={styles.location}>
                 Repostería • Santo Domingo, República Dominicana
               </p>

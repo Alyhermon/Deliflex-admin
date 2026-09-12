@@ -7,7 +7,14 @@ import DFInput from "../components/components-items/input";
 import Toast from "../components/components-items/toast/toast";
 import Skeleton from "../components/components-items/skeleton/skeleton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faKey, faLock } from "@fortawesome/free-solid-svg-icons";
+import {
+  faKey,
+  faLock,
+  faEye,
+  faEyeSlash,
+  faCopy,
+  faCheck,
+} from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../hooks/useAuth";
 import styles from "./configuracion.module.css";
 
@@ -46,6 +53,27 @@ export default function ConfiguracionPage() {
     confirmPassword?: string;
   }>({});
   const [saving, setSaving] = useState(false);
+  const [idsRevelados, setIdsRevelados] = useState<Set<string>>(new Set());
+  const [idCopiado, setIdCopiado] = useState<string | null>(null);
+
+  const alternarRevelado = (storeId: string) => {
+    setIdsRevelados((prev) => {
+      const next = new Set(prev);
+      if (next.has(storeId)) next.delete(storeId);
+      else next.add(storeId);
+      return next;
+    });
+  };
+
+  const copiarId = async (storeId: string) => {
+    try {
+      await navigator.clipboard.writeText(storeId);
+      setIdCopiado(storeId);
+      setTimeout(() => setIdCopiado(null), 1500);
+    } catch {
+      // Sin acceso al portapapeles: no hay mucho mas que hacer aqui.
+    }
+  };
 
   const [toast, setToast] = useState<{
     message: string;
@@ -130,12 +158,14 @@ export default function ConfiguracionPage() {
   const rolPlataforma = ROL_PLATAFORMA[Number(user.global_role_id ?? 0)];
   const negocios = [
     ...(user.owned_stores ?? []).map((s) => ({
+      id: s.store_id,
       nombre: s.store_name,
       rol: ROL_NEGOCIO[90],
     })),
     ...(user.staff_businesses ?? [])
       .filter((sb) => sb.store_name)
       .map((sb) => ({
+        id: sb.store_id as string,
         nombre: sb.store_name as string,
         rol: ROL_NEGOCIO[sb.role_id] ?? sb.role_name,
       })),
@@ -176,12 +206,45 @@ export default function ConfiguracionPage() {
             {negocios.length > 0 && (
               <>
                 <div className={styles.businessesTitle}>Tus negocios</div>
-                {negocios.map((n, i) => (
-                  <div key={i} className={styles.businessRow}>
-                    <span className={styles.businessName}>{n.nombre}</span>
-                    <span className={styles.businessRole}>{n.rol}</span>
-                  </div>
-                ))}
+                {negocios.map((n, i) => {
+                  const revelado = idsRevelados.has(n.id);
+
+                  return (
+                    <div key={i} className={styles.businessRow}>
+                      <div className={styles.businessMain}>
+                        <span className={styles.businessName}>{n.nombre}</span>
+                        <span className={styles.businessRole}>{n.rol}</span>
+                      </div>
+
+                      <div className={styles.businessIdRow}>
+                        <span className={styles.businessIdLabel}>ID</span>
+                        <span className={styles.businessIdValue}>
+                          {revelado ? n.id : "........"}
+                        </span>
+
+                        <button
+                          type="button"
+                          className={styles.idIconBtn}
+                          title={revelado ? "Ocultar ID" : "Mostrar ID"}
+                          onClick={() => alternarRevelado(n.id)}
+                        >
+                          <FontAwesomeIcon icon={revelado ? faEyeSlash : faEye} />
+                        </button>
+
+                        <button
+                          type="button"
+                          className={styles.idIconBtn}
+                          title="Copiar ID"
+                          onClick={() => copiarId(n.id)}
+                        >
+                          <FontAwesomeIcon
+                            icon={idCopiado === n.id ? faCheck : faCopy}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </>
             )}
           </section>
