@@ -204,7 +204,11 @@ export default function StoresPage() {
         ) : (
           <div className={styles.grid}>
             {filteredStores.map((store) => {
-              const pendiente = store.status === "PENDING_APPROVAL";
+              // El super admin si puede entrar a un negocio pendiente (por
+              // ejemplo para revisarlo antes de aprobarlo); a cualquier rol
+              // por debajo se le bloquea hasta que se apruebe.
+              const pendiente =
+                store.status === "PENDING_APPROVAL" && !esSuperAdmin;
 
               return (
               <div
