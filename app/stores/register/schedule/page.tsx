@@ -3,17 +3,15 @@
 import styles from "./schedule.module.css";
 import ToggleButton from "../../../components/components-items/togglebutton";
 import TimePicker from "@/app/components/components-items/timepicker";
+import { useRegisterBusiness } from "../RegisterBusinessContext";
 
-export default function CrearNegocio() {
-  const handleChange = (state: boolean) => {
-    console.log("Estado:", state);
-  };
+export default function SchedulePage() {
+  const { form, update, updateSchedule, applyGenericHoursToAllDays } =
+    useRegisterBusiness();
+
   return (
     <div className={styles.container}>
-
-      {/* CARD PRINCIPAL */}
       <div className={styles.card}>
-        {/* INFO */}
         <div className={styles.infoBox}>
           <h3>Configura cuándo está abierto tu negocio</h3>
           <p>
@@ -21,62 +19,81 @@ export default function CrearNegocio() {
             todos.
           </p>
         </div>
+
         <div className={styles.rowBetween}>
           <div>
             <h4>Mismo horario todos los días</h4>
             <p>Ahorra tiempo aplicando el mismo horario.</p>
           </div>
           <ToggleButton
-            initialState={true}
-            onChange={handleChange}
+            key={String(form.sameHoursAllDays)}
+            initialState={form.sameHoursAllDays}
+            onChange={(state) => update({ sameHoursAllDays: state })}
             labelOn="Activo"
             labelOff="Desactivado"
             size="md"
           />
         </div>
 
-        {/* INPUTS GENERALES */}
-        
-        <div className={styles.grid2}>
-          <div className={styles.dateOpen}>
-            <label>Hora de apertura</label>
-            <TimePicker onChange={(time) => console.log(time)} />
-          </div>
+        {form.sameHoursAllDays && (
+          <div className={styles.grid2}>
+            <div className={styles.dateOpen}>
+              <label>Hora de apertura</label>
+              <TimePicker
+                value={form.genericOpenTime}
+                onChange={(time) =>
+                  applyGenericHoursToAllDays(time, form.genericCloseTime)
+                }
+              />
+            </div>
 
-          <div className={styles.dateClosed}>
-            <label>Hora de cierre</label>
-            <TimePicker onChange={(time) => console.log(time)} />
+            <div className={styles.dateClosed}>
+              <label>Hora de cierre</label>
+              <TimePicker
+                value={form.genericCloseTime}
+                onChange={(time) =>
+                  applyGenericHoursToAllDays(form.genericOpenTime, time)
+                }
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* TABLA HORARIOS */}
         <div className={styles.table}>
           <div className={styles.tableHeader}>
             <span>Día</span>
-            <span className={styles.activeDay}>Activo</span>
+            <span className={styles.activeDay}>Abierto</span>
             <span>Apertura</span>
             <span>Cierre</span>
           </div>
 
-          {[
-            "Lunes",
-            "Martes",
-            "Miércoles",
-            "Jueves",
-            "Viernes",
-            "Sábado",
-            "Domingo",
-          ].map((day) => (
-            <div key={day} className={styles.tableRow}>
-              <span>{day}</span>
+          {form.schedules.map((day) => (
+            <div key={day.dayOfWeek} className={styles.tableRow}>
+              <span>{day.label}</span>
               <ToggleButton
-                initialState={true}
-                onChange={handleChange}
+                key={`${day.dayOfWeek}-${day.isClosed}`}
+                initialState={!day.isClosed}
+                onChange={(abierto) =>
+                  updateSchedule(day.dayOfWeek, { isClosed: !abierto })
+                }
                 label={false}
                 size="sm"
               />
-            <TimePicker onChange={(time) => console.log(time)} />
-            <TimePicker onChange={(time) => console.log(time)} />
+              <TimePicker
+                value={day.openTime}
+                onChange={(time) => {
+                  updateSchedule(day.dayOfWeek, { openTime: time });
+                  update({ sameHoursAllDays: false });
+                }}
+              />
+              <TimePicker
+                value={day.closeTime}
+                onChange={(time) => {
+                  updateSchedule(day.dayOfWeek, { closeTime: time });
+                  update({ sameHoursAllDays: false });
+                }}
+              />
             </div>
           ))}
         </div>

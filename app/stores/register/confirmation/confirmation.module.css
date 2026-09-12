@@ -1,0 +1,169 @@
+.container {
+  padding: 10px;
+  background: #f7f8fa;
+  min-height: 60vh;
+}
+
+.card {
+  max-width: 1280px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.subtitle {
+  font-size: 13.5px;
+  color: #8a8a8a;
+  margin: 0 0 24px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.summaryBlock {
+  background: #fafafa;
+  border: 1px solid #f1f1f1;
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.summaryBlock h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.summaryBlock p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #555;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.section h2 {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.hint {
+  font-size: 12px;
+  color: #9a9a9a;
+  margin: 0 0 14px;
+}
+
+.uploadRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.uploadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff4ea;
+  color: #ff7a00;
+  border: 1px solid #ffe1c2;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.uploadBtn:hover {
+  background: #ffe8d2;
+}
+
+.documentList {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.documentItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fafafa;
+  border: 1px solid #f1f1f1;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #444;
+}
+
+.documentType {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.documentName {
+  color: #8a8a8a;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.removeBtn {
+  border: none;
+  background: none;
+  color: #e53935;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.errorText {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 12.5px;
+  color: #e53935;
+}
+
+.finalizeRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.finalizeBtn {
+  background: linear-gradient(120deg, #ff8a1f, #ff5a00);
+  color: white;
+  border: none;
+  padding: 13px 26px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.finalizeBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+}

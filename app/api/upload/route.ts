@@ -7,7 +7,13 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const BUCKET = "Images";
 
-const TIPOS_PERMITIDOS = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const TIPOS_PERMITIDOS = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+];
 const TAMANO_MAXIMO = 5 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
@@ -31,7 +37,7 @@ export async function POST(request: NextRequest) {
 
   if (!TIPOS_PERMITIDOS.includes(file.type)) {
     return NextResponse.json(
-      { error: "Formato no permitido. Usa JPG, PNG, WEBP o GIF." },
+      { error: "Formato no permitido. Usa JPG, PNG, WEBP, GIF o PDF." },
       { status: 400 },
     );
   }

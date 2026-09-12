@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./information.module.css";
 import DFInput from "../../../components/components-items/input";
 import Dropdown from "../../../components/components-items/dropdown";
@@ -8,50 +8,57 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faContactBook,
   faEnvelope,
+  faIdCard,
+  faLocationCrosshairs,
   faShop,
   faStore,
 } from "@fortawesome/free-solid-svg-icons";
+import { useRegisterBusiness } from "../RegisterBusinessContext";
+
+type Category = { id: string; category_name: string };
 
 export default function InformationPage() {
-  const [businessType, setBusinessType] = useState("");
-  const [form, setForm] = useState({
-    name: "",
-    category: "",
-    phone: "",
-    email: "",
-    address: "",
-    description: "",
-    openHour: "",
-    openMin: "",
-    closeHour: "",
-    closeMin: "",
-  });
+  const { form, update } = useRegisterBusiness();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [ubicando, setUbicando] = useState(false);
+  const [ubicacionError, setUbicacionError] = useState("");
 
-  const options = [
-    "Restaurante",
-    "Cafetería",
-    "Bar",
-    "Food Truck",
-    "Repostería",
-  ];
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/register-business/categories`)
+      .then((res) => res.json())
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .catch(() => setCategories([]));
+  }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
-  ) => {
-    const target = e.target as HTMLInputElement;
-    const { name, type, value, checked } = target;
+  const categoryOptions = categories.map((c) => c.category_name);
 
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+  const handleCategoryChange = (label: string) => {
+    const found = categories.find((c) => c.category_name === label);
+    update({ categoryLabel: label, categoryId: found?.id ?? "" });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("DATA:", form);
+  const usarUbicacionActual = () => {
+    if (!navigator.geolocation) {
+      setUbicacionError("Tu navegador no soporta geolocalización");
+      return;
+    }
+
+    setUbicando(true);
+    setUbicacionError("");
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        update({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+        setUbicando(false);
+      },
+      () => {
+        setUbicacionError("No se pudo obtener tu ubicación. Ingrésala a mano.");
+        setUbicando(false);
+      },
+    );
   };
 
   return (
@@ -59,7 +66,7 @@ export default function InformationPage() {
       <div className={styles.card}>
         <h1 className={styles.title}>Crear Negocio</h1>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.form}>
           {/* SECCIÓN 1 */}
           <div className={styles.section}>
             <h2>Información básica</h2>
@@ -68,33 +75,59 @@ export default function InformationPage() {
               <div className={styles.inputGroup}>
                 <DFInput
                   placeholder="Nombre del negocio"
+                  value={form.nameBusisness}
+                  onChange={(e) => update({ nameBusisness: e.target.value })}
                   icon={<FontAwesomeIcon color="#ed7b17" icon={faShop} />}
                 />
                 <DFInput
                   placeholder="Nombre del propietario"
+                  value={form.ownerFirstName}
+                  onChange={(e) => update({ ownerFirstName: e.target.value })}
                   icon={
                     <FontAwesomeIcon color="#ed7b17" icon={faContactBook} />
                   }
                 />
                 <DFInput
-                placeholder="Cantidad de sucursales"
-                icon={<FontAwesomeIcon color="#ed7b17" icon={faStore} />}
-              />
+                  placeholder="Cédula o RNC del negocio"
+                  value={form.taxId}
+                  onChange={(e) =>
+                    update({ taxId: e.target.value.replace(/\D/g, "") })
+                  }
+                  maxLength={11}
+                  icon={<FontAwesomeIcon color="#ed7b17" icon={faIdCard} />}
+                />
               </div>
-              <DFInput
-                placeholder="Apellido del propietario"
-                icon={<FontAwesomeIcon color="#ed7b17" icon={faContactBook} />}
-              />
-            
 
-              <Dropdown
-                options={options}
-                value={businessType}
-                onChange={setBusinessType}
-                placeholder="Tipo de negocio"
-              />
-              
+              <div className={styles.inputGroup}>
+                <DFInput
+                  placeholder="Apellido del propietario"
+                  value={form.ownerLastName}
+                  onChange={(e) => update({ ownerLastName: e.target.value })}
+                  icon={
+                    <FontAwesomeIcon color="#ed7b17" icon={faContactBook} />
+                  }
+                />
+
+                <Dropdown
+                  options={categoryOptions}
+                  value={form.categoryLabel}
+                  onChange={handleCategoryChange}
+                  placeholder="Tipo de negocio"
+                  fullWidth
+                />
+
+                <span className={styles.hint}>
+                  La cédula (11 dígitos) o el RNC (9 dígitos) del negocio.
+                </span>
+              </div>
             </div>
+
+            <textarea
+              className={styles.textarea}
+              placeholder="Describe brevemente tu negocio (opcional)"
+              value={form.description}
+              onChange={(e) => update({ description: e.target.value })}
+            />
           </div>
 
           {/* SECCIÓN 2 */}
@@ -105,6 +138,8 @@ export default function InformationPage() {
               <div className={styles.inputGroup}>
                 <DFInput
                   placeholder="ejemplo@email.com"
+                  value={form.email}
+                  onChange={(e) => update({ email: e.target.value })}
                   icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
                 />
               </div>
@@ -112,12 +147,16 @@ export default function InformationPage() {
               <div className={styles.inputGroup}>
                 <DFInput
                   placeholder="Telefono de contacto"
+                  value={form.phoneBusiness}
+                  onChange={(e) => update({ phoneBusiness: e.target.value })}
                   icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
                 />
               </div>
               <div className={styles.inputGroup}>
                 <DFInput
                   placeholder="Telefono del negocio"
+                  value={form.storePhone}
+                  onChange={(e) => update({ storePhone: e.target.value })}
                   icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
                 />
               </div>
@@ -131,18 +170,57 @@ export default function InformationPage() {
             <div className={styles.inputGroup}>
               <DFInput
                 placeholder="Direccion del negocio"
+                value={form.storeAddress}
+                onChange={(e) => update({ storeAddress: e.target.value })}
                 icon={<FontAwesomeIcon color="#ed7b17" icon={faStore} />}
               />
             </div>
 
-            <div className={styles.inputGroup}>
-              <DFInput
-                placeholder="Es a la calle"
-                icon={<FontAwesomeIcon color="#ed7b17" icon={faStore} />}
+            <label className={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                checked={form.isStreetLocation}
+                onChange={(e) => update({ isStreetLocation: e.target.checked })}
               />
+              El negocio está ubicado en la calle (no en un local/plaza)
+            </label>
+
+            <div className={styles.coordsRow}>
+              <DFInput
+                placeholder="Latitud"
+                type="number"
+                value={form.latitude ?? ""}
+                onChange={(e) =>
+                  update({
+                    latitude: e.target.value ? Number(e.target.value) : null,
+                  })
+                }
+              />
+              <DFInput
+                placeholder="Longitud"
+                type="number"
+                value={form.longitude ?? ""}
+                onChange={(e) =>
+                  update({
+                    longitude: e.target.value ? Number(e.target.value) : null,
+                  })
+                }
+              />
+              <button
+                type="button"
+                className={styles.locationBtn}
+                onClick={usarUbicacionActual}
+                disabled={ubicando}
+              >
+                <FontAwesomeIcon icon={faLocationCrosshairs} />
+                {ubicando ? "Ubicando..." : "Usar mi ubicación actual"}
+              </button>
             </div>
+            {ubicacionError && (
+              <span className={styles.errorText}>{ubicacionError}</span>
+            )}
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

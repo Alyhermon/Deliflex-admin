@@ -72,6 +72,13 @@
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
+.stepError {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: #e53935;
+  text-align: right;
+}
+
 /* BUTTONS */
 .buttons {
   display: flex;
