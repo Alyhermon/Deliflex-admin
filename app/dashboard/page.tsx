@@ -746,8 +746,14 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
 
       {data.map((d, i) => {
         const barHeight = max > 0 ? (d.value / max) * plotHeight : 0;
+        // La barra nunca baja de este alto (para que un mes en $0 se vea
+        // como una pildora chata, no como un punto) - pero hay que medir
+        // "y" desde este alto real, si no la pildora queda colgando por
+        // debajo de la linea base en vez de apoyada sobre ella.
+        const alturaMinima = barWidth * 0.45;
+        const alturaEfectiva = Math.max(barHeight, alturaMinima);
         const x = padLeft + slot * i + (slot - barWidth) / 2;
-        const y = padTop + plotHeight - barHeight;
+        const y = padTop + plotHeight - alturaEfectiva;
         const esUltimo = i === data.length - 1;
         const rx = barWidth / 2;
 
@@ -767,7 +773,7 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
               x={x}
               y={y}
               width={barWidth}
-              height={Math.max(barHeight, barWidth * 0.5)}
+              height={alturaEfectiva}
               rx={rx}
               fill={esUltimo ? "url(#barActivo)" : "url(#barMuted)"}
               filter={esUltimo ? "url(#barSombra)" : undefined}
