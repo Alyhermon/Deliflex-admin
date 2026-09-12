@@ -459,16 +459,16 @@ export default function EditStorePage({
           {esSuperAdmin ? (
             <div className={styles.row}>
               <div className={styles.field}>
-                <span className={styles.label}>Nombre del negocio</span>
                 <DFInput
+                  label="Nombre del negocio"
                   value={form.nameBusisness}
                   onChange={(e) => handleChange("nameBusisness", e.target.value)}
                 />
               </div>
 
               <div className={styles.field}>
-                <span className={styles.label}>RNC o cedula</span>
                 <DFInput
+                  label="RNC o cedula"
                   value={form.taxId}
                   maxLength={11}
                   onChange={(e) =>
@@ -479,16 +479,16 @@ export default function EditStorePage({
               </div>
 
               <div className={styles.field}>
-                <span className={styles.label}>Correo de contacto</span>
                 <DFInput
+                  label="Correo de contacto"
                   value={form.email}
                   onChange={(e) => handleChange("email", e.target.value)}
                 />
               </div>
 
               <div className={styles.field}>
-                <span className={styles.label}>Telefono de contacto</span>
                 <DFInput
+                  label="Telefono de contacto"
                   value={form.phoneBusiness}
                   onChange={(e) => handleChange("phoneBusiness", e.target.value)}
                 />
@@ -540,8 +540,8 @@ export default function EditStorePage({
           {esSuperAdmin ? (
             <div className={styles.row}>
               <div className={styles.field}>
-                <span className={styles.label}>Nombre de la sucursal</span>
                 <DFInput
+                  label="Nombre de la sucursal"
                   value={form.storeName}
                   onChange={(e) => handleChange("storeName", e.target.value)}
                 />
@@ -565,24 +565,24 @@ export default function EditStorePage({
               </div>
 
               <div className={styles.field}>
-                <span className={styles.label}>Direccion</span>
                 <DFInput
+                  label="Direccion"
                   value={form.storeAddress}
                   onChange={(e) => handleChange("storeAddress", e.target.value)}
                 />
               </div>
 
               <div className={styles.field}>
-                <span className={styles.label}>Telefono de la sucursal</span>
                 <DFInput
+                  label="Telefono de la sucursal"
                   value={form.storePhone}
                   onChange={(e) => handleChange("storePhone", e.target.value)}
                 />
               </div>
 
               <div className={styles.field}>
-                <span className={styles.label}>Correo de la sucursal</span>
                 <DFInput
+                  label="Correo de la sucursal"
                   value={form.storeEmail}
                   onChange={(e) => handleChange("storeEmail", e.target.value)}
                 />
