@@ -21,6 +21,12 @@ import DFInput from "@/app/components/components-items/input";
 import Dropdown from "@/app/components/components-items/dropdown";
 import { useAuth } from "@/app/hooks/useAuth";
 import LoadingDots from "@/app/components/components-items/loading-dots/loading-dots";
+import {
+  formatPhone,
+  formatRnc,
+  formatTaxId,
+  soloDigitos,
+} from "../../register/format-utils";
 
 type StoreCategory = {
   id: string;
@@ -39,6 +45,7 @@ type EditForm = {
   email: string;
   phoneBusiness: string;
   taxId: string;
+  rnc: string;
   storeName: string;
   description: string;
   storeAddress: string;
@@ -133,6 +140,7 @@ export default function EditStorePage({
     email: "",
     phoneBusiness: "",
     taxId: "",
+    rnc: "",
     storeName: "",
     description: "",
     storeAddress: "",
@@ -175,12 +183,13 @@ export default function EditStorePage({
         setForm({
           nameBusisness: datos.name_busisness ?? "",
           email: datos.business_email ?? "",
-          phoneBusiness: datos.contact_phone ?? "",
-          taxId: datos.tax_id ?? "",
+          phoneBusiness: formatPhone(datos.contact_phone ?? ""),
+          taxId: formatTaxId(datos.tax_id ?? ""),
+          rnc: formatRnc(datos.rnc ?? ""),
           storeName: datos.store_name ?? "",
           description: datos.description ?? "",
           storeAddress: datos.address ?? "",
-          storePhone: datos.store_phone ?? "",
+          storePhone: formatPhone(datos.store_phone ?? ""),
           storeEmail: datos.store_email ?? "",
           categoryId: datos.category_id ?? "",
           categoryName: datos.category_name ?? "",
@@ -271,8 +280,12 @@ export default function EditStorePage({
       nextErrors.horarios = `En ${DIAS[invalido.dayOfWeek]} la apertura debe ser antes del cierre`;
     }
 
-    if (esSuperAdmin && !/^\d{9}$|^\d{11}$/.test(form.taxId)) {
-      nextErrors.taxId = "La cédula (11 dígitos) o el RNC (9 dígitos) es obligatorio";
+    if (esSuperAdmin && !/^\d{11}$/.test(soloDigitos(form.taxId))) {
+      nextErrors.taxId = "La cédula debe tener 11 dígitos";
+    }
+
+    if (esSuperAdmin && form.rnc && !/^\d{9}$/.test(soloDigitos(form.rnc))) {
+      nextErrors.rnc = "El RNC debe tener 9 dígitos";
     }
 
     setErrors(nextErrors);
@@ -296,7 +309,12 @@ export default function EditStorePage({
             nameBusisness: esSuperAdmin ? form.nameBusisness : undefined,
             email: esSuperAdmin ? form.email : undefined,
             phoneBusiness: esSuperAdmin ? form.phoneBusiness : undefined,
-            taxId: esSuperAdmin ? form.taxId : undefined,
+            taxId: esSuperAdmin ? soloDigitos(form.taxId) : undefined,
+            rnc: esSuperAdmin
+              ? form.rnc
+                ? soloDigitos(form.rnc)
+                : undefined
+              : undefined,
             storeName: esSuperAdmin ? form.storeName : undefined,
             description: esSuperAdmin ? form.description : undefined,
             storeAddress: esSuperAdmin ? form.storeAddress : undefined,
@@ -468,13 +486,23 @@ export default function EditStorePage({
 
               <div className={styles.field}>
                 <DFInput
-                  label="RNC o cedula"
+                  label="Cédula del propietario"
                   value={form.taxId}
-                  maxLength={11}
+                  maxLength={13}
                   onChange={(e) =>
-                    handleChange("taxId", e.target.value.replace(/\D/g, ""))
+                    handleChange("taxId", formatTaxId(e.target.value))
                   }
                   error={errors.taxId}
+                />
+              </div>
+
+              <div className={styles.field}>
+                <DFInput
+                  label="RNC del negocio (opcional)"
+                  value={form.rnc}
+                  maxLength={12}
+                  onChange={(e) => handleChange("rnc", formatRnc(e.target.value))}
+                  error={errors.rnc}
                 />
               </div>
 
@@ -490,7 +518,10 @@ export default function EditStorePage({
                 <DFInput
                   label="Telefono de contacto"
                   value={form.phoneBusiness}
-                  onChange={(e) => handleChange("phoneBusiness", e.target.value)}
+                  maxLength={12}
+                  onChange={(e) =>
+                    handleChange("phoneBusiness", formatPhone(e.target.value))
+                  }
                 />
               </div>
             </div>
@@ -502,8 +533,13 @@ export default function EditStorePage({
               </div>
 
               <div className={styles.dato}>
-                <span className={styles.label}>RNC o cedula</span>
+                <span className={styles.label}>Cédula del propietario</span>
                 <strong>{form.taxId || "—"}</strong>
+              </div>
+
+              <div className={styles.dato}>
+                <span className={styles.label}>RNC del negocio</span>
+                <strong>{form.rnc || "—"}</strong>
               </div>
 
               <div className={styles.dato}>
@@ -576,7 +612,10 @@ export default function EditStorePage({
                 <DFInput
                   label="Telefono de la sucursal"
                   value={form.storePhone}
-                  onChange={(e) => handleChange("storePhone", e.target.value)}
+                  maxLength={12}
+                  onChange={(e) =>
+                    handleChange("storePhone", formatPhone(e.target.value))
+                  }
                 />
               </div>
 
