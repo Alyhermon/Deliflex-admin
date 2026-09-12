@@ -32,6 +32,7 @@ import {
   faImage,
   faCheck,
   faXmark,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -264,6 +265,8 @@ function SuperAdminBoostsView() {
 
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<BoostPlan | null>(null);
+  const [deletingPlan, setDeletingPlan] = useState<BoostPlan | null>(null);
+  const [borrandoPlan, setBorrandoPlan] = useState(false);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [detailBoost, setDetailBoost] = useState<StoreBoost | null>(null);
 
@@ -402,6 +405,35 @@ function SuperAdminBoostsView() {
         message: error instanceof Error ? error.message : "No se pudo actualizar",
         type: "danger",
       });
+    }
+  };
+
+  const borrarPlan = async () => {
+    if (!deletingPlan) return;
+
+    setBorrandoPlan(true);
+    try {
+      const res = await fetch(`${API}/boosts/plans/${deletingPlan.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(data?.message || "No se pudo eliminar el plan");
+      }
+
+      setToast({ message: "Plan eliminado", type: "success" });
+      setDeletingPlan(null);
+      await cargarTodo();
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "No se pudo eliminar el plan",
+        type: "danger",
+      });
+    } finally {
+      setBorrandoPlan(false);
     }
   };
 
@@ -594,6 +626,13 @@ function SuperAdminBoostsView() {
                       onClick={() => togglePlanActivo(plan)}
                     >
                       <FontAwesomeIcon icon={faPowerOff} />
+                    </button>
+                    <button
+                      className={styles.planIconBtn}
+                      title="Eliminar plan"
+                      onClick={() => setDeletingPlan(plan)}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
                     </button>
                   </div>
                 </div>
@@ -832,6 +871,36 @@ function SuperAdminBoostsView() {
           await cargarTodo();
         }}
       />
+
+      <Modal
+        isOpen={deletingPlan !== null}
+        onClose={() => setDeletingPlan(null)}
+        title="Eliminar plan"
+        width="420px"
+      >
+        <p>
+          ¿Eliminar el plan <strong>{deletingPlan?.name}</strong>? Esta acción
+          no se puede deshacer.
+        </p>
+        <div className={styles.bannerActions}>
+          <button
+            type="button"
+            className={`${styles.rowBtn} ${styles.rowBtnSecondary}`}
+            onClick={() => setDeletingPlan(null)}
+            disabled={borrandoPlan}
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className={`${styles.rowBtn} ${styles.rowBtnDanger}`}
+            onClick={borrarPlan}
+            disabled={borrandoPlan}
+          >
+            {borrandoPlan ? "Eliminando..." : "Eliminar"}
+          </button>
+        </div>
+      </Modal>
 
       <BoostDetailModal
         boost={detailBoost}

@@ -83,7 +83,7 @@ const buildMenuItems = (storeId: string | null): MenuItem[] => [
     icon: <FontAwesomeIcon icon={faUser} />,
   },
   {
-    name: "Destacados",
+    name: "Promociones",
     path: "/promociones",
     icon: <FontAwesomeIcon icon={faStar} />,
   },
