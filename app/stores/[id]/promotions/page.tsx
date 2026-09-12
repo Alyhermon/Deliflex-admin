@@ -837,7 +837,7 @@ export default function PromotionsPage({
       <div className={styles.container}>
         <Breadcrumb
           items={[
-            { label: "Tiendas", href: "/stores" },
+            { label: "Negocios", href: "/stores" },
             { label: storeName, href: `/stores/${id}` },
             { label: "Promociones" },
           ]}

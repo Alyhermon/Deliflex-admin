@@ -149,7 +149,7 @@ export default function StoreDetailPage({ id }: { id: string }) {
     <AdminLayout>
       <div className={styles.container}>
         <Breadcrumb
-          items={[{ label: "Tiendas", href: "/stores" }, { label: store.name }]}
+          items={[{ label: "Negocios", href: "/stores" }, { label: store.name }]}
         />
         <div className={styles.header}>
           <div className={styles.left}>

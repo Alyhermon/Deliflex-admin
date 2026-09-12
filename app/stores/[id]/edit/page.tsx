@@ -379,7 +379,7 @@ export default function EditStorePage({
       <div className={styles.container}>
         <Breadcrumb
           items={[
-            { label: "Tiendas", href: "/stores" },
+            { label: "Negocios", href: "/stores" },
             { label: form.storeName || "Negocio", href: `/stores/${id}` },
             { label: "Editar" },
           ]}
