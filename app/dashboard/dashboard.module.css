@@ -529,6 +529,17 @@
   margin-bottom: 14px;
 }
 
+.promoCard {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.promoSubtitle {
+  margin: -8px 0 14px;
+  font-size: 13px;
+  color: #9a9a9a;
+}
+
 .panelHead h3 {
   margin: 0;
   font-size: 15.5px;

@@ -132,6 +132,9 @@ export default function DashboardPage() {
   const [categoryYear, setCategoryYear] = useState<number | undefined>(
     undefined,
   );
+  const [boostTrend, setBoostTrend] = useState<
+    { month: string; total: number }[]
+  >([]);
 
   // 100 = SUPER_ADMIN (la duena de la plataforma): ve TODOS los negocios.
   // 90  = ADMIN normal: solo ve el total de sus propios negocios.
@@ -180,6 +183,20 @@ export default function DashboardPage() {
     cargarResumen();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user, esSuperAdmin, router, revenueYear, categoryYear]);
+
+  // "Ingresos por promocion" es plata de la plataforma (lo que cobra
+  // Deliflex por Negocios Destacados), no de un negocio puntual - por eso
+  // solo el super admin lo pide, del mismo endpoint que ya usa Promociones.
+  useEffect(() => {
+    if (!esSuperAdmin || !user) return;
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/boosts/summary`, {
+      credentials: "include",
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setBoostTrend(data?.revenueTrend ?? []))
+      .catch(() => setBoostTrend([]));
+  }, [esSuperAdmin, user]);
 
   // Unica decision que le toca a la plataforma: aprobar deja el negocio
   // ACTIVE, declinar lo deja INACTIVE (no lo borra, solo no queda publicado).
@@ -547,6 +564,10 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {esSuperAdmin && boostTrend.length > 0 && (
+          <PromoRevenueCard trend={boostTrend} />
+        )}
 
         {(summary.revenueTrend || summary.byCategory) && (
           <div className={styles.chartsRow}>
@@ -1094,6 +1115,148 @@ function DonutChart({
       >
         NEGOCIOS
       </text>
+    </svg>
+  );
+}
+
+// ---------- Tarjeta de ingresos por promocion: linea + area ----------
+
+function PromoRevenueCard({
+  trend,
+}: {
+  trend: { month: string; total: number }[];
+}) {
+  const data = trend.map((r) => ({ label: mesCorto(r.month), value: r.total }));
+
+  return (
+    <div className={`${styles.panel} ${styles.promoCard}`}>
+      <div className={styles.panelHead}>
+        <h3>Ingresos por promoción</h3>
+      </div>
+      <p className={styles.promoSubtitle}>Últimos 6 meses, cobros confirmados</p>
+
+      <LineChart data={data} />
+    </div>
+  );
+}
+
+function LineChart({ data }: { data: { label: string; value: number }[] }) {
+  const width = 640;
+  const height = 220;
+  const padTop = 36;
+  const padBottom = 26;
+  const padLeft = 34;
+  const padRight = 16;
+
+  const plotWidth = width - padLeft - padRight;
+  const plotHeight = height - padTop - padBottom;
+
+  const values = data.map((d) => d.value);
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const range = max - min || 1;
+  // Un poco de aire arriba/abajo del rango real - asi la linea no queda
+  // pegada al techo ni al piso del grafico.
+  const yMax = max + range * 0.25;
+  const yMin = Math.max(0, min - range * 0.25);
+  const ySpan = yMax - yMin || 1;
+
+  const compacto = (v: number) => {
+    if (v >= 1000) return `${Math.round(v / 100) / 10}k`;
+    return `${Math.round(v)}`;
+  };
+
+  if (data.every((d) => d.value === 0)) {
+    return (
+      <div className={styles.emptyState}>Todavía no hay cobros registrados.</div>
+    );
+  }
+
+  const slot = data.length > 1 ? plotWidth / (data.length - 1) : 0;
+
+  const puntos = data.map((d, i) => ({
+    x: padLeft + slot * i,
+    y: padTop + plotHeight * (1 - (d.value - yMin) / ySpan),
+    ...d,
+  }));
+
+  const lineaPath = puntos
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+    .join(" ");
+
+  const baseline = padTop + plotHeight;
+  const areaPath = `${lineaPath} L ${puntos[puntos.length - 1].x} ${baseline} L ${puntos[0].x} ${baseline} Z`;
+
+  const gridSteps = [0, 1 / 3, 2 / 3, 1];
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className={styles.chartSvg}>
+      <defs>
+        <linearGradient id="promoArea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ff7a00" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#ff7a00" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
+      {gridSteps.map((f) => {
+        const y = padTop + plotHeight * (1 - f);
+        return (
+          <g key={f}>
+            <line
+              x1={padLeft}
+              y1={y}
+              x2={width - padRight}
+              y2={y}
+              stroke="#f0ebe3"
+              strokeWidth={1}
+            />
+            <text x={0} y={y + 3} fontSize="10" fill="#b0aaa2">
+              {compacto(yMin + ySpan * f)}
+            </text>
+          </g>
+        );
+      })}
+
+      <path d={areaPath} fill="url(#promoArea)" />
+      <path d={lineaPath} fill="none" stroke="#ff7a00" strokeWidth={2.5} />
+
+      {puntos.map((p, i) => {
+        const esUltimo = i === puntos.length - 1;
+
+        return (
+          <g key={i}>
+            {esUltimo && (
+              <text
+                x={p.x}
+                y={p.y - 16}
+                textAnchor="middle"
+                fontSize="13"
+                fontWeight="800"
+                fill="#c94800"
+              >
+                {compacto(p.value)}
+              </text>
+            )}
+            <circle
+              cx={p.x}
+              cy={p.y}
+              r={esUltimo ? 7 : 4}
+              fill={esUltimo ? "white" : "#ff7a00"}
+              stroke="#ff7a00"
+              strokeWidth={esUltimo ? 3 : 0}
+            />
+            <text
+              x={p.x}
+              y={height - 6}
+              textAnchor="middle"
+              fontSize="11"
+              fill="#a89f93"
+            >
+              {p.label}
+            </text>
+          </g>
+        );
+      })}
     </svg>
   );
 }
