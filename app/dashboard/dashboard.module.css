@@ -386,38 +386,45 @@
   display: block;
 }
 
-/* Distribucion de estado */
-.statusBarTrack {
-  background: #f3f4f6;
-  border-radius: 999px;
-  padding: 3px;
-  margin-bottom: 18px;
-}
-
-.statusBar {
+/* Distribucion de estado: un anillo de progreso por estado, mismo
+   lenguaje visual que el donut de categorias. */
+.statusRings {
   display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 0 4px;
+}
+
+.ringStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.ringIcon {
   width: 100%;
-  height: 12px;
-  gap: 4px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 
-.statusBar > div {
-  border-radius: 999px;
-  transition: width 0.5s ease;
+.ringValue {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-top: 2px;
 }
 
-.segActive {
-  background: linear-gradient(90deg, #04835a, #10b981);
-  box-shadow: 0 1px 3px rgba(4, 131, 90, 0.35);
-}
-
-.segPending {
-  background: linear-gradient(90deg, #ff7a00, #ffab52);
-  box-shadow: 0 1px 3px rgba(255, 122, 0, 0.35);
-}
-
-.segInactive {
-  background: linear-gradient(90deg, #c3c9d1, #dfe3e8);
+.ringLabel {
+  font-size: 11.5px;
+  color: #9a9a9a;
+  text-align: center;
+  max-width: 84px;
+  line-height: 1.25;
 }
 
 .statusLegend {

@@ -455,58 +455,31 @@ export default function DashboardPage() {
               <h3>Estado de los negocios</h3>
             </div>
 
-            <div className={styles.statusBarTrack}>
-              <div className={styles.statusBar}>
-                {activeStores > 0 && (
-                  <div
-                    className={styles.segActive}
-                    style={{ width: `${(activeStores / base) * 100}%` }}
-                  />
-                )}
-                {pendingStores > 0 && (
-                  <div
-                    className={styles.segPending}
-                    style={{ width: `${(pendingStores / base) * 100}%` }}
-                  />
-                )}
-                {inactiveStores > 0 && (
-                  <div
-                    className={styles.segInactive}
-                    style={{ width: `${(inactiveStores / base) * 100}%` }}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className={styles.statusLegend}>
-              <div className={styles.legendRow}>
-                <span
-                  className={styles.dot}
-                  style={{ background: "#059669" }}
-                />
-                <span className={styles.legendLabel}>Activos</span>
-                <span className={styles.legendValue}>{activeStores}</span>
-              </div>
-
-              <div className={styles.legendRow}>
-                <span
-                  className={styles.dot}
-                  style={{ background: "#ff7a00" }}
-                />
-                <span className={styles.legendLabel}>Pendientes</span>
-                <span className={styles.legendValue}>{pendingStores}</span>
-              </div>
-
-              <div className={styles.legendRow}>
-                <span
-                  className={styles.dot}
-                  style={{ background: "#d1d5db" }}
-                />
-                <span className={styles.legendLabel}>
-                  Inactivos / cerrados
-                </span>
-                <span className={styles.legendValue}>{inactiveStores}</span>
-              </div>
+            <div className={styles.statusRings}>
+              <RingStat
+                icon={faCircleCheck}
+                value={activeStores}
+                total={base}
+                label="Activos"
+                color="#059669"
+                colorLight="#34d399"
+              />
+              <RingStat
+                icon={faClock}
+                value={pendingStores}
+                total={base}
+                label="Pendientes"
+                color="#ff7a00"
+                colorLight="#ffb057"
+              />
+              <RingStat
+                icon={faXmark}
+                value={inactiveStores}
+                total={base}
+                label="Inactivos / cerrados"
+                color="#9aa1ab"
+                colorLight="#c7ccd3"
+              />
             </div>
           </div>
         </div>
@@ -584,20 +557,87 @@ export default function DashboardPage() {
   );
 }
 
+// ---------- Anillo individual: participacion de un estado de negocio ----------
+
+function RingStat({
+  icon,
+  value,
+  total,
+  label,
+  color,
+  colorLight,
+}: {
+  icon: typeof faCircleCheck;
+  value: number;
+  total: number;
+  label: string;
+  color: string;
+  colorLight: string;
+}) {
+  const size = 76;
+  const strokeWidth = 8;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const pct = total > 0 ? value / total : 0;
+  const dash = pct * circumference;
+  const gradientId = `ring-${label.replace(/[^a-zA-Z]/g, "")}`;
+
+  return (
+    <div className={styles.ringStat}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={colorLight} />
+            <stop offset="100%" stopColor={color} />
+          </linearGradient>
+        </defs>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#f1f0ed"
+          strokeWidth={strokeWidth}
+        />
+        {value > 0 && (
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={`url(#${gradientId})`}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={`${dash} ${circumference - dash}`}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        )}
+        <foreignObject x={0} y={0} width={size} height={size}>
+          <div className={styles.ringIcon} style={{ color }}>
+            <FontAwesomeIcon icon={icon} />
+          </div>
+        </foreignObject>
+      </svg>
+      <div className={styles.ringValue}>{value}</div>
+      <div className={styles.ringLabel}>{label}</div>
+    </div>
+  );
+}
+
 // ---------- Grafica de barras: ingresos por mes ----------
 
 function BarChart({ data }: { data: { label: string; value: number }[] }) {
   const width = 320;
-  const height = 180;
-  const padTop = 28;
-  const padBottom = 26;
-  const padLeft = 30;
-  const padRight = 6;
+  const height = 230;
+  const padTop = 34;
+  const padBottom = 30;
+  const padLeft = 8;
+  const padRight = 8;
 
   const max = Math.max(...data.map((d) => d.value), 1);
   const plotHeight = height - padTop - padBottom;
   const slot = (width - padLeft - padRight) / (data.length || 1);
-  const barWidth = Math.min(26, slot * 0.5);
+  const barWidth = Math.min(36, slot * 0.62);
 
   const compacto = (v: number) => {
     if (v >= 1000) return `${Math.round(v / 100) / 10}k`;
@@ -615,51 +655,31 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
       <defs>
         <linearGradient id="barActivo" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#ff9a3d" />
-          <stop offset="100%" stopColor="#ff7a00" />
+          <stop offset="100%" stopColor="#ff6a00" />
         </linearGradient>
-        <linearGradient id="barMuted" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffe6c7" />
-          <stop offset="100%" stopColor="#ffd9ab" />
-        </linearGradient>
-        <filter id="barSombra" x="-40%" y="-40%" width="180%" height="180%">
+        <filter id="barSombra" x="-60%" y="-60%" width="220%" height="220%">
           <feDropShadow
             dx="0"
-            dy="2"
-            stdDeviation="2.5"
+            dy="3"
+            stdDeviation="3.5"
             floodColor="#ff7a00"
-            floodOpacity="0.25"
+            floodOpacity="0.3"
           />
         </filter>
       </defs>
 
-      {[0, 0.5, 1].map((f) => {
-        const y = padTop + plotHeight * (1 - f);
-        return (
-          <g key={f}>
-            <line
-              x1={padLeft}
-              y1={y}
-              x2={width - padRight}
-              y2={y}
-              stroke="#eee7de"
-              strokeWidth={1}
-              strokeDasharray="2 4"
-            />
-            <text x={0} y={y + 3} fontSize="8" fill="#b0aaa2">
-              {compacto(max * f)}
-            </text>
-          </g>
-        );
-      })}
-
-      <line
-        x1={padLeft}
-        y1={padTop + plotHeight}
-        x2={width - padRight}
-        y2={padTop + plotHeight}
-        stroke="#e6ddd1"
-        strokeWidth={1}
-      />
+      {[0, 0.5, 1].map((f) => (
+        <line
+          key={f}
+          x1={padLeft}
+          y1={padTop + plotHeight * (1 - f)}
+          x2={width - padRight}
+          y2={padTop + plotHeight * (1 - f)}
+          stroke="#f0ebe3"
+          strokeWidth={1}
+          strokeDasharray={f === 0 ? undefined : "2 4"}
+        />
+      ))}
 
       {data.map((d, i) => {
         const barHeight = max > 0 ? (d.value / max) * plotHeight : 0;
@@ -669,32 +689,31 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
 
         return (
           <g key={i}>
-            {esUltimo && d.value > 0 && (
-              <text
-                x={x + barWidth / 2}
-                y={y - 9}
-                textAnchor="middle"
-                fontSize="10"
-                fontWeight="800"
-                fill="#c94800"
-              >
-                {compacto(d.value)}
-              </text>
-            )}
+            <text
+              x={x + barWidth / 2}
+              y={y - 10}
+              textAnchor="middle"
+              fontSize={esUltimo ? "12" : "9.5"}
+              fontWeight={esUltimo ? 800 : 600}
+              fill={esUltimo ? "#c94800" : "#c2b8ab"}
+            >
+              {compacto(d.value)}
+            </text>
             <rect
               x={x}
               y={y}
               width={barWidth}
-              height={Math.max(barHeight, 2)}
-              rx={7}
-              fill={esUltimo ? "url(#barActivo)" : "url(#barMuted)"}
+              height={Math.max(barHeight, 3)}
+              rx={9}
+              fill="url(#barActivo)"
+              opacity={esUltimo ? 1 : 0.32}
               filter={esUltimo ? "url(#barSombra)" : undefined}
             />
             <text
               x={x + barWidth / 2}
-              y={height - 8}
+              y={height - 10}
               textAnchor="middle"
-              fontSize="9.5"
+              fontSize="11"
               fontWeight={esUltimo ? 700 : 500}
               fill={esUltimo ? "#c94800" : "#a89f93"}
             >
