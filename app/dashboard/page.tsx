@@ -865,7 +865,9 @@ function CategoryCard({
                 <span className={styles.categoryPct} style={{ color }}>
                   {pct}%
                 </span>
-                <span className={styles.categoryCount}>{c.total}</span>
+                <span className={styles.categoryCount} style={{ color }}>
+                  {c.total}
+                </span>
               </div>
             );
           })}
