@@ -20,6 +20,7 @@ import Toast from "@/app/components/components-items/toast/toast";
 import DFInput from "@/app/components/components-items/input";
 import Dropdown from "@/app/components/components-items/dropdown";
 import { useAuth } from "@/app/hooks/useAuth";
+import LoadingDots from "@/app/components/components-items/loading-dots/loading-dots";
 
 type StoreCategory = {
   id: string;
@@ -117,6 +118,10 @@ export default function EditStorePage({
   const [errors, setErrors] = useState<FormErrors>({});
   const [subiendoBanner, setSubiendoBanner] = useState(false);
   const [bannerError, setBannerError] = useState("");
+  // El banner que ya trae la tienda se muestra de una vez (no hace falta
+  // esperar); solo una subida NUEVA reinicia esto a false hasta que el
+  // navegador termine de bajar la imagen reemplazada.
+  const [imagenCargada, setImagenCargada] = useState(true);
 
   const [toast, setToast] = useState<{
     message: string;
@@ -223,6 +228,7 @@ export default function EditStorePage({
   const subirBanner = async (file: File) => {
     setSubiendoBanner(true);
     setBannerError("");
+    setImagenCargada(false);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -382,16 +388,33 @@ export default function EditStorePage({
                 form.bannerUrl ? styles.bannerPreview : styles.bannerPlaceholder
               }
             >
-              {form.bannerUrl ? (
+              {form.bannerUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={form.bannerUrl} alt="Banner del negocio" />
-              ) : (
+                <img
+                  src={form.bannerUrl}
+                  alt="Banner del negocio"
+                  style={{ opacity: imagenCargada ? 1 : 0 }}
+                  onLoad={() => setImagenCargada(true)}
+                />
+              )}
+
+              {(subiendoBanner || (form.bannerUrl && !imagenCargada)) && (
+                <div className={styles.bannerLoadingOverlay}>
+                  <LoadingDots size="sm" />
+                </div>
+              )}
+
+              {!subiendoBanner && !form.bannerUrl && (
                 <FontAwesomeIcon icon={faCamera} />
               )}
             </div>
 
             <label className={styles.uploadBtn}>
-              <FontAwesomeIcon icon={faCamera} />
+              {subiendoBanner ? (
+                <LoadingDots size="sm" />
+              ) : (
+                <FontAwesomeIcon icon={faCamera} />
+              )}
               {subiendoBanner
                 ? "Subiendo..."
                 : form.bannerUrl

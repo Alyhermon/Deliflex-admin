@@ -16,6 +16,7 @@ import {
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRegisterBusiness } from "../RegisterBusinessContext";
+import LoadingDots from "../../../components/components-items/loading-dots/loading-dots";
 
 type Category = { id: string; category_name: string };
 
@@ -26,6 +27,10 @@ export default function InformationPage() {
   const [ubicacionError, setUbicacionError] = useState("");
   const [subiendoBanner, setSubiendoBanner] = useState(false);
   const [bannerError, setBannerError] = useState("");
+  // Entre que ya tenemos la URL subida y que el <img> de verdad termino de
+  // bajar los pixeles hay un hueco donde antes se veia en blanco - se
+  // considera "cargada" recien cuando el navegador dispara onLoad.
+  const [imagenCargada, setImagenCargada] = useState(false);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/register-business/categories`)
@@ -44,6 +49,7 @@ export default function InformationPage() {
   const subirBanner = async (file: File) => {
     setSubiendoBanner(true);
     setBannerError("");
+    setImagenCargada(false);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -110,17 +116,34 @@ export default function InformationPage() {
                     : styles.bannerPlaceholder
                 }
               >
-                {form.bannerUrl ? (
+                {form.bannerUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={form.bannerUrl} alt="Banner del negocio" />
-                ) : (
+                  <img
+                    src={form.bannerUrl}
+                    alt="Banner del negocio"
+                    style={{ opacity: imagenCargada ? 1 : 0 }}
+                    onLoad={() => setImagenCargada(true)}
+                  />
+                )}
+
+                {(subiendoBanner || (form.bannerUrl && !imagenCargada)) && (
+                  <div className={styles.bannerLoadingOverlay}>
+                    <LoadingDots size="sm" />
+                  </div>
+                )}
+
+                {!subiendoBanner && !form.bannerUrl && (
                   <FontAwesomeIcon icon={faCamera} />
                 )}
               </div>
 
               <div className={styles.bannerActions}>
                 <label className={styles.uploadBtn}>
-                  <FontAwesomeIcon icon={faCamera} />
+                  {subiendoBanner ? (
+                    <LoadingDots size="sm" />
+                  ) : (
+                    <FontAwesomeIcon icon={faCamera} />
+                  )}
                   {subiendoBanner
                     ? "Subiendo..."
                     : form.bannerUrl
