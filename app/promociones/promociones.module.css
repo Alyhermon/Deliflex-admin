@@ -181,6 +181,52 @@
   margin-top: 3px;
 }
 
+/* ---- Tabs ---- */
+.tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 24px;
+}
+
+.tab {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 12px 4px;
+  font-size: 14px;
+  color: #777;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.tab:hover {
+  color: #ff6a00;
+}
+
+.tabActive {
+  color: #ff6a00;
+  font-weight: 600;
+}
+
+.tabIndicator {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: #ff6a00;
+  transition: width 0.3s ease;
+}
+
+.tab:hover .tabIndicator {
+  width: 100%;
+}
+
+.tabActive .tabIndicator {
+  width: 100%;
+}
+
 /* ---- Secciones ---- */
 .section {
   margin-bottom: 28px;

@@ -254,6 +254,7 @@ function SuperAdminBoostsView() {
   const [plans, setPlans] = useState<BoostPlan[]>([]);
   const [boosts, setBoosts] = useState<StoreBoost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"plans" | "boosts">("plans");
   const [filtro, setFiltro] = useState<"TODOS" | StoreBoost["status"]>("TODOS");
   const [actingId, setActingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{
@@ -536,6 +537,28 @@ function SuperAdminBoostsView() {
           </div>
         </div>
 
+        <div className={styles.tabs}>
+          <button
+            onClick={() => setActiveTab("plans")}
+            className={`${styles.tab} ${
+              activeTab === "plans" ? styles.tabActive : ""
+            }`}
+          >
+            Planes de promoción
+            <span className={styles.tabIndicator} />
+          </button>
+          <button
+            onClick={() => setActiveTab("boosts")}
+            className={`${styles.tab} ${
+              activeTab === "boosts" ? styles.tabActive : ""
+            }`}
+          >
+            Negocios con promoción
+            <span className={styles.tabIndicator} />
+          </button>
+        </div>
+
+        {activeTab === "plans" && (
         <div className={styles.section}>
           <div className={styles.sectionHead}>
             <div>
@@ -614,7 +637,9 @@ function SuperAdminBoostsView() {
             </div>
           </div>
         </div>
+        )}
 
+        {activeTab === "boosts" && (
         <div className={styles.section}>
           <div className={styles.sectionHead}>
             <div>
@@ -795,6 +820,7 @@ function SuperAdminBoostsView() {
             )}
           </div>
         </div>
+        )}
       </div>
 
       <PlanFormModal

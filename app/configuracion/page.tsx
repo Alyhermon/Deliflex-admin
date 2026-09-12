@@ -26,7 +26,7 @@ const ROL_PLATAFORMA: Record<number, string> = {
 };
 
 const ROL_NEGOCIO: Record<number, string> = {
-  90: "Dueño",
+  90: "Propietario",
   80: "Gerente General",
   70: "Supervisor",
   60: "Cajero",
@@ -259,6 +259,7 @@ export default function ConfiguracionPage() {
               <DFInput
                 label="Contraseña actual"
                 type="password"
+                placeholder="Ingresa tu contraseña actual"
                 value={currentPassword}
                 onChange={(e) => {
                   setCurrentPassword(e.target.value);
@@ -271,6 +272,7 @@ export default function ConfiguracionPage() {
               <DFInput
                 label="Nueva contraseña"
                 type="password"
+                placeholder="Mínimo 6 caracteres"
                 value={newPassword}
                 onChange={(e) => {
                   setNewPassword(e.target.value);
@@ -283,6 +285,7 @@ export default function ConfiguracionPage() {
               <DFInput
                 label="Confirmar nueva contraseña"
                 type="password"
+                placeholder="Repite la nueva contraseña"
                 value={confirmPassword}
                 onChange={(e) => {
                   setConfirmPassword(e.target.value);
