@@ -13,11 +13,14 @@ import InventoryScreen from "../../inventory/[storeId]/InventoryScreen";
 import FinanceScreen from "../../finanzas/[storeId]/FinanceScreen";
 import OrderTab from "./store-tabs/orders/orders";
 import { isStoreOpenNow, ScheduleRow } from "./schedule-utils";
+import { useAuth, getRoleForStore } from "../../hooks/useAuth";
+import Toast from "../../components/components-items/toast/toast";
 
 type TabKey = "resumen" | "inventario" | "menu" | "pedidos" | "finanzas";
 
 export default function StoreDetailPage({ id }: { id: string }) {
   const router = useRouter();
+  const { user } = useAuth();
 
   const [store, setStore] = useState<{
     id: string;
@@ -31,10 +34,46 @@ export default function StoreDetailPage({ id }: { id: string }) {
 
   const [activeTab, setActiveTab] = useState<TabKey>("resumen");
   const [loading, setLoading] = useState(true);
+  const [enviando, setEnviando] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "danger";
+  } | null>(null);
   // null = todavia no se sabe / sin horarios guardados -> se usa store.status.
   const [abiertoPorHorario, setAbiertoPorHorario] = useState<boolean | null>(
     null,
   );
+
+  // Solo quien dirige este negocio (Gerente General, dueno, o super admin)
+  // puede enviarlo a revision - un Cajero/Supervisor no deberia poder.
+  const rolEnEsteNegocio = getRoleForStore(user, id);
+  const puedeEnviarAAprobacion = (rolEnEsteNegocio ?? 0) >= 80;
+
+  const enviarAAprobacion = async () => {
+    setEnviando(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/register-business/store/${id}/submit-for-approval`,
+        { method: "PATCH", credentials: "include" },
+      );
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "No se pudo enviar");
+
+      setStore((prev) => (prev ? { ...prev, status: data.status } : prev));
+      setToast({
+        message: "Negocio enviado a revisión. Te avisaremos cuando se apruebe.",
+        type: "success",
+      });
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "No se pudo enviar",
+        type: "danger",
+      });
+    } finally {
+      setEnviando(false);
+    }
+  };
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: "resumen", label: "Resumen" },
@@ -159,6 +198,27 @@ export default function StoreDetailPage({ id }: { id: string }) {
           </div>
         </div>
 
+        {store.status === "DRAFT" && (
+          <div className={styles.draftBanner}>
+            <div>
+              <strong>Este negocio está en borrador.</strong>
+              <p>
+                Termina de armar tu menú y tus productos, y cuando esté listo
+                envíalo a revisión para que el super administrador lo apruebe.
+              </p>
+            </div>
+            {puedeEnviarAAprobacion && (
+              <button
+                className={styles.draftBtn}
+                onClick={enviarAAprobacion}
+                disabled={enviando}
+              >
+                {enviando ? "Enviando..." : "Enviar a aprobación"}
+              </button>
+            )}
+          </div>
+        )}
+
         <div className={styles.tabs}>
           {tabs.map((tab) => (
             <button
@@ -175,6 +235,14 @@ export default function StoreDetailPage({ id }: { id: string }) {
         </div>
         <div className={styles.tabContent}>{TAB_COMPONENTS[activeTab]}</div>
       </div>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </AdminLayout>
   );
 }

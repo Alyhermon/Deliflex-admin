@@ -33,6 +33,11 @@ const STATUS_META: Record<
   string,
   { label: string; badge: string; dot: string }
 > = {
+  DRAFT: {
+    label: "Borrador",
+    badge: "statusDraft",
+    dot: "dotDraft",
+  },
   PENDING_APPROVAL: {
     label: "Pendiente",
     badge: "pending",
@@ -46,6 +51,7 @@ const STATUS_META: Record<
 
 // Orden en que se muestran en el select de filtro.
 const STATUS_FILTROS = [
+  "DRAFT",
   "PENDING_APPROVAL",
   "ACTIVE",
   "CLOSED",
