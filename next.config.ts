@@ -29,8 +29,9 @@ const nextConfig: NextConfig = {
       "www.pngkey.com",
       "example.com",
       "www.azulweb.net",
-      "qiokcjzdqqsgapgqlnlu.supabase.co"
-    ], // 🔥 permite imágenes desde tu backend
+      "qiokcjzdqqsgapgqlnlu.supabase.co",
+      "ytolwcgqsuuqrttugrop.supabase.co"
+    ], // 🔥 permite imágenes desde tu backend (dev y produccion)
   },
 };
 
