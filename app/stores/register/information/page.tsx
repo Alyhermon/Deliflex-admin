@@ -6,12 +6,14 @@ import DFInput from "../../../components/components-items/input";
 import Dropdown from "../../../components/components-items/dropdown";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faCamera,
   faContactBook,
   faEnvelope,
   faIdCard,
   faLocationCrosshairs,
   faShop,
   faStore,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRegisterBusiness } from "../RegisterBusinessContext";
 
@@ -22,6 +24,8 @@ export default function InformationPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [ubicando, setUbicando] = useState(false);
   const [ubicacionError, setUbicacionError] = useState("");
+  const [subiendoBanner, setSubiendoBanner] = useState(false);
+  const [bannerError, setBannerError] = useState("");
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/register-business/categories`)
@@ -35,6 +39,29 @@ export default function InformationPage() {
   const handleCategoryChange = (label: string) => {
     const found = categories.find((c) => c.category_name === label);
     update({ categoryLabel: label, categoryId: found?.id ?? "" });
+  };
+
+  const subirBanner = async (file: File) => {
+    setSubiendoBanner(true);
+    setBannerError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "Banner-business");
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error);
+
+      update({ bannerUrl: data.url });
+    } catch (err) {
+      setBannerError(
+        err instanceof Error ? err.message : "No se pudo subir la imagen",
+      );
+    } finally {
+      setSubiendoBanner(false);
+    }
   };
 
   const usarUbicacionActual = () => {
@@ -67,6 +94,67 @@ export default function InformationPage() {
         <h1 className={styles.title}>Crear Negocio</h1>
 
         <div className={styles.form}>
+          {/* SECCIÓN 0: banner */}
+          <div className={styles.section}>
+            <h2>Foto del negocio</h2>
+            <p className={styles.hint}>
+              Esta es la imagen que representará tu negocio en la app (portada
+              en la lista de negocios).
+            </p>
+
+            <div className={styles.bannerRow}>
+              <div
+                className={
+                  form.bannerUrl
+                    ? styles.bannerPreview
+                    : styles.bannerPlaceholder
+                }
+              >
+                {form.bannerUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={form.bannerUrl} alt="Banner del negocio" />
+                ) : (
+                  <FontAwesomeIcon icon={faCamera} />
+                )}
+              </div>
+
+              <div className={styles.bannerActions}>
+                <label className={styles.uploadBtn}>
+                  <FontAwesomeIcon icon={faCamera} />
+                  {subiendoBanner
+                    ? "Subiendo..."
+                    : form.bannerUrl
+                      ? "Cambiar foto"
+                      : "Subir foto del negocio"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    disabled={subiendoBanner}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) subirBanner(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+
+                {form.bannerUrl && (
+                  <button
+                    type="button"
+                    className={styles.removeBannerBtn}
+                    onClick={() => update({ bannerUrl: "" })}
+                  >
+                    <FontAwesomeIcon icon={faTrash} /> Quitar
+                  </button>
+                )}
+              </div>
+            </div>
+            {bannerError && (
+              <span className={styles.errorText}>{bannerError}</span>
+            )}
+          </div>
+
           {/* SECCIÓN 1 */}
           <div className={styles.section}>
             <h2>Información básica</h2>

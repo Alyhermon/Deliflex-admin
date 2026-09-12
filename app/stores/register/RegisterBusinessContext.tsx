@@ -55,6 +55,7 @@ export type RegisterBusinessForm = {
   isStreetLocation: boolean;
   latitude: number | null;
   longitude: number | null;
+  bannerUrl: string;
 
   // Horarios
   sameHoursAllDays: boolean;
@@ -85,6 +86,7 @@ const FORM_INICIAL: RegisterBusinessForm = {
   isStreetLocation: false,
   latitude: null,
   longitude: null,
+  bannerUrl: "",
 
   sameHoursAllDays: true,
   genericOpenTime: "9:00 AM",

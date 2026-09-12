@@ -98,6 +98,10 @@ export default function ConfirmationPage() {
       setError("Falta la ubicación del negocio (paso Información)");
       return;
     }
+    if (!form.bannerUrl) {
+      setError("Falta la foto del negocio (paso Información)");
+      return;
+    }
 
     setEnviando(true);
 
@@ -123,6 +127,7 @@ export default function ConfirmationPage() {
             storeAddress: form.storeAddress,
             slug: slugify(form.nameBusisness) || `negocio-${Date.now()}`,
             isStreetLocation: form.isStreetLocation,
+            bannerUrl: form.bannerUrl,
             documents: form.documents.map((d) => ({
               documentType: d.documentType,
               documentUrl: d.documentUrl,
@@ -163,6 +168,11 @@ export default function ConfirmationPage() {
         <p className={styles.subtitle}>
           Revisa todo antes de enviarlo a aprobación.
         </p>
+
+        {form.bannerUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={form.bannerUrl} alt="Banner del negocio" className={styles.bannerPreview} />
+        )}
 
         <div className={styles.summaryGrid}>
           <div className={styles.summaryBlock}>

@@ -50,6 +50,10 @@ function CreateLayoutInner({ children }: { children: React.ReactNode }) {
         );
         return;
       }
+      if (!form.bannerUrl) {
+        setError("Sube una foto del negocio antes de continuar");
+        return;
+      }
     }
 
     if (stepIndex < steps.length - 1) {
