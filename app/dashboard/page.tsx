@@ -14,12 +14,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faShop,
   faCircleCheck,
+  faCircleXmark,
   faClock,
   faBoxOpen,
   faTags,
   faArrowRight,
-  faCheck,
-  faXmark,
   faSackDollar,
   faStar,
   faReceipt,
@@ -467,7 +466,7 @@ export default function DashboardPage() {
                         onClick={() => decidirNegocio(store.id, "INACTIVE")}
                         title="Declinar negocio"
                       >
-                        <FontAwesomeIcon icon={faXmark} /> Declinar
+                        <FontAwesomeIcon icon={faCircleXmark} />
                       </button>
                       <button
                         type="button"
@@ -476,7 +475,7 @@ export default function DashboardPage() {
                         onClick={() => decidirNegocio(store.id, "ACTIVE")}
                         title="Aprobar negocio"
                       >
-                        <FontAwesomeIcon icon={faCheck} /> Aprobar
+                        <FontAwesomeIcon icon={faCircleCheck} />
                       </button>
                     </div>
                   </div>
@@ -521,7 +520,7 @@ export default function DashboardPage() {
               <div className={styles.statusLegendItem}>
                 <span
                   className={styles.categoryCount}
-                  style={{ color: "#059669", width: 26, height: 26, fontSize: 11 }}
+                  style={{ color: "#2da44e", width: 26, height: 26, fontSize: 11 }}
                 >
                   {activeStores}
                 </span>
