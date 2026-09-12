@@ -68,7 +68,18 @@ export function ActiveStoreProvider({ children }: { children: ReactNode }) {
       try {
         const res = await fetch(url, { credentials: "include" });
         const data = await res.json();
-        setStores(Array.isArray(data) ? data : []);
+        const lista = Array.isArray(data) ? data : [];
+
+        // Un negocio pendiente de aprobacion ya se ve en "Negocios" (como
+        // tarjeta deshabilitada), pero no tiene sentido dejarlo elegible
+        // aqui - el selector del sidebar es para trabajar dentro de un
+        // negocio (inventario, menu, pedidos...), y eso sigue bloqueado
+        // hasta que el super admin lo apruebe.
+        setStores(
+          esSuperAdmin
+            ? lista
+            : lista.filter((s: { status?: string }) => s.status !== "PENDING_APPROVAL"),
+        );
       } catch (error) {
         console.error(error);
       } finally {
