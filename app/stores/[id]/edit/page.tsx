@@ -17,6 +17,9 @@ import Breadcrumb from "../../../components/components-items/breadcrumb/breadcru
 import TimePicker from "@/app/components/components-items/timepicker";
 import DFCheckbox from "@/app/components/components-items/checkbox/checkbox";
 import Toast from "@/app/components/components-items/toast/toast";
+import DFInput from "@/app/components/components-items/input";
+import Dropdown from "@/app/components/components-items/dropdown";
+import { useAuth } from "@/app/hooks/useAuth";
 
 type StoreCategory = {
   id: string;
@@ -40,6 +43,7 @@ type EditForm = {
   storeAddress: string;
   storePhone: string;
   storeEmail: string;
+  categoryId: string;
   categoryName: string;
   isStreetLocation: boolean;
   bannerUrl: string;
@@ -97,6 +101,12 @@ export default function EditStorePage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { user } = useAuth();
+
+  // Los datos de la plantilla del cliente (nombre, cedula, categoria,
+  // direccion, etc.) solo el super admin puede corregirlos aqui; cualquier
+  // otro rol los ve de solo lectura, igual que antes.
+  const esSuperAdmin = Number(user?.global_role_id ?? 0) >= 100;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -123,6 +133,7 @@ export default function EditStorePage({
     storeAddress: "",
     storePhone: "",
     storeEmail: "",
+    categoryId: "",
     categoryName: "",
     isStreetLocation: false,
     bannerUrl: "",
@@ -166,6 +177,7 @@ export default function EditStorePage({
           storeAddress: datos.address ?? "",
           storePhone: datos.store_phone ?? "",
           storeEmail: datos.store_email ?? "",
+          categoryId: datos.category_id ?? "",
           categoryName: datos.category_name ?? "",
           isStreetLocation: Boolean(datos.is_street_location),
           bannerUrl: datos.banner_url ?? "",
@@ -253,6 +265,10 @@ export default function EditStorePage({
       nextErrors.horarios = `En ${DIAS[invalido.dayOfWeek]} la apertura debe ser antes del cierre`;
     }
 
+    if (esSuperAdmin && !/^\d{9}$|^\d{11}$/.test(form.taxId)) {
+      nextErrors.taxId = "La cédula (11 dígitos) o el RNC (9 dígitos) es obligatorio";
+    }
+
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) return;
@@ -266,10 +282,22 @@ export default function EditStorePage({
           credentials: "include",
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          // El resto de los campos es de solo lectura salvo el banner: el
-          // backend usa COALESCE, asi que lo que no se manda se queda como esta.
+          // El resto de los campos solo el super admin puede corregirlos - el
+          // backend los ignora si quien llama no lo es. COALESCE del lado del
+          // servidor hace que lo que no se manda se quede como esta.
           body: JSON.stringify({
             bannerUrl: form.bannerUrl || undefined,
+            nameBusisness: esSuperAdmin ? form.nameBusisness : undefined,
+            email: esSuperAdmin ? form.email : undefined,
+            phoneBusiness: esSuperAdmin ? form.phoneBusiness : undefined,
+            taxId: esSuperAdmin ? form.taxId : undefined,
+            storeName: esSuperAdmin ? form.storeName : undefined,
+            description: esSuperAdmin ? form.description : undefined,
+            storeAddress: esSuperAdmin ? form.storeAddress : undefined,
+            storePhone: esSuperAdmin ? form.storePhone : undefined,
+            storeEmail: esSuperAdmin ? form.storeEmail : undefined,
+            categoryId: esSuperAdmin ? form.categoryId || undefined : undefined,
+            isStreetLocation: esSuperAdmin ? form.isStreetLocation : undefined,
             schedules: horarios.map((h) => ({
               dayOfWeek: h.dayOfWeek,
               openTime: h.isClosed ? undefined : h.openTime,
@@ -393,36 +421,79 @@ export default function EditStorePage({
               <FontAwesomeIcon icon={faStore} />
             </span>
             <h3>Datos del negocio</h3>
-            <span className={styles.lockPill}>
-              <FontAwesomeIcon icon={faLock} /> Solo lectura
-            </span>
+            {!esSuperAdmin && (
+              <span className={styles.lockPill}>
+                <FontAwesomeIcon icon={faLock} /> Solo lectura
+              </span>
+            )}
           </div>
           <p className={styles.sectionDesc}>
-            Vienen de la plantilla que envia el cliente. Para cambiarlos hay que
-            corregirlos en el registro del negocio.
+            {esSuperAdmin
+              ? "Como super administradora puedes corregir estos datos directamente."
+              : "Vienen de la plantilla que envia el cliente. Para cambiarlos hay que corregirlos en el registro del negocio."}
           </p>
 
-          <div className={styles.datos}>
-            <div className={styles.dato}>
-              <span className={styles.label}>Nombre del negocio</span>
-              <strong>{form.nameBusisness || "—"}</strong>
-            </div>
+          {esSuperAdmin ? (
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <span className={styles.label}>Nombre del negocio</span>
+                <DFInput
+                  value={form.nameBusisness}
+                  onChange={(e) => handleChange("nameBusisness", e.target.value)}
+                />
+              </div>
 
-            <div className={styles.dato}>
-              <span className={styles.label}>RNC o cedula</span>
-              <strong>{form.taxId || "—"}</strong>
-            </div>
+              <div className={styles.field}>
+                <span className={styles.label}>RNC o cedula</span>
+                <DFInput
+                  value={form.taxId}
+                  maxLength={11}
+                  onChange={(e) =>
+                    handleChange("taxId", e.target.value.replace(/\D/g, ""))
+                  }
+                  error={errors.taxId}
+                />
+              </div>
 
-            <div className={styles.dato}>
-              <span className={styles.label}>Correo de contacto</span>
-              <strong>{form.email || "—"}</strong>
-            </div>
+              <div className={styles.field}>
+                <span className={styles.label}>Correo de contacto</span>
+                <DFInput
+                  value={form.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                />
+              </div>
 
-            <div className={styles.dato}>
-              <span className={styles.label}>Telefono de contacto</span>
-              <strong>{form.phoneBusiness || "—"}</strong>
+              <div className={styles.field}>
+                <span className={styles.label}>Telefono de contacto</span>
+                <DFInput
+                  value={form.phoneBusiness}
+                  onChange={(e) => handleChange("phoneBusiness", e.target.value)}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className={styles.datos}>
+              <div className={styles.dato}>
+                <span className={styles.label}>Nombre del negocio</span>
+                <strong>{form.nameBusisness || "—"}</strong>
+              </div>
+
+              <div className={styles.dato}>
+                <span className={styles.label}>RNC o cedula</span>
+                <strong>{form.taxId || "—"}</strong>
+              </div>
+
+              <div className={styles.dato}>
+                <span className={styles.label}>Correo de contacto</span>
+                <strong>{form.email || "—"}</strong>
+              </div>
+
+              <div className={styles.dato}>
+                <span className={styles.label}>Telefono de contacto</span>
+                <strong>{form.phoneBusiness || "—"}</strong>
+              </div>
+            </div>
+          )}
         </section>
 
         <section className={styles.section}>
@@ -431,50 +502,124 @@ export default function EditStorePage({
               <FontAwesomeIcon icon={faLocationDot} />
             </span>
             <h3>Datos de la sucursal</h3>
-            <span className={styles.lockPill}>
-              <FontAwesomeIcon icon={faLock} /> Solo lectura
-            </span>
+            {!esSuperAdmin && (
+              <span className={styles.lockPill}>
+                <FontAwesomeIcon icon={faLock} /> Solo lectura
+              </span>
+            )}
           </div>
           <p className={styles.sectionDesc}>
-            Lo que ven tus clientes en la app.
+            {esSuperAdmin
+              ? "Lo que ven tus clientes en la app."
+              : "Lo que ven tus clientes en la app. Solo el super administrador puede corregirlo."}
           </p>
 
-          <div className={styles.datos}>
-            <div className={styles.dato}>
-              <span className={styles.label}>Nombre de la sucursal</span>
-              <strong>{form.storeName || "—"}</strong>
-            </div>
+          {esSuperAdmin ? (
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <span className={styles.label}>Nombre de la sucursal</span>
+                <DFInput
+                  value={form.storeName}
+                  onChange={(e) => handleChange("storeName", e.target.value)}
+                />
+              </div>
 
-            <div className={styles.dato}>
-              <span className={styles.label}>Categoria</span>
-              <strong>{form.categoryName || "Sin categoria"}</strong>
-            </div>
+              <div className={styles.field}>
+                <span className={styles.label}>Categoria</span>
+                <Dropdown
+                  options={categories.map((c) => c.category_name)}
+                  value={form.categoryName}
+                  onChange={(label) => {
+                    const found = categories.find((c) => c.category_name === label);
+                    setForm((prev) => ({
+                      ...prev,
+                      categoryName: label,
+                      categoryId: found?.id ?? "",
+                    }));
+                  }}
+                  fullWidth
+                />
+              </div>
 
-            <div className={styles.dato}>
-              <span className={styles.label}>Direccion</span>
-              <strong>{form.storeAddress || "—"}</strong>
-            </div>
+              <div className={styles.field}>
+                <span className={styles.label}>Direccion</span>
+                <DFInput
+                  value={form.storeAddress}
+                  onChange={(e) => handleChange("storeAddress", e.target.value)}
+                />
+              </div>
 
-            <div className={styles.dato}>
-              <span className={styles.label}>Local a la calle</span>
-              <strong>{form.isStreetLocation ? "Si" : "No"}</strong>
-            </div>
+              <div className={styles.field}>
+                <span className={styles.label}>Telefono de la sucursal</span>
+                <DFInput
+                  value={form.storePhone}
+                  onChange={(e) => handleChange("storePhone", e.target.value)}
+                />
+              </div>
 
-            <div className={styles.dato}>
-              <span className={styles.label}>Telefono de la sucursal</span>
-              <strong>{form.storePhone || "—"}</strong>
-            </div>
+              <div className={styles.field}>
+                <span className={styles.label}>Correo de la sucursal</span>
+                <DFInput
+                  value={form.storeEmail}
+                  onChange={(e) => handleChange("storeEmail", e.target.value)}
+                />
+              </div>
 
-            <div className={styles.dato}>
-              <span className={styles.label}>Correo de la sucursal</span>
-              <strong>{form.storeEmail || "—"}</strong>
-            </div>
+              <div className={styles.field}>
+                <DFCheckbox
+                  label="Local a la calle"
+                  checked={form.isStreetLocation}
+                  onChange={(checked) => handleChange("isStreetLocation", checked)}
+                />
+              </div>
 
-            <div className={styles.datoAncho}>
-              <span className={styles.label}>Descripcion</span>
-              <strong>{form.description || "—"}</strong>
+              <div className={styles.fieldAncho}>
+                <span className={styles.label}>Descripcion</span>
+                <textarea
+                  className={styles.textarea}
+                  value={form.description}
+                  onChange={(e) => handleChange("description", e.target.value)}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className={styles.datos}>
+              <div className={styles.dato}>
+                <span className={styles.label}>Nombre de la sucursal</span>
+                <strong>{form.storeName || "—"}</strong>
+              </div>
+
+              <div className={styles.dato}>
+                <span className={styles.label}>Categoria</span>
+                <strong>{form.categoryName || "Sin categoria"}</strong>
+              </div>
+
+              <div className={styles.dato}>
+                <span className={styles.label}>Direccion</span>
+                <strong>{form.storeAddress || "—"}</strong>
+              </div>
+
+              <div className={styles.dato}>
+                <span className={styles.label}>Local a la calle</span>
+                <strong>{form.isStreetLocation ? "Si" : "No"}</strong>
+              </div>
+
+              <div className={styles.dato}>
+                <span className={styles.label}>Telefono de la sucursal</span>
+                <strong>{form.storePhone || "—"}</strong>
+              </div>
+
+              <div className={styles.dato}>
+                <span className={styles.label}>Correo de la sucursal</span>
+                <strong>{form.storeEmail || "—"}</strong>
+              </div>
+
+              <div className={styles.datoAncho}>
+                <span className={styles.label}>Descripcion</span>
+                <strong>{form.description || "—"}</strong>
+              </div>
+            </div>
+          )}
         </section>
 
         <section className={styles.section}>
