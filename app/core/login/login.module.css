@@ -94,7 +94,7 @@
 
 .illustrationImg {
   object-fit: contain;
-  object-position: bottom;
+  object-position: center;
 }
 
 @media (max-width: 900px) {
