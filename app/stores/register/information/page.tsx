@@ -200,9 +200,13 @@ export default function InformationPage() {
                   options={categoryOptions}
                   value={form.categoryLabel}
                   onChange={handleCategoryChange}
-                  placeholder="Tipo de negocio"
+                  placeholder="Tipo de negocio *"
                   fullWidth
                 />
+                <span className={styles.hint}>
+                  ¿No hay una categoría parecida a tu negocio? Contacta a
+                  soporte al cliente.
+                </span>
 
                 <span className={styles.hint}>
                   La cédula (11 dígitos) o el RNC (9 dígitos) del negocio.

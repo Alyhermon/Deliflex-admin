@@ -94,6 +94,10 @@ export default function ConfirmationPage() {
       setError("La cédula/RNC debe tener 9 u 11 dígitos (paso Información)");
       return;
     }
+    if (!form.categoryId) {
+      setError("Falta seleccionar la categoría del negocio (paso Información)");
+      return;
+    }
     if (form.latitude == null || form.longitude == null) {
       setError("Falta la ubicación del negocio (paso Información)");
       return;

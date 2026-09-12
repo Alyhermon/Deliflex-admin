@@ -335,10 +335,6 @@ export default function EditStorePage({
 
         <div className={styles.header}>
           <h1>Editar negocio</h1>
-          <p>
-            Ajusta la foto y los horarios de {form.storeName || "tu negocio"}.
-            El resto de los datos llega desde la plantilla del cliente.
-          </p>
         </div>
 
         <section className={styles.section}>

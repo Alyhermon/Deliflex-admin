@@ -40,6 +40,10 @@ function CreateLayoutInner({ children }: { children: React.ReactNode }) {
         setError("La cédula (11 dígitos) o el RNC (9 dígitos) es obligatorio");
         return;
       }
+      if (!form.categoryId) {
+        setError("Selecciona una categoría para tu negocio");
+        return;
+      }
       if (!form.storeAddress.trim()) {
         setError("Escribe la dirección del negocio");
         return;
