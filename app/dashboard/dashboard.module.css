@@ -228,6 +228,142 @@
   flex-shrink: 0;
 }
 
+/* ---- Tarjeta de ingresos ---- */
+.revenueHead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.revenueHeadIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #fff1e2, #ffe1c2);
+  color: #ff7a00;
+}
+
+.revenueHeadTitles {
+  flex: 1;
+  min-width: 0;
+}
+
+.revenueHeadTitles h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.revenueHeadTitles p {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: #9a9a9a;
+}
+
+.revenueYearPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff1e2;
+  color: #4a4038;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.revenueFooter {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff8f1, #fff1e2);
+}
+
+.revenueStat {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.revenueStat > div {
+  min-width: 0;
+}
+
+.revenueDelta {
+  white-space: nowrap;
+}
+
+.revenueStatIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.revenueStatIconOrange {
+  background: #ffe1c2;
+  color: #ff7a00;
+}
+
+.revenueStatIconGreen {
+  background: #d3f5df;
+  color: #059669;
+}
+
+.revenueStatIconRed {
+  background: #fbdada;
+  color: #e53935;
+}
+
+.revenueStatLabel {
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
+.revenueStatValue {
+  font-size: 19px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-top: 1px;
+}
+
+.revenueDelta {
+  font-size: 19px;
+  font-weight: 800;
+  margin-bottom: 1px;
+}
+
+.revenueDeltaUp {
+  color: #059669;
+}
+
+.revenueDeltaDown {
+  color: #e53935;
+}
+
+.revenueDivider {
+  width: 1px;
+  align-self: stretch;
+  background: #ecd9c4;
+}
+
 .panel {
   background: white;
   border-radius: 14px;
@@ -504,5 +640,18 @@
   .statsHighlights,
   .statsGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .revenueFooter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .revenueDivider {
+    width: 100%;
+    height: 1px;
   }
 }

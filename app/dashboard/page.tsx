@@ -25,6 +25,10 @@ import {
   faReceipt,
   faTicket,
   faUsers,
+  faArrowTrendUp,
+  faArrowTrendDown,
+  faChevronDown,
+  faChartColumn,
 } from "@fortawesome/free-solid-svg-icons";
 
 type PendingStore = {
@@ -486,17 +490,8 @@ export default function DashboardPage() {
 
         {(summary.revenueTrend || summary.byCategory) && (
           <div className={styles.chartsRow}>
-            <div className={`${styles.panel} ${styles.chartPanel}`}>
-              <div className={styles.panelHead}>
-                <h3>Ingresos mensuales</h3>
-              </div>
-              <BarChart
-                data={(summary.revenueTrend ?? []).map((r) => ({
-                  label: mesCorto(r.month),
-                  value: r.total,
-                }))}
-              />
-            </div>
+            <RevenueCard trend={summary.revenueTrend ?? []} />
+
 
             <div className={`${styles.panel} ${styles.chartPanel}`}>
               <div className={styles.panelHead}>
@@ -624,20 +619,96 @@ function RingStat({
   );
 }
 
+// ---------- Tarjeta de ingresos: encabezado + barras + resumen ----------
+
+function RevenueCard({ trend }: { trend: { month: string; total: number }[] }) {
+  const data = trend.map((r) => ({ label: mesCorto(r.month), value: r.total }));
+  const anio = trend.length ? trend[trend.length - 1].month.split("-")[0] : String(new Date().getFullYear());
+
+  const total = trend.reduce((acc, r) => acc + r.total, 0);
+  const actual = trend[trend.length - 1]?.total ?? 0;
+  const previo = trend[trend.length - 2]?.total ?? 0;
+
+  let deltaLabel: string;
+  let subiendo = true;
+
+  if (previo === 0) {
+    deltaLabel = actual > 0 ? "Nuevo" : "0%";
+    subiendo = actual >= 0;
+  } else {
+    const pct = Math.round(((actual - previo) / previo) * 100);
+    subiendo = pct >= 0;
+    deltaLabel = `${subiendo ? "+" : ""}${pct}%`;
+  }
+
+  return (
+    <div className={`${styles.panel} ${styles.chartPanel} ${styles.revenueCard}`}>
+      <div className={styles.revenueHead}>
+        <span className={styles.revenueHeadIcon}>
+          <FontAwesomeIcon icon={faChartColumn} />
+        </span>
+        <div className={styles.revenueHeadTitles}>
+          <h3>Ingresos mensuales</h3>
+          <p>Total de ingresos por mes</p>
+        </div>
+        <span className={styles.revenueYearPill}>
+          {anio} <FontAwesomeIcon icon={faChevronDown} size="2xs" />
+        </span>
+      </div>
+
+      <BarChart data={data} />
+
+      <div className={styles.revenueFooter}>
+        <div className={styles.revenueStat}>
+          <span className={`${styles.revenueStatIcon} ${styles.revenueStatIconOrange}`}>
+            <FontAwesomeIcon icon={faArrowTrendUp} />
+          </span>
+          <div>
+            <div className={styles.revenueStatLabel}>Ingresos totales</div>
+            <div className={styles.revenueStatValue}>{dinero(total)}</div>
+          </div>
+        </div>
+
+        <div className={styles.revenueDivider} />
+
+        <div className={styles.revenueStat}>
+          <span
+            className={`${styles.revenueStatIcon} ${
+              subiendo ? styles.revenueStatIconGreen : styles.revenueStatIconRed
+            }`}
+          >
+            <FontAwesomeIcon icon={subiendo ? faArrowTrendUp : faArrowTrendDown} />
+          </span>
+          <div>
+            <div
+              className={`${styles.revenueDelta} ${
+                subiendo ? styles.revenueDeltaUp : styles.revenueDeltaDown
+              }`}
+            >
+              {deltaLabel}
+            </div>
+            <div className={styles.revenueStatLabel}>vs. mes anterior</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------- Grafica de barras: ingresos por mes ----------
 
 function BarChart({ data }: { data: { label: string; value: number }[] }) {
   const width = 320;
   const height = 230;
-  const padTop = 34;
-  const padBottom = 30;
-  const padLeft = 8;
-  const padRight = 8;
+  const padTop = 30;
+  const padBottom = 26;
+  const padLeft = 30;
+  const padRight = 6;
 
   const max = Math.max(...data.map((d) => d.value), 1);
   const plotHeight = height - padTop - padBottom;
   const slot = (width - padLeft - padRight) / (data.length || 1);
-  const barWidth = Math.min(36, slot * 0.62);
+  const barWidth = Math.min(30, slot * 0.6);
 
   const compacto = (v: number) => {
     if (v >= 1000) return `${Math.round(v / 100) / 10}k`;
@@ -657,6 +728,10 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
           <stop offset="0%" stopColor="#ff9a3d" />
           <stop offset="100%" stopColor="#ff6a00" />
         </linearGradient>
+        <linearGradient id="barMuted" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffe4c2" />
+          <stop offset="100%" stopColor="#ffd3a0" />
+        </linearGradient>
         <filter id="barSombra" x="-60%" y="-60%" width="220%" height="220%">
           <feDropShadow
             dx="0"
@@ -668,50 +743,57 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
         </filter>
       </defs>
 
-      {[0, 0.5, 1].map((f) => (
-        <line
-          key={f}
-          x1={padLeft}
-          y1={padTop + plotHeight * (1 - f)}
-          x2={width - padRight}
-          y2={padTop + plotHeight * (1 - f)}
-          stroke="#f0ebe3"
-          strokeWidth={1}
-          strokeDasharray={f === 0 ? undefined : "2 4"}
-        />
-      ))}
+      {[0, 0.25, 0.5, 0.75, 1].map((f) => {
+        const y = padTop + plotHeight * (1 - f);
+        return (
+          <g key={f}>
+            <line
+              x1={padLeft}
+              y1={y}
+              x2={width - padRight}
+              y2={y}
+              stroke="#f0ebe3"
+              strokeWidth={1}
+              strokeDasharray={f === 0 ? undefined : "2 4"}
+            />
+            <text x={0} y={y + 3} fontSize="9" fill="#b0aaa2">
+              {compacto(max * f)}
+            </text>
+          </g>
+        );
+      })}
 
       {data.map((d, i) => {
         const barHeight = max > 0 ? (d.value / max) * plotHeight : 0;
         const x = padLeft + slot * i + (slot - barWidth) / 2;
         const y = padTop + plotHeight - barHeight;
         const esUltimo = i === data.length - 1;
+        const rx = barWidth / 2;
 
         return (
           <g key={i}>
             <text
               x={x + barWidth / 2}
-              y={y - 10}
+              y={y - 9}
               textAnchor="middle"
-              fontSize={esUltimo ? "12" : "9.5"}
-              fontWeight={esUltimo ? 800 : 600}
-              fill={esUltimo ? "#c94800" : "#c2b8ab"}
+              fontSize={esUltimo ? "11.5" : d.value > 0 ? "10" : "9.5"}
+              fontWeight={esUltimo ? 800 : d.value > 0 ? 700 : 500}
+              fill={esUltimo ? "#c94800" : d.value > 0 ? "#4a4038" : "#c2b8ab"}
             >
-              {compacto(d.value)}
+              ${compacto(d.value)}
             </text>
             <rect
               x={x}
               y={y}
               width={barWidth}
-              height={Math.max(barHeight, 3)}
-              rx={9}
-              fill="url(#barActivo)"
-              opacity={esUltimo ? 1 : 0.32}
+              height={Math.max(barHeight, barWidth * 0.5)}
+              rx={rx}
+              fill={esUltimo ? "url(#barActivo)" : "url(#barMuted)"}
               filter={esUltimo ? "url(#barSombra)" : undefined}
             />
             <text
               x={x + barWidth / 2}
-              y={height - 10}
+              y={height - 8}
               textAnchor="middle"
               fontSize="11"
               fontWeight={esUltimo ? 700 : 500}
