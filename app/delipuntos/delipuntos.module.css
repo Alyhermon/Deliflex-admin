@@ -26,6 +26,18 @@
   max-width: 46ch;
 }
 
+.subHeading {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.hint {
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
 .btnSolid {
   display: inline-flex;
   align-items: center;
@@ -142,6 +154,11 @@
 .statusInactive {
   background: #f3f4f6;
   color: #6b7280;
+}
+
+.statusPending {
+  background: #fbf3df;
+  color: #b8860b;
 }
 
 .cardFoot {
@@ -368,4 +385,98 @@
   font-weight: 600;
   cursor: pointer;
   padding: 0;
+}
+
+/* ---- Tabla de canjes ---- */
+.tableWrap {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #f1f1f1;
+  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.05);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a1a;
+  border-bottom: 1px solid #f1f1f1;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f6f6f6;
+  vertical-align: middle;
+  color: #1a1a1a;
+  font-size: 13.5px;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.listName {
+  display: block;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.listMeta {
+  display: block;
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
+/* ---- Buscador de cliente (canje) ---- */
+.resultados {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  overflow: hidden;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.resultado {
+  padding: 9px 12px;
+  font-size: 13px;
+  color: #1a1a1a;
+  cursor: pointer;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.resultado:last-child {
+  border-bottom: none;
+}
+
+.resultado:hover {
+  background: #fafafa;
+}
+
+.clienteElegido {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.clienteQuitar {
+  border: none;
+  background: none;
+  color: #ff7a00;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
 }

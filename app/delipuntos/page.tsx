@@ -18,6 +18,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faPen, faTrash, faGift } from "@fortawesome/free-solid-svg-icons";
 import styles from "./delipuntos.module.css";
 
+const fechaHora = (iso: string) =>
+  new Date(iso).toLocaleString("es-DO", {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
 const API = process.env.NEXT_PUBLIC_API_URL;
 
 type Reward = {
@@ -35,6 +43,21 @@ type Reward = {
 };
 
 type Business = { id: string; name: string };
+
+type CustomerResult = { id: string; full_name: string; email: string | null };
+
+type Redemption = {
+  id: string;
+  customer_id: string;
+  customer_name: string;
+  customer_phone: string | null;
+  reward_id: string;
+  reward_name: string;
+  points_spent: number;
+  status: "PENDING_PICKUP" | "DELIVERED";
+  created_at: string;
+  delivered_at: string | null;
+};
 
 const OTRA_EMPRESA_OPCION = "+ Otra empresa (no está en Deliflex)";
 
@@ -156,6 +179,151 @@ export default function DeliPuntosPage() {
       cancelado = true;
     };
   }, [authLoading, user, esSuperAdmin]);
+
+  // ---------- Canjes (registrados a mano por el admin) ----------
+
+  const [redemptions, setRedemptions] = useState<Redemption[]>([]);
+  const [redemptionsLoading, setRedemptionsLoading] = useState(true);
+
+  const [redemptionModalOpen, setRedemptionModalOpen] = useState(false);
+  const [busquedaCliente, setBusquedaCliente] = useState("");
+  const [resultadosCliente, setResultadosCliente] = useState<CustomerResult[]>([]);
+  const [buscandoCliente, setBuscandoCliente] = useState(false);
+  const [clienteElegido, setClienteElegido] = useState<CustomerResult | null>(null);
+  const [rewardIdElegido, setRewardIdElegido] = useState("");
+  const [savingRedemption, setSavingRedemption] = useState(false);
+  const [redemptionError, setRedemptionError] = useState("");
+  const [deliveringId, setDeliveringId] = useState<string | null>(null);
+
+  const cargarRedemptions = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/delipuntos/redemptions`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      setRedemptions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setRedemptionsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authLoading || !user || !esSuperAdmin) return;
+
+    let cancelado = false;
+
+    fetch(`${API}/delipuntos/redemptions`, { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelado) setRedemptions(Array.isArray(data) ? data : []);
+      })
+      .catch((error) => console.error(error))
+      .finally(() => {
+        if (!cancelado) setRedemptionsLoading(false);
+      });
+
+    return () => {
+      cancelado = true;
+    };
+  }, [authLoading, user, esSuperAdmin]);
+
+  useEffect(() => {
+    if (!redemptionModalOpen || busquedaCliente.trim().length < 2) return;
+
+    let cancelado = false;
+    const timeout = setTimeout(async () => {
+      setBuscandoCliente(true);
+      try {
+        const res = await fetch(
+          `${API}/support/tickets/customers/search?q=${encodeURIComponent(busquedaCliente.trim())}`,
+          { credentials: "include" },
+        );
+        const data = await res.json();
+        if (!cancelado) setResultadosCliente(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (!cancelado) setBuscandoCliente(false);
+      }
+    }, 300);
+
+    return () => {
+      cancelado = true;
+      clearTimeout(timeout);
+    };
+  }, [busquedaCliente, redemptionModalOpen]);
+
+  const abrirNuevoRedemption = () => {
+    setClienteElegido(null);
+    setBusquedaCliente("");
+    setResultadosCliente([]);
+    setRewardIdElegido("");
+    setRedemptionError("");
+    setRedemptionModalOpen(true);
+  };
+
+  const registrarCanje = async () => {
+    if (!clienteElegido) {
+      setRedemptionError("Elige un cliente");
+      return;
+    }
+    if (!rewardIdElegido) {
+      setRedemptionError("Elige una recompensa");
+      return;
+    }
+
+    setSavingRedemption(true);
+    setRedemptionError("");
+
+    try {
+      const res = await fetch(`${API}/delipuntos/redemptions`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerId: clienteElegido.id,
+          rewardId: rewardIdElegido,
+        }),
+      });
+
+      if (!res.ok) throw new Error("No se pudo registrar el canje");
+
+      setRedemptionModalOpen(false);
+      setToast({ message: "Canje registrado", type: "success" });
+      await cargarRedemptions();
+    } catch (error) {
+      setRedemptionError(
+        error instanceof Error ? error.message : "No se pudo registrar el canje",
+      );
+    } finally {
+      setSavingRedemption(false);
+    }
+  };
+
+  const marcarEntregado = async (redemption: Redemption) => {
+    setDeliveringId(redemption.id);
+
+    try {
+      const res = await fetch(
+        `${API}/delipuntos/redemptions/${redemption.id}/deliver`,
+        { method: "PATCH", credentials: "include" },
+      );
+
+      if (!res.ok) throw new Error("No se pudo marcar como entregado");
+
+      setToast({ message: "Canje marcado como entregado", type: "success" });
+      await cargarRedemptions();
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "No se pudo actualizar",
+        type: "danger",
+      });
+    } finally {
+      setDeliveringId(null);
+    }
+  };
 
   const abrirNuevo = () => {
     setEditingReward(null);
@@ -416,6 +584,83 @@ export default function DeliPuntosPage() {
             ))}
           </div>
         )}
+
+        <div className={styles.header} style={{ marginTop: 32 }}>
+          <div>
+            <h2 className={styles.subHeading}>Canjes</h2>
+            <p>
+              Registra cuando un cliente canjea una recompensa, y marca cuando
+              ya pasó a recogerla.
+            </p>
+          </div>
+          <button className={styles.btnSolid} onClick={abrirNuevoRedemption}>
+            <FontAwesomeIcon icon={faPlus} /> Registrar canje
+          </button>
+        </div>
+
+        {redemptionsLoading ? (
+          <p className={styles.hint}>Cargando...</p>
+        ) : redemptions.length === 0 ? (
+          <div className={styles.emptyState}>Todavía no hay canjes registrados.</div>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Recompensa</th>
+                  <th>Puntos</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {redemptions.map((r) => (
+                  <tr key={r.id}>
+                    <td>
+                      <span className={styles.listName}>{r.customer_name}</span>
+                      {r.customer_phone && (
+                        <span className={styles.listMeta}>{r.customer_phone}</span>
+                      )}
+                    </td>
+                    <td>{r.reward_name}</td>
+                    <td>{numero(r.points_spent)}</td>
+                    <td>
+                      <span
+                        className={`${styles.statusPill} ${
+                          r.status === "DELIVERED"
+                            ? styles.statusActive
+                            : styles.statusPending
+                        }`}
+                      >
+                        {r.status === "DELIVERED" ? "Entregado" : "Por recoger"}
+                      </span>
+                    </td>
+                    <td>
+                      {r.status === "DELIVERED" && r.delivered_at
+                        ? fechaHora(r.delivered_at)
+                        : fechaHora(r.created_at)}
+                    </td>
+                    <td>
+                      {r.status === "PENDING_PICKUP" && (
+                        <button
+                          type="button"
+                          className={styles.iconBtn}
+                          title="Marcar como entregado"
+                          disabled={deliveringId === r.id}
+                          onClick={() => marcarEntregado(r)}
+                        >
+                          {deliveringId === r.id ? "..." : "Marcar entregado"}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <Modal
@@ -640,6 +885,96 @@ export default function DeliPuntosPage() {
         onConfirm={eliminar}
         onCancel={() => setRewardToDelete(null)}
       />
+
+      <Modal
+        isOpen={redemptionModalOpen}
+        onClose={() => setRedemptionModalOpen(false)}
+        title="Registrar canje"
+        width="480px"
+      >
+        <div className={styles.form}>
+          <div className={styles.field}>
+            <label className={styles.label}>Cliente</label>
+            {clienteElegido ? (
+              <div className={styles.clienteElegido}>
+                <span>
+                  {clienteElegido.full_name}
+                  {clienteElegido.email ? ` · ${clienteElegido.email}` : ""}
+                </span>
+                <button
+                  type="button"
+                  className={styles.clienteQuitar}
+                  onClick={() => setClienteElegido(null)}
+                >
+                  Cambiar
+                </button>
+              </div>
+            ) : (
+              <>
+                <input
+                  value={busquedaCliente}
+                  placeholder="Busca por nombre o email..."
+                  onChange={(e) => {
+                    setRedemptionError("");
+                    setBusquedaCliente(e.target.value);
+                  }}
+                />
+                {buscandoCliente && <span className={styles.hint}>Buscando...</span>}
+                {busquedaCliente.trim().length >= 2 && resultadosCliente.length > 0 && (
+                  <div className={styles.resultados}>
+                    {resultadosCliente.map((c) => (
+                      <div
+                        key={c.id}
+                        className={styles.resultado}
+                        onClick={() => {
+                          setClienteElegido(c);
+                          setResultadosCliente([]);
+                        }}
+                      >
+                        {c.full_name}
+                        {c.email ? ` · ${c.email}` : ""}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Recompensa</label>
+            <Dropdown
+              fullWidth
+              options={rewards.map((r) => r.name)}
+              value={rewards.find((r) => r.id === rewardIdElegido)?.name ?? ""}
+              placeholder="Selecciona una recompensa"
+              onChange={(nombre) => {
+                const encontrada = rewards.find((r) => r.name === nombre);
+                setRewardIdElegido(encontrada?.id ?? "");
+              }}
+            />
+            {rewardIdElegido && (
+              <span className={styles.hint}>
+                Costo:{" "}
+                {numero(rewards.find((r) => r.id === rewardIdElegido)?.points_cost ?? 0)}{" "}
+                pts
+              </span>
+            )}
+          </div>
+
+          {redemptionError && (
+            <span className={styles.errorText}>{redemptionError}</span>
+          )}
+
+          <button
+            className={styles.btnSolid}
+            onClick={registrarCanje}
+            disabled={savingRedemption}
+          >
+            {savingRedemption ? "Registrando..." : "Registrar canje"}
+          </button>
+        </div>
+      </Modal>
 
       {toast && (
         <Toast
