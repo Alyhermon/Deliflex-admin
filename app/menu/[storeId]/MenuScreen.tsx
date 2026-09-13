@@ -23,7 +23,11 @@ import {
   faStar,
   faEllipsisVertical,
   faBoxOpen,
+  faCamera,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
+import DFCheckbox from "../../components/components-items/checkbox/checkbox";
+import LoadingDots from "../../components/components-items/loading-dots/loading-dots";
 
 type Product = {
   id: string;
@@ -209,6 +213,9 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
   const [form, setForm] = useState<ProductForm>(FORM_VACIO);
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ProductForm, string>>>({});
   const [saving, setSaving] = useState(false);
+  const [subiendoImagen, setSubiendoImagen] = useState(false);
+  const [imagenError, setImagenError] = useState("");
+  const [imagenCargada, setImagenCargada] = useState(false);
 
   const [nuevaCategoria, setNuevaCategoria] = useState(false);
   const [nombreNuevaCategoria, setNombreNuevaCategoria] = useState("");
@@ -332,6 +339,8 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
     setFormErrors({});
     setNuevaCategoria(false);
     setNombreNuevaCategoria("");
+    setImagenError("");
+    setImagenCargada(false);
     setShowModal(true);
   };
 
@@ -351,6 +360,8 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
     setFormErrors({});
     setNuevaCategoria(false);
     setNombreNuevaCategoria("");
+    setImagenError("");
+    setImagenCargada(!!p.image_url);
     setShowModal(true);
   };
 
@@ -360,6 +371,30 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
   ) => {
     setFormErrors((prev) => ({ ...prev, [key]: undefined }));
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const subirImagenProducto = async (file: File) => {
+    setSubiendoImagen(true);
+    setImagenError("");
+    setImagenCargada(false);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "productos");
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error);
+
+      handleFormChange("imageUrl", data.url);
+    } catch (err) {
+      setImagenError(
+        err instanceof Error ? err.message : "No se pudo subir la imagen",
+      );
+    } finally {
+      setSubiendoImagen(false);
+    }
   };
 
   const crearCategoria = async () => {
@@ -871,12 +906,74 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Imagen (URL, opcional)</label>
-            <input
-              value={form.imageUrl}
-              placeholder="https://..."
-              onChange={(e) => handleFormChange("imageUrl", e.target.value)}
-            />
+            <label className={styles.label}>Imagen (opcional)</label>
+            <div className={styles.imageUploadRow}>
+              <div
+                className={
+                  form.imageUrl ? styles.imagePreview : styles.imagePlaceholder
+                }
+              >
+                {form.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={form.imageUrl}
+                    alt="Imagen del producto"
+                    style={{ opacity: imagenCargada ? 1 : 0 }}
+                    onLoad={() => setImagenCargada(true)}
+                  />
+                )}
+
+                {(subiendoImagen || (form.imageUrl && !imagenCargada)) && (
+                  <div className={styles.imageLoadingOverlay}>
+                    <LoadingDots size="sm" />
+                  </div>
+                )}
+
+                {!subiendoImagen && !form.imageUrl && (
+                  <FontAwesomeIcon icon={faCamera} />
+                )}
+              </div>
+
+              <div className={styles.imageUploadActions}>
+                <label className={styles.uploadImageBtn}>
+                  {subiendoImagen ? (
+                    <LoadingDots size="sm" />
+                  ) : (
+                    <FontAwesomeIcon icon={faCamera} />
+                  )}
+                  {subiendoImagen
+                    ? "Subiendo..."
+                    : form.imageUrl
+                      ? "Cambiar imagen"
+                      : "Subir imagen"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    disabled={subiendoImagen}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) subirImagenProducto(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+
+                {form.imageUrl && (
+                  <button
+                    type="button"
+                    className={styles.removeImageBtn}
+                    onClick={() => handleFormChange("imageUrl", "")}
+                  >
+                    <FontAwesomeIcon icon={faTrash} /> Quitar
+                  </button>
+                )}
+
+                {imagenError && (
+                  <span className={styles.errorText}>{imagenError}</span>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className={styles.field}>
@@ -890,30 +987,21 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
           </div>
 
           <div className={styles.toggleRow}>
-            <label className={styles.toggleField}>
-              <input
-                type="checkbox"
-                checked={form.status}
-                onChange={(e) => handleFormChange("status", e.target.checked)}
-              />
-              Activo
-            </label>
-            <label className={styles.toggleField}>
-              <input
-                type="checkbox"
-                checked={form.isAvailable}
-                onChange={(e) => handleFormChange("isAvailable", e.target.checked)}
-              />
-              Disponible
-            </label>
-            <label className={styles.toggleField}>
-              <input
-                type="checkbox"
-                checked={form.isFeatured}
-                onChange={(e) => handleFormChange("isFeatured", e.target.checked)}
-              />
-              Destacado
-            </label>
+            <DFCheckbox
+              label="Activo"
+              checked={form.status}
+              onChange={(checked) => handleFormChange("status", checked)}
+            />
+            <DFCheckbox
+              label="Disponible"
+              checked={form.isAvailable}
+              onChange={(checked) => handleFormChange("isAvailable", checked)}
+            />
+            <DFCheckbox
+              label="Destacado"
+              checked={form.isFeatured}
+              onChange={(checked) => handleFormChange("isFeatured", checked)}
+            />
           </div>
 
           <div className={styles.modalActions}>
