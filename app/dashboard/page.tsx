@@ -503,11 +503,70 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <div
-            className={`${styles.statusColumn} ${
-              esSuperAdmin ? "" : styles.panelStatusFull
-            }`}
-          >
+          {!esSuperAdmin && (
+            <div className={`${styles.panel} ${styles.panelStatus} ${styles.panelStatusFull}`}>
+              <div className={styles.panelHead}>
+                <h3>Estado de los negocios</h3>
+              </div>
+
+              <div className={styles.statusBarTrack}>
+                <div className={styles.statusBar}>
+                  {activeStores > 0 && (
+                    <div
+                      className={styles.segActive}
+                      style={{ width: `${(activeStores / base) * 100}%` }}
+                    />
+                  )}
+                  {pendingStores > 0 && (
+                    <div
+                      className={styles.segPending}
+                      style={{ width: `${(pendingStores / base) * 100}%` }}
+                    />
+                  )}
+                  {inactiveStores > 0 && (
+                    <div
+                      className={styles.segInactive}
+                      style={{ width: `${(inactiveStores / base) * 100}%` }}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.statusLegendCompact}>
+                <div className={styles.statusLegendItem}>
+                  <span
+                    className={styles.categoryCount}
+                    style={{ color: "#2da44e", width: 26, height: 26, fontSize: 11 }}
+                  >
+                    {activeStores}
+                  </span>
+                  <span className={styles.legendLabel}>Activos</span>
+                </div>
+                <div className={styles.statusLegendItem}>
+                  <span
+                    className={styles.categoryCount}
+                    style={{ color: "#ff7a00", width: 26, height: 26, fontSize: 11 }}
+                  >
+                    {pendingStores}
+                  </span>
+                  <span className={styles.legendLabel}>Pendientes</span>
+                </div>
+                <div className={styles.statusLegendItem}>
+                  <span
+                    className={styles.categoryCount}
+                    style={{ color: "#9aa1ab", width: 26, height: 26, fontSize: 11 }}
+                  >
+                    {inactiveStores}
+                  </span>
+                  <span className={styles.legendLabel}>Inactivos / cerrados</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {esSuperAdmin && (
+          <div className={styles.statusRow}>
             <div className={`${styles.panel} ${styles.panelStatus}`}>
               <div className={styles.panelHead}>
                 <h3>Estado de los negocios</h3>
@@ -567,11 +626,9 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {esSuperAdmin && boostTrend.length > 0 && (
-              <PromoRevenueCard trend={boostTrend} />
-            )}
+            {boostTrend.length > 0 && <PromoRevenueCard trend={boostTrend} />}
           </div>
-        </div>
+        )}
 
         {(summary.revenueTrend || summary.byCategory) && (
           <div className={styles.chartsRow}>

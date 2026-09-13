@@ -514,15 +514,16 @@
   flex-direction: column;
 }
 
-.statusColumn {
-  flex: 1 1 440px;
-  min-width: 0;
+.statusRow {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 20px;
+  align-items: stretch;
+  margin-top: 20px;
 }
 
 .panelStatus {
+  flex: 1 1 380px;
   min-width: 0;
 }
 
@@ -540,7 +541,8 @@
 }
 
 .promoCard {
-  width: 100%;
+  flex: 1 1 380px;
+  min-width: 0;
 }
 
 .promoSubtitle {
