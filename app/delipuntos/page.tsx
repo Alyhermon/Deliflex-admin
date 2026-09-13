@@ -64,6 +64,8 @@ const FORM_VACIO: RewardForm = {
   customBusinessName: "",
 };
 
+const numero = (valor: number) => valor.toLocaleString("es-DO");
+
 export default function DeliPuntosPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -381,14 +383,14 @@ export default function DeliPuntosPage() {
 
                   <div className={styles.cardFoot}>
                     <span className={styles.pointsCost}>
-                      <FontAwesomeIcon icon={faGift} /> {reward.points_cost} pts
+                      <FontAwesomeIcon icon={faGift} /> {numero(reward.points_cost)} pts
                     </span>
 
                     <span className={styles.stockInfo}>
                       {reward.stock === null
                         ? "Ilimitado"
                         : reward.stock > 0
-                          ? `${reward.stock} disponibles`
+                          ? `${numero(reward.stock)} disponibles`
                           : "Agotado"}
                     </span>
 
