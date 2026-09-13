@@ -496,11 +496,19 @@ export default function DashboardPage() {
                       <span className={styles.pendingText}>
                         <span className={styles.pendingName}>{store.name}</span>
                         <span className={styles.pendingMeta}>
+                          <span
+                            className={styles.pendingDot}
+                            style={{
+                              background:
+                                CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+                            }}
+                          />
                           {store.category || "Sin categoría"}
                         </span>
                         <span className={styles.pendingMeta}>
-                          Pendiente desde {fechaCorta(store.pending_since)} ·{" "}
-                          {haceTiempo(store.pending_since)}
+                          {store.pending_since
+                            ? `Pendiente desde ${fechaCorta(store.pending_since)} · ${haceTiempo(store.pending_since)}`
+                            : "Fecha de envío no disponible"}
                         </span>
                       </span>
                     </Link>
