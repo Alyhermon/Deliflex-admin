@@ -168,25 +168,40 @@ export default function OrdersTab({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  useEffect(() => {
+  // Al cambiar de pedido seleccionado se limpia el estado del cupon y el
+  // detalle anterior. Se ajusta durante el render (no en un efecto) para
+  // no disparar un set de estado sincrono dentro del cuerpo del efecto:
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevSelectedId, setPrevSelectedId] = useState<string | null>(null);
+  if (selectedId !== prevSelectedId) {
+    setPrevSelectedId(selectedId);
     setCouponInput("");
     setCouponError("");
+    setDetail(null);
+  }
 
-    if (!selectedId) {
-      setDetail(null);
-      return;
-    }
+  useEffect(() => {
+    if (!selectedId) return;
 
+    let cancelado = false;
     setLoadingDetail(true);
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${selectedId}`, { credentials: "include" })
       .then((res) => res.json())
-      .then(setDetail)
+      .then((data) => {
+        if (!cancelado) setDetail(data);
+      })
       .catch((error) => {
         console.error(error);
-        setDetail(null);
+        if (!cancelado) setDetail(null);
       })
-      .finally(() => setLoadingDetail(false));
+      .finally(() => {
+        if (!cancelado) setLoadingDetail(false);
+      });
+
+    return () => {
+      cancelado = true;
+    };
   }, [selectedId]);
 
   const normalize = (text: string) => text.toLowerCase().trim();
