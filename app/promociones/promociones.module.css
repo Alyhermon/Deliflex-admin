@@ -618,7 +618,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.fechaCell {
+.table td.fechaCell {
   font-variant-numeric: tabular-nums;
   color: #4a4038;
 }
@@ -716,15 +716,18 @@
   font-weight: 600;
 }
 
-.dueSoon {
+/* ".table td" (elemento + clase) le gana en especificidad a una clase
+   sola como ".dueSoon" - sin calificarlas con ".table td" tambien,
+   el color de "vence hoy/manana/vencido" nunca se llegaba a ver. */
+.table td.dueSoon {
   color: #b8860b;
 }
 
-.dueLate {
+.table td.dueLate {
   color: #e53935;
 }
 
-.dueOk {
+.table td.dueOk {
   color: #9a9a9a;
 }
 
