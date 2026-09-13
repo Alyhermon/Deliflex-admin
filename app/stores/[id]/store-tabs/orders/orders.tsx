@@ -124,7 +124,11 @@ export default function OrdersTab({ id }: { id: string }) {
   } | null>(null);
 
   const cargarDatos = useCallback(
-    async (reintentar = true) => {
+    // Nombrada (no una arrow function anonima) para que el reintento se
+    // llame a si misma por su propio nombre, no a `cargarDatos`: el
+    // compilador de React no permite que un valor memoizado por
+    // useCallback se referencie a si mismo desde dentro de su propio cuerpo.
+    async function intentar(reintentar = true) {
       setLoading(true);
 
       try {
@@ -151,7 +155,7 @@ export default function OrdersTab({ id }: { id: string }) {
         console.error(error);
 
         if (reintentar) {
-          setTimeout(() => cargarDatos(false), 1200);
+          setTimeout(() => intentar(false), 1200);
           return;
         }
 
@@ -168,23 +172,20 @@ export default function OrdersTab({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Al cambiar de pedido seleccionado se limpia el estado del cupon y el
-  // detalle anterior. Se ajusta durante el render (no en un efecto) para
-  // no disparar un set de estado sincrono dentro del cuerpo del efecto:
-  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+
   const [prevSelectedId, setPrevSelectedId] = useState<string | null>(null);
   if (selectedId !== prevSelectedId) {
     setPrevSelectedId(selectedId);
     setCouponInput("");
     setCouponError("");
     setDetail(null);
+    setLoadingDetail(selectedId !== null);
   }
 
   useEffect(() => {
     if (!selectedId) return;
 
     let cancelado = false;
-    setLoadingDetail(true);
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${selectedId}`, { credentials: "include" })
       .then((res) => res.json())
