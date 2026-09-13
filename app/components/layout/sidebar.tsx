@@ -154,6 +154,45 @@ export default function Sidebar() {
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const switcherRef = useRef<HTMLDivElement>(null);
 
+  // Numeritos de "algo nuevo que revisar" junto al nombre de la seccion.
+  // Solo la super admin gestiona Promociones/Soporte, asi que solo a ella
+  // le hace falta pedir estos conteos.
+  const [avisos, setAvisos] = useState<{ promociones: number; soporte: number }>(
+    { promociones: 0, soporte: 0 },
+  );
+
+  useEffect(() => {
+    if (Number(user?.global_role_id ?? 0) < 100) return;
+
+    const cargarAvisos = () => {
+      Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/boosts/summary`, {
+          credentials: "include",
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => data?.pendingCount ?? 0)
+          .catch(() => 0),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/support/tickets/nuevos-count`, {
+          credentials: "include",
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => data?.count ?? 0)
+          .catch(() => 0),
+      ]).then(([promociones, soporte]) => setAvisos({ promociones, soporte }));
+    };
+
+    cargarAvisos();
+    // Se refresca solo sin que haga falta recargar la pagina para
+    // enterarse de un ticket o una suscripcion nueva.
+    const intervalo = setInterval(cargarAvisos, 60000);
+    return () => clearInterval(intervalo);
+  }, [user?.global_role_id]);
+
+  const AVISOS_POR_ITEM: Record<string, number> = {
+    Promociones: avisos.promociones,
+    Soporte: avisos.soporte,
+  };
+
   useEffect(() => {
     if (!switcherOpen) return;
 
@@ -392,6 +431,13 @@ export default function Sidebar() {
             >
               {item.icon}
               {item.name}
+              {Boolean(AVISOS_POR_ITEM[item.name]) && (
+                <span className={styles.navBadge}>
+                  {AVISOS_POR_ITEM[item.name] > 9
+                    ? "9+"
+                    : AVISOS_POR_ITEM[item.name]}
+                </span>
+              )}
             </div>
           );
         })}
