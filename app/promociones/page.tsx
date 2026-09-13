@@ -737,7 +737,12 @@ function SuperAdminBoostsView() {
                     const pausado = boost.status === "PAUSED";
                     const restantes = diasRestantes(boost);
                     return (
-                      <tr key={boost.id}>
+                      <tr
+                        key={boost.id}
+                        className={
+                          boost.status === "OVERDUE" ? styles.rowOverdue : ""
+                        }
+                      >
                         <td>
                           <div className={styles.bizCell}>
                             <span className={styles.avatar}>
@@ -773,8 +778,8 @@ function SuperAdminBoostsView() {
                             {ESTADO_LABEL[boost.status]}
                           </span>
                         </td>
-                        <td>{dinero(boost.amount)}</td>
-                        <td>
+                        <td className={styles.montoCell}>{dinero(boost.amount)}</td>
+                        <td className={styles.fechaCell}>
                           {pausado ? "En pausa" : formatFecha(boost.next_billing_date)}
                         </td>
                         <td

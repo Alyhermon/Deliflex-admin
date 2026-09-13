@@ -605,6 +605,24 @@
   background: #fdfbf9;
 }
 
+.rowOverdue td {
+  background: #fdfaf5;
+}
+
+.rowOverdue:hover td {
+  background: #fbf5ec;
+}
+
+.montoCell {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.fechaCell {
+  font-variant-numeric: tabular-nums;
+  color: #4a4038;
+}
+
 .bizCell {
   display: flex;
   align-items: center;
