@@ -1,0 +1,109 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+
+/* INPUT oculto */
+.container input {
+  opacity: 0;
+  position: absolute;
+}
+
+/* BASE */
+.dot {
+  display: inline-block;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: white;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+/* SIZES */
+.sm .dot {
+  width: 14px;
+  height: 14px;
+}
+
+.md .dot {
+  width: 18px;
+  height: 18px;
+}
+
+.lg .dot {
+  width: 24px;
+  height: 24px;
+}
+
+/* PUNTO INTERNO */
+.dot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.15s ease;
+}
+
+.sm .dot::after {
+  width: 6px;
+  height: 6px;
+}
+
+.md .dot::after {
+  width: 8px;
+  height: 8px;
+}
+
+.lg .dot::after {
+  width: 11px;
+  height: 11px;
+}
+
+.container input:checked + .dot::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* VARIANTS */
+.primary input:checked + .dot {
+  border-color: #ff7a00;
+}
+.primary .dot::after {
+  background-color: #ff7a00;
+}
+
+.success input:checked + .dot {
+  border-color: #28a745;
+}
+.success .dot::after {
+  background-color: #28a745;
+}
+
+.danger input:checked + .dot {
+  border-color: #dc3545;
+}
+.danger .dot::after {
+  background-color: #dc3545;
+}
+
+/* HOVER */
+.container:hover input:not(:disabled) + .dot {
+  border-color: #999;
+}
+
+.label {
+  font-size: 14px;
+  color: #333;
+}
+
+/* DISABLED */
+.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

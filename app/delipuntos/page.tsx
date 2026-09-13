@@ -8,6 +8,8 @@ import Modal from "../components/components/modal/modal";
 import ConfirmDialog from "../components/components/modal/confirm-dialog";
 import Toast from "../components/components-items/toast/toast";
 import DFCheckbox from "../components/components-items/checkbox/checkbox";
+import DFRadio from "../components/components-items/radio/radio";
+import Dropdown from "../components/components-items/dropdown";
 import LoadingDots from "../components/components-items/loading-dots/loading-dots";
 import Skeleton, {
   SkeletonStatCards,
@@ -28,10 +30,13 @@ type Reward = {
   is_active: boolean;
   business_id: string | null;
   business_name: string | null;
+  external_business_name: string | null;
   created_at: string;
 };
 
 type Business = { id: string; name: string };
+
+const OTRA_EMPRESA_OPCION = "+ Otra empresa (no está en Deliflex)";
 
 type RewardForm = {
   name: string;
@@ -42,6 +47,8 @@ type RewardForm = {
   isActive: boolean;
   esEmpresa: boolean;
   businessId: string;
+  usandoOtraEmpresa: boolean;
+  customBusinessName: string;
 };
 
 const FORM_VACIO: RewardForm = {
@@ -53,6 +60,8 @@ const FORM_VACIO: RewardForm = {
   isActive: true,
   esEmpresa: false,
   businessId: "",
+  usandoOtraEmpresa: false,
+  customBusinessName: "",
 };
 
 export default function DeliPuntosPage() {
@@ -163,8 +172,10 @@ export default function DeliPuntosPage() {
       pointsCost: String(reward.points_cost),
       stock: reward.stock !== null ? String(reward.stock) : "",
       isActive: reward.is_active,
-      esEmpresa: reward.business_id !== null,
+      esEmpresa: reward.business_id !== null || reward.external_business_name !== null,
       businessId: reward.business_id ?? "",
+      usandoOtraEmpresa: reward.external_business_name !== null,
+      customBusinessName: reward.external_business_name ?? "",
     });
     setFormError("");
     setImagenCargada(!!reward.image_url);
@@ -214,8 +225,13 @@ export default function DeliPuntosPage() {
       return;
     }
 
-    if (form.esEmpresa && !form.businessId) {
+    if (form.esEmpresa && !form.usandoOtraEmpresa && !form.businessId) {
       setFormError("Elige de que empresa es la recompensa");
+      return;
+    }
+
+    if (form.esEmpresa && form.usandoOtraEmpresa && !form.customBusinessName.trim()) {
+      setFormError("Escribe el nombre de la empresa");
       return;
     }
 
@@ -238,7 +254,11 @@ export default function DeliPuntosPage() {
             pointsCost: puntos,
             stock,
             isActive: form.isActive,
-            businessId: form.esEmpresa ? form.businessId : null,
+            businessId: form.esEmpresa && !form.usandoOtraEmpresa ? form.businessId : null,
+            externalBusinessName:
+              form.esEmpresa && form.usandoOtraEmpresa
+                ? form.customBusinessName.trim()
+                : null,
           }),
         },
       );
@@ -348,7 +368,11 @@ export default function DeliPuntosPage() {
                   </div>
 
                   <span className={styles.sourceBadge}>
-                    {reward.business_id ? reward.business_name : "Deliflex"}
+                    {reward.business_id
+                      ? reward.business_name
+                      : reward.external_business_name
+                        ? reward.external_business_name
+                        : "Deliflex"}
                   </span>
 
                   {reward.description && (
@@ -450,43 +474,73 @@ export default function DeliPuntosPage() {
           <div className={styles.field}>
             <label className={styles.label}>Recompensa de</label>
             <div className={styles.radioRow}>
-              <label className={styles.radioOption}>
-                <input
-                  type="radio"
-                  name="rewardSource"
-                  checked={!form.esEmpresa}
-                  onChange={() =>
-                    setForm((prev) => ({ ...prev, esEmpresa: false, businessId: "" }))
-                  }
-                />
-                Deliflex
-              </label>
-              <label className={styles.radioOption}>
-                <input
-                  type="radio"
-                  name="rewardSource"
-                  checked={form.esEmpresa}
-                  onChange={() => setForm((prev) => ({ ...prev, esEmpresa: true }))}
-                />
-                Empresa externa
-              </label>
+              <DFRadio
+                label="Deliflex"
+                name="rewardSource"
+                checked={!form.esEmpresa}
+                onChange={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    esEmpresa: false,
+                    businessId: "",
+                    usandoOtraEmpresa: false,
+                    customBusinessName: "",
+                  }))
+                }
+              />
+              <DFRadio
+                label="Empresa externa"
+                name="rewardSource"
+                checked={form.esEmpresa}
+                onChange={() => setForm((prev) => ({ ...prev, esEmpresa: true }))}
+              />
             </div>
 
             {form.esEmpresa && (
-              <select
-                className={styles.businessSelect}
-                value={form.businessId}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, businessId: e.target.value }))
-                }
-              >
-                <option value="">Selecciona una empresa</option>
-                {businesses.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
+              <div className={styles.businessPicker}>
+                <Dropdown
+                  fullWidth
+                  options={[...businesses.map((b) => b.name), OTRA_EMPRESA_OPCION]}
+                  value={
+                    form.usandoOtraEmpresa
+                      ? OTRA_EMPRESA_OPCION
+                      : (businesses.find((b) => b.id === form.businessId)?.name ?? "")
+                  }
+                  placeholder="Selecciona una empresa"
+                  onChange={(label) => {
+                    if (label === OTRA_EMPRESA_OPCION) {
+                      setForm((prev) => ({
+                        ...prev,
+                        businessId: "",
+                        usandoOtraEmpresa: true,
+                      }));
+                      return;
+                    }
+
+                    const encontrada = businesses.find((b) => b.name === label);
+                    setForm((prev) => ({
+                      ...prev,
+                      businessId: encontrada?.id ?? "",
+                      usandoOtraEmpresa: false,
+                      customBusinessName: "",
+                    }));
+                  }}
+                />
+
+                {form.usandoOtraEmpresa && (
+                  <input
+                    className={styles.customBusinessInput}
+                    value={form.customBusinessName}
+                    placeholder="Nombre de la empresa"
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        customBusinessName: e.target.value,
+                      }))
+                    }
+                  />
+                )}
+              </div>
             )}
           </div>
 
