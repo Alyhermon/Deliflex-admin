@@ -55,7 +55,7 @@ type PendingStore = {
   id: string;
   name: string;
   category: string | null;
-  created_at: string;
+  pending_since: string;
 };
 
 type Summary = {
@@ -109,6 +109,21 @@ const haceTiempo = (iso: string) => {
   if (dias === 1) return "Hace 1 día";
 
   return `Hace ${dias} días`;
+};
+
+const fechaCorta = (iso: string) =>
+  new Date(iso).toLocaleDateString("es-DO", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+// Iniciales para el avatar de un negocio pendiente: "Dulce Solecito" -> "DS".
+const inicialesNegocio = (nombre: string) => {
+  const partes = nombre.trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return "?";
+  if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+  return (partes[0][0] + partes[1][0]).toUpperCase();
 };
 
 export default function DashboardPage() {
@@ -464,16 +479,29 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                summary.pendingApproval.map((store) => (
+                summary.pendingApproval.map((store, i) => (
                   <div key={store.id} className={styles.pendingItem}>
                     <Link
                       href={`/stores/${store.id}`}
                       className={styles.pendingInfo}
                     >
-                      <span className={styles.pendingName}>{store.name}</span>
-                      <span className={styles.pendingMeta}>
-                        {store.category || "Sin categoría"} ·{" "}
-                        {haceTiempo(store.created_at)}
+                      <span
+                        className={styles.pendingAvatar}
+                        style={{
+                          background: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+                        }}
+                      >
+                        {inicialesNegocio(store.name)}
+                      </span>
+                      <span className={styles.pendingText}>
+                        <span className={styles.pendingName}>{store.name}</span>
+                        <span className={styles.pendingMeta}>
+                          {store.category || "Sin categoría"}
+                        </span>
+                        <span className={styles.pendingMeta}>
+                          Pendiente desde {fechaCorta(store.pending_since)} ·{" "}
+                          {haceTiempo(store.pending_since)}
+                        </span>
                       </span>
                     </Link>
 
