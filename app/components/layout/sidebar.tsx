@@ -17,6 +17,7 @@ import {
   faStar,
   faLightbulb,
   faHeadset,
+  faGift,
 } from "@fortawesome/free-solid-svg-icons";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import {
@@ -86,6 +87,11 @@ const buildMenuItems = (storeId: string | null): MenuItem[] => [
     name: "Promociones",
     path: "/promociones",
     icon: <FontAwesomeIcon icon={faStar} />,
+  },
+  {
+    name: "DeliPuntos",
+    path: "/delipuntos",
+    icon: <FontAwesomeIcon icon={faGift} />,
   },
   {
     name: "Mi Roadmap",
@@ -281,6 +287,7 @@ export default function Sidebar() {
   );
   items = items.filter((item) => item.path !== "/roadmap" || esSuperAdmin);
   items = items.filter((item) => item.path !== "/soporte" || esSuperAdmin);
+  items = items.filter((item) => item.path !== "/delipuntos" || esSuperAdmin);
 
   // Con que rol y en que negocio entraste: para alguien que es staff en
   // varios negocios a la vez, esto le aclara donde tiene cual sombrero.

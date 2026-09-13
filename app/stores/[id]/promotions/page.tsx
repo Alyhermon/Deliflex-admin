@@ -43,6 +43,17 @@ const LOYALTY_FORM_VACIO: LoyaltyForm = {
   backgroundImageUrl: "",
 };
 
+type RedeemableProduct = {
+  id: string;
+  store_id: string;
+  product_id: string;
+  points_cost: number;
+  is_active: boolean;
+  product_name: string;
+  product_image_url: string | null;
+  created_at: string;
+};
+
 type LoyaltyCustomer = {
   customerId: string;
   fullName: string;
@@ -254,9 +265,9 @@ export default function PromotionsPage({
   const { id } = use(params);
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"promocion" | "fidelidad">(
-    "promocion",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "promocion" | "fidelidad" | "delipuntos"
+  >("promocion");
   const [storeName, setStoreName] = useState("Negocio");
   const [storeBannerUrl, setStoreBannerUrl] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -350,7 +361,10 @@ export default function PromotionsPage({
   // Al fallar NO se vacia la lista: "no se pudo cargar" no es lo mismo que
   // "no hay promociones", y mostrarlas igual confundia una cosa con la otra.
   const loadPromotions = useCallback(
-    async (reintentar = true) => {
+    // Nombrada para que el reintento se llame a si misma por su propio
+    // nombre, no a `loadPromotions`: el compilador de React no permite que
+    // un valor memoizado por useCallback se referencie desde su propio cuerpo.
+    async function intentar(reintentar = true) {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/promotions/store/${id}`, { credentials: "include" });
         const data = await res.json();
@@ -361,7 +375,7 @@ export default function PromotionsPage({
         console.error(error);
 
         if (reintentar) {
-          setTimeout(() => loadPromotions(false), 1200);
+          setTimeout(() => intentar(false), 1200);
           return;
         }
 
@@ -373,7 +387,8 @@ export default function PromotionsPage({
 
   useEffect(() => {
     if (id) loadPromotions();
-  }, [id, loadPromotions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   // ---------- Tarjeta de cliente frecuente (sellos por visita) ----------
 
@@ -417,7 +432,8 @@ export default function PromotionsPage({
 
   useEffect(() => {
     if (id) loadLoyalty();
-  }, [id, loadLoyalty]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   // ---------- Clientes con sellos (progreso real, de pedidos entregados) ----------
 
@@ -443,7 +459,8 @@ export default function PromotionsPage({
 
   useEffect(() => {
     if (id && loyaltyCard) loadLoyaltyCustomers();
-  }, [id, loyaltyCard, loadLoyaltyCustomers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, loyaltyCard]);
 
   const canjearRecompensa = async (customerId: string) => {
     setRedeemingId(customerId);
@@ -471,6 +488,175 @@ export default function PromotionsPage({
 
   const formatUltimaVisita = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString("es-DO") : "—";
+
+  // ---------- DeliPuntos: productos propios canjeables por puntos ----------
+
+  const [redeemables, setRedeemables] = useState<RedeemableProduct[]>([]);
+  const [redeemablesLoading, setRedeemablesLoading] = useState(true);
+  const [nuevoProductoId, setNuevoProductoId] = useState("");
+  const [nuevoPuntos, setNuevoPuntos] = useState("");
+  const [agregandoRedeemable, setAgregandoRedeemable] = useState(false);
+  const [redeemableError, setRedeemableError] = useState("");
+  const [editedPoints, setEditedPoints] = useState<Record<string, string>>({});
+  const [redeemableToDelete, setRedeemableToDelete] =
+    useState<RedeemableProduct | null>(null);
+  const [eliminandoRedeemable, setEliminandoRedeemable] = useState(false);
+
+  const loadRedeemables = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/delipuntos/store/${id}/products`,
+        { credentials: "include" },
+      );
+      const data = await res.json();
+
+      setRedeemables(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setRedeemablesLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (id) loadRedeemables();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const productosDisponibles = products.filter(
+    (p) => !redeemables.some((r) => r.product_id === p.id),
+  );
+
+  const agregarRedeemable = async () => {
+    setRedeemableError("");
+
+    const puntos = Number(nuevoPuntos);
+    if (!nuevoProductoId) {
+      setRedeemableError("Elige un producto");
+      return;
+    }
+    if (!nuevoPuntos.trim() || !Number.isInteger(puntos) || puntos <= 0) {
+      setRedeemableError("El costo en puntos debe ser un numero entero mayor a 0");
+      return;
+    }
+
+    setAgregandoRedeemable(true);
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/delipuntos/store/${id}/products`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: nuevoProductoId, pointsCost: puntos }),
+        },
+      );
+
+      if (!res.ok) throw new Error("No se pudo agregar el producto");
+
+      setNuevoProductoId("");
+      setNuevoPuntos("");
+      setToast({ message: "Producto agregado a DeliPuntos", type: "success" });
+      await loadRedeemables();
+    } catch (error) {
+      setRedeemableError(
+        error instanceof Error ? error.message : "No se pudo agregar el producto",
+      );
+    } finally {
+      setAgregandoRedeemable(false);
+    }
+  };
+
+  const guardarPuntosRedeemable = async (item: RedeemableProduct) => {
+    const valor = editedPoints[item.id];
+    if (valor === undefined) return;
+
+    const puntos = Number(valor);
+    if (!valor.trim() || !Number.isInteger(puntos) || puntos <= 0 || puntos === item.points_cost) {
+      setEditedPoints((prev) => {
+        const next = { ...prev };
+        delete next[item.id];
+        return next;
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/delipuntos/store/${id}/products/${item.id}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pointsCost: puntos }),
+        },
+      );
+
+      if (!res.ok) throw new Error("No se pudo actualizar");
+
+      setEditedPoints((prev) => {
+        const next = { ...prev };
+        delete next[item.id];
+        return next;
+      });
+      await loadRedeemables();
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "No se pudo actualizar",
+        type: "danger",
+      });
+    }
+  };
+
+  const toggleActivoRedeemable = async (item: RedeemableProduct) => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/delipuntos/store/${id}/products/${item.id}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: !item.is_active }),
+        },
+      );
+
+      if (!res.ok) throw new Error("No se pudo actualizar");
+
+      await loadRedeemables();
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "No se pudo actualizar",
+        type: "danger",
+      });
+    }
+  };
+
+  const eliminarRedeemable = async () => {
+    if (!redeemableToDelete) return;
+
+    setEliminandoRedeemable(true);
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/delipuntos/store/${id}/products/${redeemableToDelete.id}`,
+        { method: "DELETE", credentials: "include" },
+      );
+
+      if (!res.ok) throw new Error("No se pudo eliminar");
+
+      setRedeemableToDelete(null);
+      setToast({ message: "Producto quitado de DeliPuntos", type: "danger" });
+      await loadRedeemables();
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "No se pudo eliminar",
+        type: "danger",
+      });
+    } finally {
+      setEliminandoRedeemable(false);
+    }
+  };
 
   const guardarLoyalty = async () => {
     const nextErrors: typeof loyaltyErrors = {};
@@ -869,6 +1055,15 @@ export default function PromotionsPage({
             onClick={() => setActiveTab("fidelidad")}
           >
             Tarjeta de fidelidad
+          </button>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${
+              activeTab === "delipuntos" ? styles.tabButtonActive : ""
+            }`}
+            onClick={() => setActiveTab("delipuntos")}
+          >
+            DeliPuntos
           </button>
         </div>
 
@@ -1616,7 +1811,7 @@ export default function PromotionsPage({
                 ) : loyaltyCustomers.length === 0 ? (
                   <p className={styles.empty}>
                     Todavía ningún cliente ha ganado un sello aquí. Se suman
-                    solos cuando un pedido se marca "Entregado".
+                    solos cuando un pedido se marca &quot;Entregado&quot;.
                   </p>
                 ) : (
                   <div className={styles.loyaltyTableWrap}>
@@ -1684,6 +1879,133 @@ export default function PromotionsPage({
         </section>
         )}
 
+        {activeTab === "delipuntos" && (
+        <div className={styles.content}>
+          <section className={styles.section}>
+            <h3>Productos canjeables con DeliPuntos</h3>
+            <p className={styles.hint}>
+              Elige cuáles de tus propios productos se pueden canjear con
+              DeliPuntos en esta tienda, y a qué costo en puntos cada uno.
+            </p>
+
+            <div className={styles.loyaltyForm}>
+              <div className={styles.field}>
+                <label>Producto</label>
+                <Dropdown
+                  fullWidth
+                  options={productosDisponibles.map((p) => p.name)}
+                  value={
+                    productosDisponibles.find((p) => p.id === nuevoProductoId)
+                      ?.name ?? ""
+                  }
+                  onChange={(nombre) => {
+                    const encontrado = productosDisponibles.find(
+                      (p) => p.name === nombre,
+                    );
+                    setNuevoProductoId(encontrado?.id ?? "");
+                  }}
+                  placeholder="Selecciona un producto"
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Costo en puntos</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={nuevoPuntos}
+                  placeholder="Ej. 300"
+                  onChange={(e) => setNuevoPuntos(e.target.value)}
+                />
+              </div>
+
+              {redeemableError && (
+                <span className={styles.errorText}>{redeemableError}</span>
+              )}
+
+              <button
+                type="button"
+                className={styles.submit}
+                onClick={agregarRedeemable}
+                disabled={agregandoRedeemable || productosDisponibles.length === 0}
+              >
+                {agregandoRedeemable ? "Agregando..." : "Agregar"}
+              </button>
+
+              {productosDisponibles.length === 0 && products.length > 0 && (
+                <p className={styles.hint}>
+                  Ya todos tus productos están en el catálogo de DeliPuntos.
+                </p>
+              )}
+            </div>
+
+            {redeemablesLoading ? (
+              <p className={styles.hint}>Cargando...</p>
+            ) : redeemables.length === 0 ? (
+              <p className={styles.empty}>
+                Todavía ningún producto tuyo es canjeable con DeliPuntos.
+              </p>
+            ) : (
+              <div className={styles.loyaltyTableWrap}>
+                <table className={styles.loyaltyTable}>
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th>Costo en puntos</th>
+                      <th>Activo</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {redeemables.map((item) => (
+                      <tr key={item.id}>
+                        <td>
+                          <span className={styles.listName}>
+                            {item.product_name}
+                          </span>
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            min="1"
+                            className={styles.inlinePointsInput}
+                            value={
+                              editedPoints[item.id] ?? String(item.points_cost)
+                            }
+                            onChange={(e) =>
+                              setEditedPoints((prev) => ({
+                                ...prev,
+                                [item.id]: e.target.value,
+                              }))
+                            }
+                            onBlur={() => guardarPuntosRedeemable(item)}
+                          />
+                        </td>
+                        <td>
+                          <DFCheckbox
+                            checked={item.is_active}
+                            onChange={() => toggleActivoRedeemable(item)}
+                          />
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className={styles.loyaltyRedeemBtn}
+                            onClick={() => setRedeemableToDelete(item)}
+                          >
+                            Quitar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </div>
+        )}
+
         {toast && (
           <Toast
             message={toast.message}
@@ -1717,6 +2039,22 @@ export default function PromotionsPage({
           loading={loyaltyDeleting}
           onConfirm={eliminarLoyalty}
           onCancel={() => setConfirmDeleteLoyalty(false)}
+        />
+
+        <ConfirmDialog
+          isOpen={redeemableToDelete !== null}
+          title="Quitar producto de DeliPuntos"
+          message={
+            <>
+              ¿Seguro que deseas quitar{" "}
+              <strong>{redeemableToDelete?.product_name}</strong> del catálogo
+              de DeliPuntos de esta tienda?
+            </>
+          }
+          confirmLabel="Si, quitar"
+          loading={eliminandoRedeemable}
+          onConfirm={eliminarRedeemable}
+          onCancel={() => setRedeemableToDelete(null)}
         />
       </div>
     </AdminLayout>

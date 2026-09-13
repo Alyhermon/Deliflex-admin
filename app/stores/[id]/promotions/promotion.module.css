@@ -204,6 +204,20 @@
   font-size: 14px;
 }
 
+.inlinePointsInput {
+  width: 90px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #e5e5e5;
+  font-size: 13px;
+  color: #1a1a1a;
+}
+
+.inlinePointsInput:focus {
+  outline: none;
+  border-color: #ff7a00;
+}
+
 .field input:focus {
   outline: none;
   border-color: #ff7a00;

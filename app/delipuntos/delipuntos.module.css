@@ -1,0 +1,375 @@
+.container {
+  padding: 4px 0 20px;
+}
+
+/* ---- Cabecera ---- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.header h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.header p {
+  margin: 0;
+  font-size: 13.5px;
+  color: #8a8a8a;
+  max-width: 46ch;
+}
+
+.btnSolid {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(120deg, #ff8a1f, #ff5a00);
+  color: white;
+  border: none;
+  padding: 11px 18px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnSolid:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---- Grid de tarjetas ---- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #f1f1f1;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(20, 20, 20, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.cardImage {
+  height: 120px;
+  background: #fff8f0;
+  color: #ff9a3d;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardBody {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.35;
+}
+
+.cardDescription {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.sourceBadge {
+  align-self: flex-start;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #7a3ea1;
+  background: #f4ecfb;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.stockInfo {
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
+.statusPill {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.statusActive {
+  background: #eafaf8;
+  color: #059669;
+}
+
+.statusInactive {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.cardFoot {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed #eee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pointsCost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #7a3ea1;
+}
+
+.cardIconBtns {
+  display: flex;
+  gap: 4px;
+}
+
+.iconBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 1px solid #eee;
+  background: #fafafa;
+  color: #9a9a9a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  border-color: #ff7a00;
+  color: #ff7a00;
+}
+
+.emptyState {
+  background: white;
+  border: 1px dashed #eee;
+  border-radius: 16px;
+  padding: 48px 20px;
+  text-align: center;
+  color: #9a9a9a;
+  font-size: 13.5px;
+}
+
+/* ---- Formulario del modal ---- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formRow {
+  display: flex;
+  gap: 12px;
+}
+
+.formRow .field {
+  flex: 1;
+  min-width: 0;
+}
+
+.radioRow {
+  display: flex;
+  gap: 16px;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: #1a1a1a;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.businessSelect {
+  margin-top: 8px;
+  width: 100%;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: #1a1a1a;
+  font-family: inherit;
+  background: white;
+}
+
+.businessSelect:focus {
+  outline: none;
+  border-color: #ff7a00;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: #1a1a1a;
+  font-family: inherit;
+}
+
+.field textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: #ff7a00;
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.1);
+}
+
+.errorText {
+  font-size: 12px;
+  color: #e53935;
+}
+
+/* ---- Subida de imagen (mismo patron que Menu) ---- */
+.imageUploadRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.imagePreview {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid #eee;
+}
+
+.imagePreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.2s ease;
+}
+
+.imageLoadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff8f0;
+}
+
+.imagePlaceholder {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  border-radius: 12px;
+  border: 1.5px dashed #ffcf9e;
+  background: #fff8f0;
+  color: #ff9a3d;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.imageUploadActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.uploadImageBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff4ea;
+  color: #ff7a00;
+  border: 1px solid #ffe1c2;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.uploadImageBtn:hover {
+  background: #ffe8d2;
+}
+
+.removeImageBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  color: #e53935;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
