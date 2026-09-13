@@ -46,6 +46,18 @@ type Business = { id: string; name: string };
 
 type CustomerResult = { id: string; full_name: string; email: string | null };
 
+type AppRedemption = {
+  id: string;
+  customer_name: string;
+  customer_phone: string | null;
+  item_name: string;
+  points_spent: number;
+  status: "PENDING" | "FULFILLED" | "CANCELLED";
+  redemption_code: string;
+  created_at: string;
+  fulfilled_at: string | null;
+};
+
 type Redemption = {
   id: string;
   customer_id: string;
@@ -325,6 +337,68 @@ export default function DeliPuntosPage() {
     }
   };
 
+  // ---------- Canjes hechos por el cliente desde la app ----------
+
+  const [appRedemptions, setAppRedemptions] = useState<AppRedemption[]>([]);
+  const [appRedemptionsLoading, setAppRedemptionsLoading] = useState(true);
+  const [markingAppId, setMarkingAppId] = useState<string | null>(null);
+
+  const cargarAppRedemptions = useCallback(async () => {
+    try {
+      const res = await fetch("/api/delipuntos/app-redemptions");
+      const data = await res.json();
+      setAppRedemptions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setAppRedemptionsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authLoading || !user || !esSuperAdmin) return;
+
+    let cancelado = false;
+
+    fetch("/api/delipuntos/app-redemptions")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelado) setAppRedemptions(Array.isArray(data) ? data : []);
+      })
+      .catch((error) => console.error(error))
+      .finally(() => {
+        if (!cancelado) setAppRedemptionsLoading(false);
+      });
+
+    return () => {
+      cancelado = true;
+    };
+  }, [authLoading, user, esSuperAdmin]);
+
+  const marcarAppEntregado = async (redemption: AppRedemption) => {
+    setMarkingAppId(redemption.id);
+
+    try {
+      const res = await fetch("/api/delipuntos/app-redemptions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ redemptionId: redemption.id, status: "FULFILLED" }),
+      });
+
+      if (!res.ok) throw new Error("No se pudo marcar como entregado");
+
+      setToast({ message: "Canje marcado como entregado", type: "success" });
+      await cargarAppRedemptions();
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "No se pudo actualizar",
+        type: "danger",
+      });
+    } finally {
+      setMarkingAppId(null);
+    }
+  };
+
   const abrirNuevo = () => {
     setEditingReward(null);
     setForm(FORM_VACIO);
@@ -587,10 +661,10 @@ export default function DeliPuntosPage() {
 
         <div className={styles.header} style={{ marginTop: 32 }}>
           <div>
-            <h2 className={styles.subHeading}>Canjes</h2>
+            <h2 className={styles.subHeading}>Canjes registrados a mano</h2>
             <p>
-              Registra cuando un cliente canjea una recompensa, y marca cuando
-              ya pasó a recogerla.
+              Registra cuando un cliente canjea una recompensa en persona, y
+              marca cuando ya pasó a recogerla.
             </p>
           </div>
           <button className={styles.btnSolid} onClick={abrirNuevoRedemption}>
@@ -652,6 +726,88 @@ export default function DeliPuntosPage() {
                           onClick={() => marcarEntregado(r)}
                         >
                           {deliveringId === r.id ? "..." : "Marcar entregado"}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className={styles.header} style={{ marginTop: 32 }}>
+          <div>
+            <h2 className={styles.subHeading}>Canjes desde la app</h2>
+            <p>
+              Estos los hace el cliente solo, tocando &quot;Enviar canje&quot; en Mis
+              DeliPuntos. Marca cuando ya se lo entregaste.
+            </p>
+          </div>
+        </div>
+
+        {appRedemptionsLoading ? (
+          <p className={styles.hint}>Cargando...</p>
+        ) : appRedemptions.length === 0 ? (
+          <div className={styles.emptyState}>Todavía no hay canjes desde la app.</div>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Premio</th>
+                  <th>Código</th>
+                  <th>Puntos</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {appRedemptions.map((r) => (
+                  <tr key={r.id}>
+                    <td>
+                      <span className={styles.listName}>{r.customer_name}</span>
+                      {r.customer_phone && (
+                        <span className={styles.listMeta}>{r.customer_phone}</span>
+                      )}
+                    </td>
+                    <td>{r.item_name}</td>
+                    <td>{r.redemption_code}</td>
+                    <td>{numero(r.points_spent)}</td>
+                    <td>
+                      <span
+                        className={`${styles.statusPill} ${
+                          r.status === "FULFILLED"
+                            ? styles.statusActive
+                            : r.status === "CANCELLED"
+                              ? styles.statusInactive
+                              : styles.statusPending
+                        }`}
+                      >
+                        {r.status === "FULFILLED"
+                          ? "Entregado"
+                          : r.status === "CANCELLED"
+                            ? "Cancelado"
+                            : "Por recoger"}
+                      </span>
+                    </td>
+                    <td>
+                      {r.status === "FULFILLED" && r.fulfilled_at
+                        ? fechaHora(r.fulfilled_at)
+                        : fechaHora(r.created_at)}
+                    </td>
+                    <td>
+                      {r.status === "PENDING" && (
+                        <button
+                          type="button"
+                          className={styles.iconBtn}
+                          title="Marcar como entregado"
+                          disabled={markingAppId === r.id}
+                          onClick={() => marcarAppEntregado(r)}
+                        >
+                          {markingAppId === r.id ? "..." : "Marcar entregado"}
                         </button>
                       )}
                     </td>
