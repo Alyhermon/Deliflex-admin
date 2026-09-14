@@ -113,6 +113,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
+  align-items: stretch;
 }
 
 .card {
@@ -163,11 +164,19 @@
   line-height: 1.35;
 }
 
+/* Reserva siempre 2 lineas, tenga descripcion o no: sin esto una tarjeta
+   sin descripcion queda mas baja y el "pie" (puntos/stock) no alinea con
+   el de las demas tarjetas de la fila. */
 .cardDescription {
   margin: 0;
   font-size: 13px;
   color: #6b7280;
   line-height: 1.5;
+  min-height: 3em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .sourceBadge {

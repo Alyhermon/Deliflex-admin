@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminLayout from "../components/layout/adminLayout";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth, esMercadologoEnAlgunNegocio } from "../hooks/useAuth";
 import Modal from "../components/components/modal/modal";
 import ConfirmDialog from "../components/components/modal/confirm-dialog";
 import Toast from "../components/components-items/toast/toast";
@@ -40,7 +40,7 @@ const API = process.env.NEXT_PUBLIC_API_URL;
 type TabKey = "marketplace" | "manual" | "app";
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: "marketplace", label: "Marketplace Deliflex y tiendas" },
+  { key: "marketplace", label: "Marketplace" },
   { key: "manual", label: "Canjes registrados a mano" },
   { key: "app", label: "Canjes desde la app" },
 ];
@@ -142,6 +142,10 @@ export default function DeliPuntosPage() {
   const { user, loading: authLoading } = useAuth();
 
   const esSuperAdmin = Number(user?.global_role_id) >= 100;
+  // El Mercadologo solo administra el Marketplace de su negocio: no ve los
+  // Canjes (esos siguen siendo exclusivos del super admin).
+  const esMercadologo = esMercadologoEnAlgunNegocio(user);
+  const puedeVerPagina = esSuperAdmin || esMercadologo;
 
   const [activeTab, setActiveTab] = useState<TabKey>("marketplace");
 
@@ -188,13 +192,13 @@ export default function DeliPuntosPage() {
       return;
     }
 
-    if (!esSuperAdmin) {
+    if (!puedeVerPagina) {
       router.replace("/dashboard");
     }
-  }, [authLoading, user, esSuperAdmin, router]);
+  }, [authLoading, user, puedeVerPagina, router]);
 
   useEffect(() => {
-    if (authLoading || !user || !esSuperAdmin) return;
+    if (authLoading || !user || !puedeVerPagina) return;
 
     let cancelado = false;
 
@@ -211,10 +215,10 @@ export default function DeliPuntosPage() {
     return () => {
       cancelado = true;
     };
-  }, [authLoading, user, esSuperAdmin]);
+  }, [authLoading, user, puedeVerPagina]);
 
   useEffect(() => {
-    if (authLoading || !user || !esSuperAdmin) return;
+    if (authLoading || !user || !puedeVerPagina) return;
 
     let cancelado = false;
 
@@ -228,7 +232,7 @@ export default function DeliPuntosPage() {
     return () => {
       cancelado = true;
     };
-  }, [authLoading, user, esSuperAdmin]);
+  }, [authLoading, user, puedeVerPagina]);
 
   // ---------- Canjes (registrados a mano por el admin) ----------
 
@@ -323,6 +327,15 @@ export default function DeliPuntosPage() {
   // Solo una recompensa de una tienda de Deliflex se puede mandar por
   // delivery (Deliflex mismo y las empresas externas no tienen quien reparta).
   const permiteDelivery = rewardElegida?.business_id != null;
+
+  // Puede haber mas de un negocio con el mismo nombre (varias sucursales):
+  // el Dropdown solo trabaja con texto, asi que sin esto dos negocios
+  // "Cocorao Zona Colonial" chocan como opcion (misma key/valor) y elegir
+  // el segundo en realidad selecciona al primero.
+  const etiquetaNegocio = (b: Business) =>
+    businesses.filter((x) => x.name === b.name).length > 1
+      ? `${b.name} (${b.id.slice(0, 6)})`
+      : b.name;
 
   const abrirNuevoRedemption = () => {
     setClienteElegido(null);
@@ -684,7 +697,7 @@ export default function DeliPuntosPage() {
     return coincideRangoFecha(r.created_at, appFechaDesde, appFechaHasta);
   });
 
-  if (authLoading || loading || !esSuperAdmin) {
+  if (authLoading || loading || !puedeVerPagina) {
     return (
       <AdminLayout>
         <div className={styles.container}>
@@ -700,6 +713,13 @@ export default function DeliPuntosPage() {
     );
   }
 
+  // El Mercadologo solo administra el Marketplace: ni siquiera le mostramos
+  // las otras pestanas, que igual no podria abrir (los Canjes son
+  // exclusivos del super admin).
+  const tabsVisibles = esSuperAdmin
+    ? TABS
+    : TABS.filter((tab) => tab.key === "marketplace");
+
   return (
     <AdminLayout>
       <div className={styles.container}>
@@ -713,27 +733,29 @@ export default function DeliPuntosPage() {
           </div>
         </div>
 
-        <div className={styles.tabs}>
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`${styles.tab} ${
-                activeTab === tab.key ? styles.active : ""
-              }`}
-            >
-              {tab.label}
-              <span className={styles.indicator} />
-            </button>
-          ))}
-        </div>
+        {tabsVisibles.length > 1 && (
+          <div className={styles.tabs}>
+            {tabsVisibles.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`${styles.tab} ${
+                  activeTab === tab.key ? styles.active : ""
+                }`}
+              >
+                {tab.label}
+                <span className={styles.indicator} />
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className={styles.tabContent}>
         {activeTab === "marketplace" && (
           <>
         <div className={styles.header}>
           <div>
-            <h2 className={styles.subHeading}>Marketplace Deliflex y tiendas</h2>
+            <h2 className={styles.subHeading}>Marketplace</h2>
             <p>
               Catálogo de recompensas que los clientes pueden canjear con sus
               DeliPuntos, sin importar en qué negocio pidan.
@@ -781,9 +803,9 @@ export default function DeliPuntosPage() {
                         : "Deliflex"}
                   </span>
 
-                  {reward.description && (
-                    <p className={styles.cardDescription}>{reward.description}</p>
-                  )}
+                  <p className={styles.cardDescription}>
+                    {reward.description}
+                  </p>
 
                   <div className={styles.cardFoot}>
                     <span className={styles.pointsCost}>
@@ -849,13 +871,6 @@ export default function DeliPuntosPage() {
               />
             </div>
 
-            <Dropdown
-              options={MANUAL_ESTADOS_FILTRO}
-              value={manualEstado}
-              onChange={setManualEstado}
-              placeholder="Estado"
-            />
-
             <div className={styles.rangePicker}>
               <div className={styles.rangeDateWrap}>
                 <DatePicker
@@ -888,6 +903,13 @@ export default function DeliPuntosPage() {
                 </button>
               )}
             </div>
+
+            <Dropdown
+              options={MANUAL_ESTADOS_FILTRO}
+              value={manualEstado}
+              onChange={setManualEstado}
+              placeholder="Estado"
+            />
           </div>
         )}
 
@@ -1003,13 +1025,6 @@ export default function DeliPuntosPage() {
               />
             </div>
 
-            <Dropdown
-              options={APP_ESTADOS_FILTRO}
-              value={appEstado}
-              onChange={setAppEstado}
-              placeholder="Estado"
-            />
-
             <div className={styles.rangePicker}>
               <div className={styles.rangeDateWrap}>
                 <DatePicker
@@ -1042,6 +1057,13 @@ export default function DeliPuntosPage() {
                 </button>
               )}
             </div>
+
+            <Dropdown
+              options={APP_ESTADOS_FILTRO}
+              value={appEstado}
+              onChange={setAppEstado}
+              placeholder="Estado"
+            />
           </div>
         )}
 
@@ -1209,11 +1231,19 @@ export default function DeliPuntosPage() {
               <div className={styles.businessPicker}>
                 <Dropdown
                   fullWidth
-                  options={[...businesses.map((b) => b.name), OTRA_EMPRESA_OPCION]}
+                  options={[
+                    ...businesses.map(etiquetaNegocio),
+                    OTRA_EMPRESA_OPCION,
+                  ]}
                   value={
                     form.usandoOtraEmpresa
                       ? OTRA_EMPRESA_OPCION
-                      : (businesses.find((b) => b.id === form.businessId)?.name ?? "")
+                      : (() => {
+                          const elegido = businesses.find(
+                            (b) => b.id === form.businessId,
+                          );
+                          return elegido ? etiquetaNegocio(elegido) : "";
+                        })()
                   }
                   placeholder="Selecciona una empresa"
                   onChange={(label) => {
@@ -1226,7 +1256,9 @@ export default function DeliPuntosPage() {
                       return;
                     }
 
-                    const encontrada = businesses.find((b) => b.name === label);
+                    const encontrada = businesses.find(
+                      (b) => etiquetaNegocio(b) === label,
+                    );
                     setForm((prev) => ({
                       ...prev,
                       businessId: encontrada?.id ?? "",
