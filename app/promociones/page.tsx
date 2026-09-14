@@ -1,18 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminLayout from "../components/layout/adminLayout";
 import {
   useAuth,
   getRoleForStore,
   tieneRolGerencial,
+  MERCADOLOGO_ROLE_ID,
   type User,
 } from "../hooks/useAuth";
 import { useActiveStore } from "../hooks/useActiveStore";
 import Modal from "../components/components/modal/modal";
 import DFInput from "../components/components-items/input";
 import Dropdown from "../components/components-items/dropdown";
+import DatePicker from "../components/components-items/datepicker";
 import Toast from "../components/components-items/toast/toast";
 import Skeleton, {
   SkeletonStatCards,
@@ -33,13 +35,20 @@ import {
   faCheck,
   faXmark,
   faTrash,
+  faMagnifyingGlass,
 } from "@fortawesome/free-solid-svg-icons";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
+// PROMOTION = visibilidad en la app de clientes (lo que ya existia).
+// PREMIUM = paquete para los negocios clientes de Deliflex, catalogo aparte
+// con el mismo mecanismo de suscripcion.
+type BoostPlanType = "PROMOTION" | "PREMIUM";
+
 type BoostPlan = {
   id: string;
   name: string;
+  type: BoostPlanType;
   price: string;
   billing_cycle: "MONTHLY" | "BIWEEKLY" | "WEEKLY";
   features: string[];
@@ -63,6 +72,7 @@ type StoreBoost = {
   store_category: string | null;
   plan_id: string;
   plan_name: string;
+  plan_type: BoostPlanType;
   billing_cycle: "MONTHLY" | "BIWEEKLY" | "WEEKLY";
   // Arte que el negocio quiere que se muestre en el espacio destacado.
   banner_url?: string | null;
@@ -107,6 +117,16 @@ const CICLO_DESDE_LABEL: Record<string, string> = Object.fromEntries(
   Object.entries(CICLO_LABEL).map(([codigo, label]) => [label, codigo]),
 );
 
+const TIPO_PLAN_LABEL: Record<BoostPlanType, string> = {
+  PROMOTION: "Promoción",
+  PREMIUM: "Premium",
+};
+
+const TIPO_PLAN_PILL: Record<BoostPlanType, string> = {
+  PROMOTION: styles.pillPromotion,
+  PREMIUM: styles.pillPremium,
+};
+
 const ESTADO_LABEL: Record<StoreBoost["status"], string> = {
   ACTIVE: "Activo",
   PENDING: "Pendiente",
@@ -135,13 +155,20 @@ const BANNER_PILL: Record<BannerStatus, string> = {
   REJECTED: styles.pillOverdue,
 };
 
-// Tono suave por estado para los tabs del filtro.
-const CHIP_TONO: Record<string, string> = {
-  TODOS: styles.chipAll,
-  ACTIVE: styles.chipToneActive,
-  PENDING: styles.chipTonePending,
-  OVERDUE: styles.chipToneOverdue,
-  PAUSED: styles.chipTonePaused,
+const TODOS_ESTADOS = "Todos los estados";
+
+const ESTADO_FILTRO_OPCIONES = [
+  TODOS_ESTADOS,
+  ...Object.values(ESTADO_LABEL),
+];
+
+const normalizar = (texto: string) => texto.toLowerCase().trim();
+
+const coincideRangoFecha = (iso: string, desde: string, hasta: string) => {
+  const fecha = iso.slice(0, 10);
+  if (desde && fecha < desde) return false;
+  if (hasta && fecha > hasta) return false;
+  return true;
 };
 
 const dinero = (valor: number | string) =>
@@ -255,8 +282,13 @@ function SuperAdminBoostsView() {
   const [plans, setPlans] = useState<BoostPlan[]>([]);
   const [boosts, setBoosts] = useState<StoreBoost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"plans" | "boosts">("plans");
-  const [filtro, setFiltro] = useState<"TODOS" | StoreBoost["status"]>("TODOS");
+  const [activeTab, setActiveTab] = useState<"premium" | "plans" | "boosts">(
+    "premium",
+  );
+  const [filtro, setFiltro] = useState(TODOS_ESTADOS);
+  const [boostBusqueda, setBoostBusqueda] = useState("");
+  const [boostFechaDesde, setBoostFechaDesde] = useState("");
+  const [boostFechaHasta, setBoostFechaHasta] = useState("");
   const [actingId, setActingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     message: string;
@@ -265,6 +297,7 @@ function SuperAdminBoostsView() {
 
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<BoostPlan | null>(null);
+  const [planModalType, setPlanModalType] = useState<BoostPlanType>("PROMOTION");
   const [deletingPlan, setDeletingPlan] = useState<BoostPlan | null>(null);
   const [borrandoPlan, setBorrandoPlan] = useState(false);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
@@ -437,23 +470,22 @@ function SuperAdminBoostsView() {
     }
   };
 
-  const conteosPorEstado = useMemo(() => {
-    const base: Record<string, number> = {
-      TODOS: boosts.length,
-      ACTIVE: 0,
-      PENDING: 0,
-      OVERDUE: 0,
-      PAUSED: 0,
-      CANCELLED: 0,
-    };
-    boosts.forEach((b) => {
-      base[b.status] = (base[b.status] ?? 0) + 1;
-    });
-    return base;
-  }, [boosts]);
+  const boostsFiltrados = boosts.filter((b) => {
+    // Igual que en DeliPuntos: la busqueda arranca a partir de 3
+    // caracteres, antes de eso no filtra por texto.
+    const busqueda = normalizar(boostBusqueda);
+    if (busqueda.length >= 3) {
+      const enNombre = normalizar(b.store_name).includes(busqueda);
+      const enPlan = normalizar(b.plan_name).includes(busqueda);
+      if (!enNombre && !enPlan) return false;
+    }
 
-  const boostsFiltrados =
-    filtro === "TODOS" ? boosts : boosts.filter((b) => b.status === filtro);
+    if (filtro !== TODOS_ESTADOS && ESTADO_LABEL[b.status] !== filtro) {
+      return false;
+    }
+
+    return coincideRangoFecha(b.started_at, boostFechaDesde, boostFechaHasta);
+  });
 
   const suscriptoresPorPlan = useMemo(() => {
     const map: Record<string, number> = {};
@@ -462,6 +494,88 @@ function SuperAdminBoostsView() {
     });
     return map;
   }, [boosts]);
+
+  // Misma tarjeta de plan para "Planes de promoción" y "Planes Premium":
+  // son dos catálogos independientes con el mismo mecanismo, solo cambia
+  // que lista de planes se muestra y con que tipo se crea uno nuevo.
+  const renderPlansGrid = (tipo: BoostPlanType) => (
+    <div className={styles.plansGrid}>
+      {plans
+        .filter((plan) => plan.type === tipo)
+        .map((plan) => (
+          <div
+            key={plan.id}
+            className={`${styles.planCard} ${
+              plan.is_highlighted ? styles.planFeatured : ""
+            } ${!plan.is_active ? styles.planCardInactive : ""}`}
+          >
+            <div className={styles.planTopRow}>
+              <span className={styles.planName}>{plan.name}</span>
+              <div className={styles.planIconBtns}>
+                <button
+                  className={styles.planIconBtn}
+                  title="Editar plan"
+                  onClick={() => {
+                    setEditingPlan(plan);
+                    setPlanModalType(plan.type);
+                    setPlanModalOpen(true);
+                  }}
+                >
+                  <FontAwesomeIcon icon={faPen} />
+                </button>
+                <button
+                  className={styles.planIconBtn}
+                  title={plan.is_active ? "Desactivar plan" : "Activar plan"}
+                  onClick={() => togglePlanActivo(plan)}
+                >
+                  <FontAwesomeIcon icon={faPowerOff} />
+                </button>
+                <button
+                  className={styles.planIconBtn}
+                  title="Eliminar plan"
+                  onClick={() => setDeletingPlan(plan)}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.planPrice}>
+              <span className={styles.planAmount}>{dinero(plan.price)}</span>
+              <span className={styles.planCadence}>
+                / {CADENCIA[plan.billing_cycle]}
+              </span>
+            </div>
+
+            <ul className={styles.planFeatures}>
+              {plan.features.map((f, i) => (
+                <li key={i}>
+                  <FontAwesomeIcon icon={faCircleCheck} />
+                  {f}
+                </li>
+              ))}
+            </ul>
+
+            <div className={styles.planFoot}>
+              <span>{plan.is_active ? "Vigentes" : "Desactivado"}</span>
+              <span className="count">{suscriptoresPorPlan[plan.id] ?? 0}</span>
+            </div>
+          </div>
+        ))}
+
+      <div
+        className={styles.addPlanCard}
+        onClick={() => {
+          setEditingPlan(null);
+          setPlanModalType(tipo);
+          setPlanModalOpen(true);
+        }}
+      >
+        <FontAwesomeIcon icon={faPlus} />
+        Nuevo plan
+      </div>
+    </div>
+  );
 
   if (loading || !summary) {
     return (
@@ -495,15 +609,6 @@ function SuperAdminBoostsView() {
               </p>
             </div>
             <div className={styles.headerActions}>
-              <button
-                className={styles.btnGhost}
-                onClick={() => {
-                  setEditingPlan(null);
-                  setPlanModalOpen(true);
-                }}
-              >
-                + Nuevo plan
-              </button>
               <button
                 className={styles.btnSolid}
                 onClick={() => setAssignModalOpen(true)}
@@ -571,6 +676,15 @@ function SuperAdminBoostsView() {
 
         <div className={styles.tabs}>
           <button
+            onClick={() => setActiveTab("premium")}
+            className={`${styles.tab} ${
+              activeTab === "premium" ? styles.tabActive : ""
+            }`}
+          >
+            Planes Premium
+            <span className={styles.tabIndicator} />
+          </button>
+          <button
             onClick={() => setActiveTab("plans")}
             className={`${styles.tab} ${
               activeTab === "plans" ? styles.tabActive : ""
@@ -590,6 +704,19 @@ function SuperAdminBoostsView() {
           </button>
         </div>
 
+        {activeTab === "premium" && (
+        <div className={styles.section}>
+          <div className={styles.sectionHead}>
+            <div>
+              <h2>Planes Premium</h2>
+              <p>Paquetes premium para los negocios clientes de Deliflex.</p>
+            </div>
+          </div>
+
+          {renderPlansGrid("PREMIUM")}
+        </div>
+        )}
+
         {activeTab === "plans" && (
         <div className={styles.section}>
           <div className={styles.sectionHead}>
@@ -599,82 +726,7 @@ function SuperAdminBoostsView() {
             </div>
           </div>
 
-          <div className={styles.plansGrid}>
-            {plans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`${styles.planCard} ${
-                  plan.is_highlighted ? styles.planFeatured : ""
-                } ${!plan.is_active ? styles.planCardInactive : ""}`}
-              >
-                <div className={styles.planTopRow}>
-                  <span className={styles.planName}>{plan.name}</span>
-                  <div className={styles.planIconBtns}>
-                    <button
-                      className={styles.planIconBtn}
-                      title="Editar plan"
-                      onClick={() => {
-                        setEditingPlan(plan);
-                        setPlanModalOpen(true);
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faPen} />
-                    </button>
-                    <button
-                      className={styles.planIconBtn}
-                      title={plan.is_active ? "Desactivar plan" : "Activar plan"}
-                      onClick={() => togglePlanActivo(plan)}
-                    >
-                      <FontAwesomeIcon icon={faPowerOff} />
-                    </button>
-                    <button
-                      className={styles.planIconBtn}
-                      title="Eliminar plan"
-                      onClick={() => setDeletingPlan(plan)}
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className={styles.planPrice}>
-                  <span className={styles.planAmount}>
-                    {dinero(plan.price)}
-                  </span>
-                  <span className={styles.planCadence}>
-                    / {CADENCIA[plan.billing_cycle]}
-                  </span>
-                </div>
-
-                <ul className={styles.planFeatures}>
-                  {plan.features.map((f, i) => (
-                    <li key={i}>
-                      <FontAwesomeIcon icon={faCircleCheck} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <div className={styles.planFoot}>
-                  <span>{plan.is_active ? "Vigentes" : "Desactivado"}</span>
-                  <span className="count">
-                    {suscriptoresPorPlan[plan.id] ?? 0}
-                  </span>
-                </div>
-              </div>
-            ))}
-
-            <div
-              className={styles.addPlanCard}
-              onClick={() => {
-                setEditingPlan(null);
-                setPlanModalOpen(true);
-              }}
-            >
-              <FontAwesomeIcon icon={faPlus} />
-              Nuevo plan
-            </div>
-          </div>
+          {renderPlansGrid("PROMOTION")}
         </div>
         )}
 
@@ -685,36 +737,67 @@ function SuperAdminBoostsView() {
               <h2>Negocios con promoción</h2>
               <p>Estado de cobro de cada suscripción.</p>
             </div>
-            <div className={styles.filters}>
-              {(
-                [
-                  ["TODOS", "Todos"],
-                  ["ACTIVE", "Activos"],
-                  ["PENDING", "Pendientes"],
-                  ["OVERDUE", "Vencidos"],
-                  ["PAUSED", "Pausados"],
-                ] as const
-              ).map(([key, label]) => (
-                <button
-                  key={key}
-                  className={`${styles.chip} ${CHIP_TONO[key]} ${
-                    filtro === key ? styles.chipActive : ""
-                  }`}
-                  onClick={() => setFiltro(key)}
-                >
-                  <span className={styles.chipLabel}>{label}</span>
-                  <span className={styles.chipCount}>
-                    {conteosPorEstado[key] ?? 0}
-                  </span>
-                </button>
-              ))}
+          </div>
+
+          <div className={styles.filters}>
+            <div className={styles.searchWrap}>
+              <DFInput
+                value={boostBusqueda}
+                onChange={(e) => setBoostBusqueda(e.target.value)}
+                placeholder="Buscar por negocio o plan..."
+                icon={<FontAwesomeIcon color="#ed7b17" icon={faMagnifyingGlass} />}
+              />
             </div>
+
+            <div className={styles.rangePicker}>
+              <div className={styles.rangeDateWrap}>
+                <DatePicker
+                  value={boostFechaDesde}
+                  onChange={setBoostFechaDesde}
+                  placeholder="Desde"
+                />
+              </div>
+              <span className={styles.rangeSeparator}>–</span>
+              <div className={styles.rangeDateWrap}>
+                <DatePicker
+                  value={boostFechaHasta}
+                  onChange={setBoostFechaHasta}
+                  placeholder="Hasta"
+                />
+              </div>
+
+              {(boostFechaDesde || boostFechaHasta) && (
+                <button
+                  type="button"
+                  className={styles.rangeClearBtn}
+                  onClick={() => {
+                    setBoostFechaDesde("");
+                    setBoostFechaHasta("");
+                  }}
+                  aria-label="Quitar filtro de fechas"
+                  title="Quitar filtro de fechas"
+                >
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              )}
+            </div>
+
+            <Dropdown
+              options={ESTADO_FILTRO_OPCIONES}
+              value={filtro}
+              onChange={setFiltro}
+              placeholder="Estado"
+            />
           </div>
 
           <div className={styles.tableContainer}>
-            {boostsFiltrados.length === 0 ? (
+            {boosts.length === 0 ? (
               <div className={styles.emptyState}>
-                Ningún negocio con este estado todavía.
+                Ningún negocio con promoción todavía.
+              </div>
+            ) : boostsFiltrados.length === 0 ? (
+              <div className={styles.emptyState}>
+                Ningún negocio coincide con el filtro.
               </div>
             ) : (
               <table className={styles.table}>
@@ -722,6 +805,7 @@ function SuperAdminBoostsView() {
                   <tr>
                     <th>Negocio</th>
                     <th>Plan</th>
+                    <th>Tipo</th>
                     <th>Estado</th>
                     <th>Monto</th>
                     <th>Próx. cobro</th>
@@ -769,6 +853,15 @@ function SuperAdminBoostsView() {
                           </div>
                         </td>
                         <td>{boost.plan_name}</td>
+                        <td>
+                          <span
+                            className={`${styles.pill} ${
+                              TIPO_PLAN_PILL[boost.plan_type]
+                            }`}
+                          >
+                            {TIPO_PLAN_LABEL[boost.plan_type]}
+                          </span>
+                        </td>
                         <td>
                           <span
                             className={`${styles.pill} ${
@@ -871,6 +964,7 @@ function SuperAdminBoostsView() {
         isOpen={planModalOpen}
         onClose={() => setPlanModalOpen(false)}
         plan={editingPlan}
+        type={planModalType}
         onSaved={async () => {
           setPlanModalOpen(false);
           await cargarTodo();
@@ -968,6 +1062,7 @@ function BoostDetailModal({
 
   const datos: [string, string][] = [
     ["Plan", boost.plan_name],
+    ["Tipo", TIPO_PLAN_LABEL[boost.plan_type]],
     ["Estado", ESTADO_LABEL[boost.status]],
     ["Monto", `${dinero(boost.amount)} / ${CADENCIA[boost.billing_cycle]}`],
     ["Inicio", formatFecha(boost.started_at.slice(0, 10))],
@@ -1274,11 +1369,15 @@ function PlanFormModal({
   isOpen,
   onClose,
   plan,
+  type,
   onSaved,
 }: {
   isOpen: boolean;
   onClose: () => void;
   plan: BoostPlan | null;
+  // Con que tipo se crea un plan nuevo; al editar uno existente siempre
+  // manda su propio type, este solo importa para "Nuevo plan".
+  type: BoostPlanType;
   onSaved: () => void;
 }) {
   const [name, setName] = useState("");
@@ -1319,6 +1418,7 @@ function PlanFormModal({
 
     const body = {
       name: name.trim(),
+      type: plan?.type ?? type,
       price: Number(price),
       billingCycle: CICLO_DESDE_LABEL[billingCycle] ?? "MONTHLY",
       features: features
@@ -1355,7 +1455,13 @@ function PlanFormModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={plan ? "Editar plan" : "Nuevo plan"}
+      title={
+        plan
+          ? "Editar plan"
+          : type === "PREMIUM"
+            ? "Nuevo plan premium"
+            : "Nuevo plan de promoción"
+      }
       width="480px"
     >
       <div className={styles.form}>
@@ -1455,7 +1561,7 @@ function AssignBoostModal({
     `${s.name} — ${s.category || "Sin categoría"}`;
 
   const etiquetaPlan = (p: BoostPlan) =>
-    `${p.name} — RD$${Number(p.price).toLocaleString("es-DO")}/${CADENCIA[p.billing_cycle]}`;
+    `[${TIPO_PLAN_LABEL[p.type]}] ${p.name} — RD$${Number(p.price).toLocaleString("es-DO")}/${CADENCIA[p.billing_cycle]}`;
 
   const storeOptions = stores.map(etiquetaNegocio);
   const planOptions = plans.map(etiquetaPlan);
@@ -1558,6 +1664,7 @@ function MyBusinessBoostsView({ user }: { user: User }) {
     id: string;
     name: string;
     category: string | null;
+    tipo: BoostPlanType;
   } | null>(null);
   const [bannerBoost, setBannerBoost] = useState<StoreBoost | null>(null);
   const [toast, setToast] = useState<{
@@ -1565,8 +1672,14 @@ function MyBusinessBoostsView({ user }: { user: User }) {
     type: "success" | "info" | "danger";
   } | null>(null);
 
+  // >= MERCADOLOGO_ROLE_ID (75): dueno, Gerente General o Mercadologo.
+  // Mismo umbral que tieneRolGerencial (que decide si esta pantalla se ve),
+  // aqui filtrando CUALES de sus negocios puede administrar.
   const misNegocios = useMemo(
-    () => stores.filter((s) => (getRoleForStore(user, s.id) ?? 0) >= 80),
+    () =>
+      stores.filter(
+        (s) => (getRoleForStore(user, s.id) ?? 0) >= MERCADOLOGO_ROLE_ID,
+      ),
     [stores, user],
   );
 
@@ -1653,6 +1766,222 @@ function MyBusinessBoostsView({ user }: { user: User }) {
 
   const planesActivos = plans.filter((p) => p.is_active);
 
+  const renderPlanesDisponibles = (tipo: BoostPlanType) => (
+    <div className={styles.plansGrid}>
+      {planesActivos
+        .filter((plan) => plan.type === tipo)
+        .map((plan) => (
+          <div
+            key={plan.id}
+            className={`${styles.planCard} ${
+              plan.is_highlighted ? styles.planFeatured : ""
+            }`}
+          >
+            <div className={styles.planTopRow}>
+              <span className={styles.planName}>{plan.name}</span>
+            </div>
+
+            <div className={styles.planPrice}>
+              <span className={styles.planAmount}>{dinero(plan.price)}</span>
+              <span className={styles.planCadence}>
+                / {CADENCIA[plan.billing_cycle]}
+              </span>
+            </div>
+
+            <ul className={styles.planFeatures}>
+              {plan.features.map((f, i) => (
+                <li key={i}>
+                  <FontAwesomeIcon icon={faCircleCheck} />
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+    </div>
+  );
+
+  // Una tarjeta de "Tus negocios" por tipo de plan: un negocio puede tener
+  // promoción y premium activos a la vez, cada uno con su propio estado.
+  const renderNegocioCard = (
+    store: (typeof misNegocios)[number],
+    tipo: BoostPlanType,
+    actual: StoreBoost | null,
+  ) => {
+    const sinPlan = !actual || actual.status === "CANCELLED";
+    const hayPlanesDelTipo = planesActivos.some((p) => p.type === tipo);
+
+    return (
+      <div key={`${store.id}-${tipo}`} className={styles.myBizCard}>
+        <div className={styles.myBizHead}>
+          <span className={styles.avatar}>{iniciales(store.name)}</span>
+          <div>
+            <div className={styles.bizName}>{store.name}</div>
+            <div className={styles.bizCat}>
+              {store.category || "Sin categoría"}
+            </div>
+          </div>
+          <span
+            className={`${styles.pill} ${TIPO_PLAN_PILL[tipo]}`}
+            style={{ marginLeft: "auto" }}
+          >
+            {TIPO_PLAN_LABEL[tipo]}
+          </span>
+        </div>
+
+        {sinPlan ? (
+          <>
+            <p className={styles.myBizHint}>
+              {hayPlanesDelTipo
+                ? tipo === "PREMIUM"
+                  ? "Sin paquete premium activo."
+                  : "Sin promoción activa."
+                : tipo === "PREMIUM"
+                  ? "Todavía no hay paquetes premium disponibles."
+                  : "Todavía no hay planes de promoción disponibles."}
+            </p>
+            {hayPlanesDelTipo && (
+              <button
+                className={styles.submitBtn}
+                onClick={() =>
+                  setSubscribeStore({
+                    id: store.id,
+                    name: store.name,
+                    category: store.category,
+                    tipo,
+                  })
+                }
+              >
+                {tipo === "PREMIUM"
+                  ? "Suscribirme a un paquete premium"
+                  : "Suscribirme a un plan"}
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <div className={styles.myBizStatusRow}>
+              <span
+                className={`${styles.pill} ${ESTADO_PILL[actual.status]}`}
+              >
+                {ESTADO_LABEL[actual.status]}
+              </span>
+              <span className={styles.myBizPlan}>{actual.plan_name}</span>
+            </div>
+
+            <div className={styles.myBizMeta}>
+              {dinero(actual.amount)} / {CADENCIA[actual.billing_cycle]}
+              {actual.status === "PAUSED"
+                ? " · en pausa"
+                : actual.next_billing_date
+                  ? ` · próx. cobro ${formatFecha(actual.next_billing_date)}`
+                  : ""}
+            </div>
+
+            <div className={styles.myBizBanner}>
+              {actual.banner_url ? (
+                <img
+                  src={actual.banner_url}
+                  alt={`Banner de ${store.name}`}
+                  className={styles.myBizBannerImg}
+                />
+              ) : (
+                <div className={styles.bannerEmpty}>
+                  <FontAwesomeIcon icon={faImage} />
+                  Todavía no subiste el banner que quieres mostrar.
+                </div>
+              )}
+
+              <div className={styles.myBizBannerFoot}>
+                {actual.banner_status && (
+                  <span
+                    className={`${styles.pill} ${BANNER_PILL[actual.banner_status]}`}
+                  >
+                    {BANNER_LABEL[actual.banner_status]}
+                  </span>
+                )}
+                <button
+                  className={`${styles.rowBtn} ${styles.rowBtnSecondary}`}
+                  onClick={() => setBannerBoost(actual)}
+                >
+                  <FontAwesomeIcon icon={faImage} />
+                  {actual.banner_url ? "Cambiar banner" : "Subir banner"}
+                </button>
+              </div>
+
+              {actual.banner_status === "REJECTED" &&
+                actual.banner_reject_reason && (
+                  <p className={styles.bannerReject}>
+                    Deliflex rechazó tu imagen: {actual.banner_reject_reason}
+                  </p>
+                )}
+            </div>
+
+            {actual.status === "PAUSED" && diasRestantes(actual) !== null && (
+              <p className={styles.myBizHint}>
+                En pausa con {enDias(diasRestantes(actual)!)} guardados. Al
+                reactivar sigues con esos mismos días: la pausa no te quita ni
+                te suma tiempo.
+              </p>
+            )}
+
+            {actual.status === "PENDING" && (
+              <p className={styles.myBizHint}>
+                Esperando que Deliflex confirme tu pago.
+              </p>
+            )}
+            {actual.status === "OVERDUE" && (
+              <p className={styles.myBizHint}>
+                Pago vencido — contacta a Deliflex.
+              </p>
+            )}
+            {actual.status === "ACTIVE" &&
+              (() => {
+                const dias = diasHasta(actual.next_billing_date);
+                return dias !== null && dias <= 3 ? (
+                  <p className={styles.myBizHint} style={{ color: "#b8860b" }}>
+                    Tu plan se renueva el {formatFecha(actual.next_billing_date)}.
+                    Cancélalo antes de esa fecha si no deseas continuar.
+                  </p>
+                ) : (
+                  <p className={styles.myBizHint}>
+                    Ya confirmado: no se puede pausar. Podrás cancelarlo desde
+                    3 días antes de tu próxima renovación (
+                    {formatFecha(actual.next_billing_date)}).
+                  </p>
+                );
+              })()}
+
+            <div
+              className={styles.rowActions}
+              style={{ justifyContent: "flex-start", marginTop: 10 }}
+            >
+              {actual.status === "PAUSED" && (
+                <button
+                  className={`${styles.rowBtn} ${styles.rowBtnPrimary}`}
+                  disabled={actingId === actual.id}
+                  onClick={() => cambiarEstado(actual.id, "PENDING")}
+                >
+                  Reactivar
+                </button>
+              )}
+              {(actual.status !== "ACTIVE" ||
+                (diasHasta(actual.next_billing_date) ?? 99) <= 3) && (
+                <button
+                  className={`${styles.rowBtn} ${styles.rowBtnSecondary}`}
+                  disabled={actingId === actual.id}
+                  onClick={() => cambiarEstado(actual.id, "CANCELLED")}
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <AdminLayout>
       <div className={styles.container}>
@@ -1673,50 +2002,30 @@ function MyBusinessBoostsView({ user }: { user: User }) {
         <div className={styles.section}>
           <div className={styles.sectionHead}>
             <div>
-              <h2>Planes disponibles</h2>
+              <h2>Paquetes Premium</h2>
+              <p>Beneficios premium para tu negocio como cliente de Deliflex.</p>
+            </div>
+          </div>
+
+          {renderPlanesDisponibles("PREMIUM")}
+        </div>
+
+        <div className={styles.section}>
+          <div className={styles.sectionHead}>
+            <div>
+              <h2>Planes de promoción disponibles</h2>
               <p>Lo que ganas al destacar tu negocio.</p>
             </div>
           </div>
 
-          <div className={styles.plansGrid}>
-            {planesActivos.map((plan) => (
-              <div
-                key={plan.id}
-                className={`${styles.planCard} ${
-                  plan.is_highlighted ? styles.planFeatured : ""
-                }`}
-              >
-                <div className={styles.planTopRow}>
-                  <span className={styles.planName}>{plan.name}</span>
-                </div>
-
-                <div className={styles.planPrice}>
-                  <span className={styles.planAmount}>
-                    {dinero(plan.price)}
-                  </span>
-                  <span className={styles.planCadence}>
-                    / {CADENCIA[plan.billing_cycle]}
-                  </span>
-                </div>
-
-                <ul className={styles.planFeatures}>
-                  {plan.features.map((f, i) => (
-                    <li key={i}>
-                      <FontAwesomeIcon icon={faCircleCheck} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          {renderPlanesDisponibles("PROMOTION")}
         </div>
 
         <div className={styles.section}>
           <div className={styles.sectionHead}>
             <div>
               <h2>Tus negocios</h2>
-              <p>Estado de la promoción de cada uno.</p>
+              <p>Estado de la promoción y el premium de cada uno.</p>
             </div>
           </div>
 
@@ -1727,175 +2036,19 @@ function MyBusinessBoostsView({ user }: { user: User }) {
           ) : (
             <div className={styles.myBizGrid}>
               {misNegocios.map((store) => {
-                const actual = (boostsByStore[store.id] ?? [])[0] ?? null;
-                const sinPromocion = !actual || actual.status === "CANCELLED";
+                const boostsDelNegocio = boostsByStore[store.id] ?? [];
+                const premiumActual =
+                  boostsDelNegocio.find((b) => b.plan_type === "PREMIUM") ??
+                  null;
+                const promoActual =
+                  boostsDelNegocio.find((b) => b.plan_type === "PROMOTION") ??
+                  null;
 
                 return (
-                  <div key={store.id} className={styles.myBizCard}>
-                    <div className={styles.myBizHead}>
-                      <span className={styles.avatar}>
-                        {iniciales(store.name)}
-                      </span>
-                      <div>
-                        <div className={styles.bizName}>{store.name}</div>
-                        <div className={styles.bizCat}>
-                          {store.category || "Sin categoría"}
-                        </div>
-                      </div>
-                    </div>
-
-                    {sinPromocion ? (
-                      <>
-                        <p className={styles.myBizHint}>
-                          Sin promoción activa.
-                        </p>
-                        <button
-                          className={styles.submitBtn}
-                          onClick={() =>
-                            setSubscribeStore({
-                              id: store.id,
-                              name: store.name,
-                              category: store.category,
-                            })
-                          }
-                        >
-                          Suscribirme a un plan
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <div className={styles.myBizStatusRow}>
-                          <span
-                            className={`${styles.pill} ${ESTADO_PILL[actual.status]}`}
-                          >
-                            {ESTADO_LABEL[actual.status]}
-                          </span>
-                          <span className={styles.myBizPlan}>
-                            {actual.plan_name}
-                          </span>
-                        </div>
-
-                        <div className={styles.myBizMeta}>
-                          {dinero(actual.amount)} / {CADENCIA[actual.billing_cycle]}
-                          {actual.status === "PAUSED"
-                            ? " · en pausa"
-                            : actual.next_billing_date
-                              ? ` · próx. cobro ${formatFecha(actual.next_billing_date)}`
-                              : ""}
-                        </div>
-
-                        <div className={styles.myBizBanner}>
-                          {actual.banner_url ? (
-                            <img
-                              src={actual.banner_url}
-                              alt={`Banner de ${store.name}`}
-                              className={styles.myBizBannerImg}
-                            />
-                          ) : (
-                            <div className={styles.bannerEmpty}>
-                              <FontAwesomeIcon icon={faImage} />
-                              Todavía no subiste el banner que quieres mostrar.
-                            </div>
-                          )}
-
-                          <div className={styles.myBizBannerFoot}>
-                            {actual.banner_status && (
-                              <span
-                                className={`${styles.pill} ${BANNER_PILL[actual.banner_status]}`}
-                              >
-                                {BANNER_LABEL[actual.banner_status]}
-                              </span>
-                            )}
-                            <button
-                              className={`${styles.rowBtn} ${styles.rowBtnSecondary}`}
-                              onClick={() => setBannerBoost(actual)}
-                            >
-                              <FontAwesomeIcon icon={faImage} />
-                              {actual.banner_url
-                                ? "Cambiar banner"
-                                : "Subir banner"}
-                            </button>
-                          </div>
-
-                          {actual.banner_status === "REJECTED" &&
-                            actual.banner_reject_reason && (
-                              <p className={styles.bannerReject}>
-                                Deliflex rechazó tu imagen:{" "}
-                                {actual.banner_reject_reason}
-                              </p>
-                            )}
-                        </div>
-
-                        {actual.status === "PAUSED" &&
-                          diasRestantes(actual) !== null && (
-                            <p className={styles.myBizHint}>
-                              En pausa con {enDias(diasRestantes(actual)!)}{" "}
-                              guardados. Al reactivar sigues con esos mismos
-                              días: la pausa no te quita ni te suma tiempo.
-                            </p>
-                          )}
-
-                        {actual.status === "PENDING" && (
-                          <p className={styles.myBizHint}>
-                            Esperando que Deliflex confirme tu pago.
-                          </p>
-                        )}
-                        {actual.status === "OVERDUE" && (
-                          <p className={styles.myBizHint}>
-                            Pago vencido — contacta a Deliflex.
-                          </p>
-                        )}
-                        {actual.status === "ACTIVE" &&
-                          (() => {
-                            const dias = diasHasta(actual.next_billing_date);
-                            return dias !== null && dias <= 3 ? (
-                              <p
-                                className={styles.myBizHint}
-                                style={{ color: "#b8860b" }}
-                              >
-                                Tu plan se renueva el{" "}
-                                {formatFecha(actual.next_billing_date)}.
-                                Cancélalo antes de esa fecha si no deseas
-                                continuar.
-                              </p>
-                            ) : (
-                              <p className={styles.myBizHint}>
-                                Ya confirmado: no se puede pausar. Podrás
-                                cancelarlo desde 3 días antes de tu próxima
-                                renovación ({formatFecha(actual.next_billing_date)}).
-                              </p>
-                            );
-                          })()}
-
-                        <div
-                          className={styles.rowActions}
-                          style={{ justifyContent: "flex-start", marginTop: 10 }}
-                        >
-                          {actual.status === "PAUSED" && (
-                            <button
-                              className={`${styles.rowBtn} ${styles.rowBtnPrimary}`}
-                              disabled={actingId === actual.id}
-                              onClick={() => cambiarEstado(actual.id, "PENDING")}
-                            >
-                              Reactivar
-                            </button>
-                          )}
-                          {(actual.status !== "ACTIVE" ||
-                            (diasHasta(actual.next_billing_date) ?? 99) <= 3) && (
-                            <button
-                              className={`${styles.rowBtn} ${styles.rowBtnSecondary}`}
-                              disabled={actingId === actual.id}
-                              onClick={() =>
-                                cambiarEstado(actual.id, "CANCELLED")
-                              }
-                            >
-                              Cancelar
-                            </button>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  <Fragment key={store.id}>
+                    {renderNegocioCard(store, "PREMIUM", premiumActual)}
+                    {renderNegocioCard(store, "PROMOTION", promoActual)}
+                  </Fragment>
                 );
               })}
             </div>
@@ -1905,7 +2058,7 @@ function MyBusinessBoostsView({ user }: { user: User }) {
 
       <SubscribeModal
         store={subscribeStore}
-        plans={planesActivos}
+        plans={planesActivos.filter((p) => p.type === subscribeStore?.tipo)}
         onClose={() => setSubscribeStore(null)}
         onSaved={async () => {
           setSubscribeStore(null);
@@ -1965,7 +2118,7 @@ function SubscribeModal({
   }, [store]);
 
   const etiquetaPlan = (p: BoostPlan) =>
-    `${p.name} — RD$${Number(p.price).toLocaleString("es-DO")}/${CADENCIA[p.billing_cycle]}`;
+    `[${TIPO_PLAN_LABEL[p.type]}] ${p.name} — RD$${Number(p.price).toLocaleString("es-DO")}/${CADENCIA[p.billing_cycle]}`;
 
   const guardar = async () => {
     if (!store) return;

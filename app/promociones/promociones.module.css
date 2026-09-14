@@ -476,90 +476,60 @@
 /* ---- Filtros ---- */
 .filters {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.chip {
-  display: inline-flex;
   align-items: center;
-  gap: 9px;
-  border: 1px solid #eee;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.searchWrap {
+  flex: 1;
+  min-width: 220px;
+}
+
+/* DFInput trae un margin-bottom pensado para formularios apilados; en una
+   barra de filtros en linea desalinea el input con los dropdowns de al lado. */
+.searchWrap > div {
+  margin-bottom: 0;
+}
+
+.rangePicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background: white;
-  color: #8a8a8a;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+.rangeDateWrap {
+  width: 128px;
+}
+
+.rangeSeparator {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.rangeClearBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
   border-radius: 999px;
-  padding: 6px 8px 6px 14px;
-  font-size: 12.5px;
-  font-weight: 700;
+  background: #f3f4f6;
+  color: #9ca3af;
+  font-size: 11px;
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
 }
 
-/* El numero vive en su propia pastilla: separado de la palabra y con el
-   tono del estado que filtra, para reconocerlo de un vistazo. */
-.chipCount {
-  min-width: 22px;
-  padding: 2px 7px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 700;
-  background: #f4f4f5;
-  color: #8a8a8a;
-  text-align: center;
-}
-
-.chipAll .chipCount {
-  background: #f1f1f2;
-  color: #4b5563;
-}
-
-.chipToneActive {
-  color: #059669;
-}
-.chipToneActive .chipCount {
-  background: #eafaf8;
-  color: #059669;
-}
-
-.chipTonePending {
-  color: #b8860b;
-}
-.chipTonePending .chipCount {
-  background: #fbf3df;
-  color: #b8860b;
-}
-
-.chipToneOverdue {
-  color: #e53935;
-}
-.chipToneOverdue .chipCount {
-  background: #fdecec;
-  color: #e53935;
-}
-
-.chipTonePaused {
-  color: #6b7280;
-}
-.chipTonePaused .chipCount {
-  background: #f1f1f2;
-  color: #6b7280;
-}
-
-.chip:hover {
-  border-color: #d9d9d9;
-}
-
-.chipActive {
-  background: #1a1a1a;
-  border-color: #1a1a1a;
-  color: white;
-}
-
-/* Seleccionado el fondo ya es oscuro: el numero pasa a blanco translucido
-   para que no compita con el tono del estado. */
-.chipActive .chipCount {
-  background: rgba(255, 255, 255, 0.16);
-  color: white;
+.rangeClearBtn:hover {
+  background: #ffe3cc;
+  color: #ff7a00;
 }
 
 /* ---- Tabla ---- */
@@ -709,6 +679,22 @@
 }
 .pillCancelled::before {
   background: #9a9a9a;
+}
+
+.pillPremium {
+  background: #f4ecfb;
+  color: #7a3ea1;
+}
+.pillPremium::before {
+  background: #7a3ea1;
+}
+
+.pillPromotion {
+  background: #fff4ea;
+  color: #ff7a00;
+}
+.pillPromotion::before {
+  background: #ff7a00;
 }
 
 .due {
