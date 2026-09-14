@@ -17,9 +17,39 @@ const geistMono = Geist_Mono({
 
 config.autoAddCss = false;
 
+const SITE_URL = "https://www.deliflex.app";
+
 export const metadata: Metadata = {
-  title: "Deliflex admin",
-  description: "Generado por Deliflex SRL",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Deliflex",
+    template: "%s | Deliflex",
+  },
+  description:
+    "Panel de Deliflex para negocios: gestiona tu tienda, pedidos, promociones y DeliPuntos.",
+  applicationName: "Deliflex",
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: SITE_URL,
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Deliflex",
+    title: "Deliflex",
+    description:
+      "Deliflex: pide comida a domicilio de tus restaurantes y negocios favoritos en República Dominicana.",
+    url: SITE_URL,
+    locale: "es_DO",
+  },
+  twitter: {
+    card: "summary",
+    title: "Deliflex",
+    description:
+      "Deliflex: pide comida a domicilio de tus restaurantes y negocios favoritos en República Dominicana.",
+  },
 };
 
 export default function RootLayout({
@@ -29,7 +59,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
