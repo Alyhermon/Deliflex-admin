@@ -26,8 +26,10 @@ import {
   faBoxOpen,
   faCamera,
   faTrash,
-  faSliders,
-  faChevronRight,
+  faGripVertical,
+  faPen,
+  faCheck,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import DFCheckbox from "../../components/components-items/checkbox/checkbox";
 import LoadingDots from "../../components/components-items/loading-dots/loading-dots";
@@ -136,9 +138,11 @@ const ordenarProductos = (lista: Product[], orden: string): Product[] => {
 
 function RowMenu({
   onEditar,
+  onOpciones,
   onEliminar,
 }: {
   onEditar: () => void;
+  onOpciones: () => void;
   onEliminar: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -195,6 +199,9 @@ function RowMenu({
             <button type="button" onClick={() => { setOpen(false); onEditar(); }}>
               Editar
             </button>
+            <button type="button" onClick={() => { setOpen(false); onOpciones(); }}>
+              Opciones y extras
+            </button>
             <button
               type="button"
               className={styles.rowMenuDanger}
@@ -231,6 +238,17 @@ function ProductOptionsEditor({
     Record<string, { nombre: string; precio: string }>
   >({});
   const [agregandoOpcionEn, setAgregandoOpcionEn] = useState<string | null>(null);
+
+  const [grupoArrastrado, setGrupoArrastrado] = useState<string | null>(null);
+  const [opcionArrastrada, setOpcionArrastrada] = useState<string | null>(null);
+
+  const [editandoGrupoId, setEditandoGrupoId] = useState<string | null>(null);
+  const [nombreGrupoEditado, setNombreGrupoEditado] = useState("");
+  const [guardandoGrupoId, setGuardandoGrupoId] = useState<string | null>(null);
+
+  const [editandoOpcionId, setEditandoOpcionId] = useState<string | null>(null);
+  const [nombreOpcionEditado, setNombreOpcionEditado] = useState("");
+  const [guardandoOpcionId, setGuardandoOpcionId] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     try {
@@ -325,6 +343,72 @@ function ProductOptionsEditor({
     }
   };
 
+  const abrirEdicionGrupo = (group: OptionGroup) => {
+    setEditandoGrupoId(group.id);
+    setNombreGrupoEditado(group.name);
+  };
+
+  const guardarNombreGrupo = async (groupId: string) => {
+    if (!nombreGrupoEditado.trim()) return;
+
+    setGuardandoGrupoId(groupId);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups/${groupId}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: nombreGrupoEditado.trim() }),
+        },
+      );
+
+      if (!res.ok) throw new Error("No se pudo renombrar el grupo");
+
+      setEditandoGrupoId(null);
+      await cargar();
+    } catch (error) {
+      onError(
+        error instanceof Error ? error.message : "No se pudo renombrar el grupo",
+      );
+    } finally {
+      setGuardandoGrupoId(null);
+    }
+  };
+
+  const abrirEdicionOpcion = (option: ProductOption) => {
+    setEditandoOpcionId(option.id);
+    setNombreOpcionEditado(option.name);
+  };
+
+  const guardarNombreOpcion = async (groupId: string, optionId: string) => {
+    if (!nombreOpcionEditado.trim()) return;
+
+    setGuardandoOpcionId(optionId);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups/${groupId}/options/${optionId}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: nombreOpcionEditado.trim() }),
+        },
+      );
+
+      if (!res.ok) throw new Error("No se pudo renombrar la opción");
+
+      setEditandoOpcionId(null);
+      await cargar();
+    } catch (error) {
+      onError(
+        error instanceof Error ? error.message : "No se pudo renombrar la opción",
+      );
+    } finally {
+      setGuardandoOpcionId(null);
+    }
+  };
+
   const agregarOpcion = async (groupId: string) => {
     const datos = nuevaOpcion[groupId];
     if (!datos?.nombre.trim()) return;
@@ -374,6 +458,80 @@ function ProductOptionsEditor({
     }
   };
 
+  const moverGrupo = async (draggedId: string, targetId: string) => {
+    if (draggedId === targetId) return;
+
+    const actuales = [...groups];
+    const desdeIdx = actuales.findIndex((g) => g.id === draggedId);
+    const hastaIdx = actuales.findIndex((g) => g.id === targetId);
+    if (desdeIdx === -1 || hastaIdx === -1) return;
+
+    const [movido] = actuales.splice(desdeIdx, 1);
+    actuales.splice(hastaIdx, 0, movido);
+    setGroups(actuales);
+
+    try {
+      await Promise.all(
+        actuales.map((g, index) =>
+          fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups/${g.id}`,
+            {
+              method: "PATCH",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ displayOrder: index }),
+            },
+          ),
+        ),
+      );
+    } catch (error) {
+      onError(
+        error instanceof Error ? error.message : "No se pudo reordenar el grupo",
+      );
+      await cargar();
+    }
+  };
+
+  const moverOpcion = async (groupId: string, draggedId: string, targetId: string) => {
+    if (draggedId === targetId) return;
+
+    const grupoIdx = groups.findIndex((g) => g.id === groupId);
+    if (grupoIdx === -1) return;
+
+    const opciones = [...groups[grupoIdx].options];
+    const desdeIdx = opciones.findIndex((o) => o.id === draggedId);
+    const hastaIdx = opciones.findIndex((o) => o.id === targetId);
+    if (desdeIdx === -1 || hastaIdx === -1) return;
+
+    const [movida] = opciones.splice(desdeIdx, 1);
+    opciones.splice(hastaIdx, 0, movida);
+
+    const actuales = [...groups];
+    actuales[grupoIdx] = { ...actuales[grupoIdx], options: opciones };
+    setGroups(actuales);
+
+    try {
+      await Promise.all(
+        opciones.map((o, index) =>
+          fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups/${groupId}/options/${o.id}`,
+            {
+              method: "PATCH",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ displayOrder: index }),
+            },
+          ),
+        ),
+      );
+    } catch (error) {
+      onError(
+        error instanceof Error ? error.message : "No se pudo reordenar la opción",
+      );
+      await cargar();
+    }
+  };
+
   if (loading) {
     return <p className={styles.optionsHint}>Cargando opciones...</p>;
   }
@@ -381,10 +539,70 @@ function ProductOptionsEditor({
   return (
     <div className={styles.optionsEditor}>
       {groups.map((group) => (
-        <div key={group.id} className={styles.optionGroupCard}>
+        <div
+          key={group.id}
+          className={styles.optionGroupCard}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (grupoArrastrado) moverGrupo(grupoArrastrado, group.id);
+            setGrupoArrastrado(null);
+          }}
+        >
           <div className={styles.optionGroupHead}>
+            <span
+              className={styles.dragHandle}
+              draggable
+              title="Arrastrar para reordenar"
+              onDragStart={() => setGrupoArrastrado(group.id)}
+              onDragEnd={() => setGrupoArrastrado(null)}
+            >
+              <FontAwesomeIcon icon={faGripVertical} />
+            </span>
             <div>
-              <span className={styles.optionGroupName}>{group.name}</span>
+              {editandoGrupoId === group.id ? (
+                <div className={styles.inlineEditRow}>
+                  <input
+                    className={styles.inlineEditInput}
+                    value={nombreGrupoEditado}
+                    autoFocus
+                    onChange={(e) => setNombreGrupoEditado(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") guardarNombreGrupo(group.id);
+                      if (e.key === "Escape") setEditandoGrupoId(null);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className={styles.iconBtn}
+                    title="Guardar"
+                    disabled={guardandoGrupoId === group.id}
+                    onClick={() => guardarNombreGrupo(group.id)}
+                  >
+                    <FontAwesomeIcon icon={faCheck} />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.iconBtn}
+                    title="Cancelar"
+                    onClick={() => setEditandoGrupoId(null)}
+                  >
+                    <FontAwesomeIcon icon={faXmark} />
+                  </button>
+                </div>
+              ) : (
+                <span className={styles.optionGroupName}>
+                  {group.name}
+                  <button
+                    type="button"
+                    className={styles.editPencilBtn}
+                    title="Editar nombre del grupo"
+                    onClick={() => abrirEdicionGrupo(group)}
+                  >
+                    <FontAwesomeIcon icon={faPen} />
+                  </button>
+                </span>
+              )}
               <span className={styles.optionGroupMeta}>
                 {group.selection_type === "MULTIPLE"
                   ? TIPO_SELECCION_MULTIPLE
@@ -415,8 +633,67 @@ function ProductOptionsEditor({
           {group.options.length > 0 && (
             <ul className={styles.optionList}>
               {group.options.map((option) => (
-                <li key={option.id}>
-                  <span>{option.name}</span>
+                <li
+                  key={option.id}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (opcionArrastrada) moverOpcion(group.id, opcionArrastrada, option.id);
+                    setOpcionArrastrada(null);
+                  }}
+                >
+                  <span
+                    className={styles.dragHandle}
+                    draggable
+                    title="Arrastrar para reordenar"
+                    onDragStart={() => setOpcionArrastrada(option.id)}
+                    onDragEnd={() => setOpcionArrastrada(null)}
+                  >
+                    <FontAwesomeIcon icon={faGripVertical} />
+                  </span>
+                  {editandoOpcionId === option.id ? (
+                    <div className={styles.inlineEditRow}>
+                      <input
+                        className={styles.inlineEditInput}
+                        value={nombreOpcionEditado}
+                        autoFocus
+                        onChange={(e) => setNombreOpcionEditado(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") guardarNombreOpcion(group.id, option.id);
+                          if (e.key === "Escape") setEditandoOpcionId(null);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className={styles.iconBtn}
+                        title="Guardar"
+                        disabled={guardandoOpcionId === option.id}
+                        onClick={() => guardarNombreOpcion(group.id, option.id)}
+                      >
+                        <FontAwesomeIcon icon={faCheck} />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.iconBtn}
+                        title="Cancelar"
+                        onClick={() => setEditandoOpcionId(null)}
+                      >
+                        <FontAwesomeIcon icon={faXmark} />
+                      </button>
+                    </div>
+                  ) : (
+                    <span>
+                      {option.name}
+                      <button
+                        type="button"
+                        className={styles.editPencilBtn}
+                        title="Editar nombre de la opción"
+                        onClick={() => abrirEdicionOpcion(option)}
+                      >
+                        <FontAwesomeIcon icon={faPen} />
+                      </button>
+                    </span>
+                  )}
                   <span>
                     {Number(option.extra_price) > 0
                       ? `+RD$${Number(option.extra_price).toLocaleString("es-DO")}`
@@ -676,6 +953,13 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
     setImagenError("");
     setImagenCargada(!!p.image_url);
     setShowModal(true);
+  };
+
+  // Abre el panel de opciones directo desde el "..." de la fila, sin pasar
+  // por el modal de editar producto.
+  const abrirOpciones = (p: Product) => {
+    setEditingProduct(p);
+    setOptionsPanelOpen(true);
   };
 
   const handleFormChange = <K extends keyof ProductForm>(
@@ -1085,6 +1369,7 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
                     <td>
                       <RowMenu
                         onEditar={() => abrirEditar(p)}
+                        onOpciones={() => abrirOpciones(p)}
                         onEliminar={() => setProductToDelete(p)}
                       />
                     </td>
@@ -1318,26 +1603,6 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
               checked={form.isFeatured}
               onChange={(checked) => handleFormChange("isFeatured", checked)}
             />
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label}>Opciones y extras (opcional)</label>
-            {editingProduct ? (
-              <button
-                type="button"
-                className={styles.optionsPanelTrigger}
-                onClick={() => setOptionsPanelOpen(true)}
-              >
-                <FontAwesomeIcon icon={faSliders} />
-                Tamaños, extras y otras opciones
-                <FontAwesomeIcon icon={faChevronRight} className={styles.optionsPanelChevron} />
-              </button>
-            ) : (
-              <p className={styles.optionsHint}>
-                Guarda el producto primero para agregarle tamaños, extras u otras
-                opciones.
-              </p>
-            )}
           </div>
 
           <div className={styles.modalActions}>

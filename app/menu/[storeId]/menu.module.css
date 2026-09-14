@@ -590,33 +590,6 @@
 }
 
 /* ---- Opciones y extras del producto ---- */
-.optionsPanelTrigger {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  color: #1a1a1a;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: left;
-}
-
-.optionsPanelTrigger:hover {
-  border-color: #ff7a00;
-  color: #ff7a00;
-}
-
-.optionsPanelChevron {
-  margin-left: auto;
-  color: #9ca3af;
-  font-size: 12px;
-}
-
 .optionsHint {
   font-size: 12.5px;
   color: #9a9a9a;
@@ -641,8 +614,15 @@
 .optionGroupHead {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 8px;
+}
+
+.optionGroupHead .dragHandle {
+  padding-top: 2px;
+}
+
+.optionGroupActions {
+  margin-left: auto;
 }
 
 .optionGroupName {
@@ -650,6 +630,41 @@
   font-size: 13.5px;
   font-weight: 700;
   color: #1a1a1a;
+}
+
+.editPencilBtn {
+  background: none;
+  border: none;
+  color: #b5b5b5;
+  cursor: pointer;
+  padding: 0 0 0 8px;
+  font-size: 11px;
+}
+
+.editPencilBtn:hover {
+  color: #ff7a00;
+}
+
+.inlineEditRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inlineEditInput {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #ff7a00;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13.5px;
+  color: #1a1a1a;
+  font-family: inherit;
+}
+
+.inlineEditInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.15);
 }
 
 .optionGroupMeta {
@@ -697,15 +712,27 @@
   color: #1a1a1a;
 }
 
-.optionList li span:first-child {
+.optionList li span:nth-child(2) {
   flex: 1;
   font-weight: 600;
 }
 
-.optionList li span:nth-child(2) {
+.optionList li span:nth-child(3) {
   color: #6b7280;
   font-size: 12px;
   white-space: nowrap;
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  cursor: grab;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
 }
 
 .newOptionRow,
