@@ -49,6 +49,27 @@ type Product = {
 
 type Category = { id: string; name: string };
 
+type ProductOption = {
+  id: string;
+  group_id: string;
+  name: string;
+  extra_price: string;
+  is_active: boolean;
+  display_order: number;
+};
+
+type OptionGroup = {
+  id: string;
+  name: string;
+  selection_type: "SINGLE" | "MULTIPLE";
+  is_required: boolean;
+  display_order: number;
+  options: ProductOption[];
+};
+
+const TIPO_SELECCION_UNICA = "Selección única";
+const TIPO_SELECCION_MULTIPLE = "Selección múltiple";
+
 type ProductForm = {
   name: string;
   categoryId: string;
@@ -181,6 +202,294 @@ function RowMenu({
           </div>,
           document.body,
         )}
+    </div>
+  );
+}
+
+// ---------- Opciones y extras de un producto (tamanos, extras, etc.) ----------
+// Vive aparte del form principal porque necesita un productId real: recien
+// se puede editar despues de guardar el producto por primera vez.
+function ProductOptionsEditor({
+  productId,
+  onError,
+}: {
+  productId: string;
+  onError: (mensaje: string) => void;
+}) {
+  const [groups, setGroups] = useState<OptionGroup[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [nombreGrupo, setNombreGrupo] = useState("");
+  const [tipoGrupo, setTipoGrupo] = useState(TIPO_SELECCION_UNICA);
+  const [requerido, setRequerido] = useState(false);
+  const [creandoGrupo, setCreandoGrupo] = useState(false);
+
+  const [nuevaOpcion, setNuevaOpcion] = useState<
+    Record<string, { nombre: string; precio: string }>
+  >({});
+  const [agregandoOpcionEn, setAgregandoOpcionEn] = useState<string | null>(null);
+
+  const cargar = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/options`,
+        { credentials: "include" },
+      );
+      const data = await res.json();
+      setGroups(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [productId]);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  const crearGrupo = async () => {
+    if (!nombreGrupo.trim()) return;
+
+    setCreandoGrupo(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: nombreGrupo.trim(),
+            selectionType:
+              tipoGrupo === TIPO_SELECCION_MULTIPLE ? "MULTIPLE" : "SINGLE",
+            isRequired: requerido,
+          }),
+        },
+      );
+
+      if (!res.ok) throw new Error("No se pudo crear el grupo de opciones");
+
+      setNombreGrupo("");
+      setTipoGrupo(TIPO_SELECCION_UNICA);
+      setRequerido(false);
+      await cargar();
+    } catch (error) {
+      onError(
+        error instanceof Error ? error.message : "No se pudo crear el grupo",
+      );
+    } finally {
+      setCreandoGrupo(false);
+    }
+  };
+
+  const eliminarGrupo = async (groupId: string) => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups/${groupId}`,
+        { method: "DELETE", credentials: "include" },
+      );
+
+      if (!res.ok) throw new Error("No se pudo eliminar el grupo");
+
+      await cargar();
+    } catch (error) {
+      onError(
+        error instanceof Error ? error.message : "No se pudo eliminar el grupo",
+      );
+    }
+  };
+
+  const alternarRequerido = async (group: OptionGroup) => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups/${group.id}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isRequired: !group.is_required }),
+        },
+      );
+
+      if (!res.ok) throw new Error("No se pudo actualizar el grupo");
+
+      await cargar();
+    } catch (error) {
+      onError(
+        error instanceof Error ? error.message : "No se pudo actualizar el grupo",
+      );
+    }
+  };
+
+  const agregarOpcion = async (groupId: string) => {
+    const datos = nuevaOpcion[groupId];
+    if (!datos?.nombre.trim()) return;
+
+    setAgregandoOpcionEn(groupId);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups/${groupId}/options`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: datos.nombre.trim(),
+            extraPrice: datos.precio ? Number(datos.precio) : 0,
+          }),
+        },
+      );
+
+      if (!res.ok) throw new Error("No se pudo agregar la opción");
+
+      setNuevaOpcion((prev) => ({ ...prev, [groupId]: { nombre: "", precio: "" } }));
+      await cargar();
+    } catch (error) {
+      onError(
+        error instanceof Error ? error.message : "No se pudo agregar la opción",
+      );
+    } finally {
+      setAgregandoOpcionEn(null);
+    }
+  };
+
+  const eliminarOpcion = async (groupId: string, optionId: string) => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups/${groupId}/options/${optionId}`,
+        { method: "DELETE", credentials: "include" },
+      );
+
+      if (!res.ok) throw new Error("No se pudo eliminar la opción");
+
+      await cargar();
+    } catch (error) {
+      onError(
+        error instanceof Error ? error.message : "No se pudo eliminar la opción",
+      );
+    }
+  };
+
+  if (loading) {
+    return <p className={styles.optionsHint}>Cargando opciones...</p>;
+  }
+
+  return (
+    <div className={styles.optionsEditor}>
+      {groups.map((group) => (
+        <div key={group.id} className={styles.optionGroupCard}>
+          <div className={styles.optionGroupHead}>
+            <div>
+              <span className={styles.optionGroupName}>{group.name}</span>
+              <span className={styles.optionGroupMeta}>
+                {group.selection_type === "MULTIPLE"
+                  ? TIPO_SELECCION_MULTIPLE
+                  : TIPO_SELECCION_UNICA}
+                {" · "}
+                {group.is_required ? "Obligatorio" : "Opcional"}
+              </span>
+            </div>
+            <div className={styles.optionGroupActions}>
+              <button
+                type="button"
+                className={styles.linkBtn}
+                onClick={() => alternarRequerido(group)}
+              >
+                {group.is_required ? "Hacer opcional" : "Hacer obligatorio"}
+              </button>
+              <button
+                type="button"
+                className={styles.iconBtn}
+                title="Eliminar grupo"
+                onClick={() => eliminarGrupo(group.id)}
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </button>
+            </div>
+          </div>
+
+          {group.options.length > 0 && (
+            <ul className={styles.optionList}>
+              {group.options.map((option) => (
+                <li key={option.id}>
+                  <span>{option.name}</span>
+                  <span>
+                    {Number(option.extra_price) > 0
+                      ? `+RD$${Number(option.extra_price).toLocaleString("es-DO")}`
+                      : "Sin costo extra"}
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.iconBtn}
+                    title="Eliminar opción"
+                    onClick={() => eliminarOpcion(group.id, option.id)}
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className={styles.newOptionRow}>
+            <input
+              placeholder="Ej. Grande"
+              value={nuevaOpcion[group.id]?.nombre ?? ""}
+              onChange={(e) =>
+                setNuevaOpcion((prev) => ({
+                  ...prev,
+                  [group.id]: { ...prev[group.id], nombre: e.target.value, precio: prev[group.id]?.precio ?? "" },
+                }))
+              }
+            />
+            <input
+              type="number"
+              min="0"
+              placeholder="Precio extra"
+              value={nuevaOpcion[group.id]?.precio ?? ""}
+              onChange={(e) =>
+                setNuevaOpcion((prev) => ({
+                  ...prev,
+                  [group.id]: { nombre: prev[group.id]?.nombre ?? "", precio: e.target.value },
+                }))
+              }
+            />
+            <button
+              type="button"
+              className={styles.addCategoryBtn}
+              onClick={() => agregarOpcion(group.id)}
+              disabled={
+                agregandoOpcionEn === group.id || !nuevaOpcion[group.id]?.nombre.trim()
+              }
+            >
+              {agregandoOpcionEn === group.id ? "..." : "+ Opción"}
+            </button>
+          </div>
+        </div>
+      ))}
+
+      <div className={styles.newGroupRow}>
+        <input
+          placeholder="Nombre del grupo (ej. Tamaño)"
+          value={nombreGrupo}
+          onChange={(e) => setNombreGrupo(e.target.value)}
+        />
+        <DFDropdown
+          options={[TIPO_SELECCION_UNICA, TIPO_SELECCION_MULTIPLE]}
+          value={tipoGrupo}
+          onChange={setTipoGrupo}
+        />
+        <DFCheckbox label="Obligatorio" checked={requerido} onChange={setRequerido} />
+        <button
+          type="button"
+          className={styles.addCategoryBtn}
+          onClick={crearGrupo}
+          disabled={creandoGrupo || !nombreGrupo.trim()}
+        >
+          {creandoGrupo ? "..." : "+ Grupo"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -1002,6 +1311,21 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
               checked={form.isFeatured}
               onChange={(checked) => handleFormChange("isFeatured", checked)}
             />
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Opciones y extras (opcional)</label>
+            {editingProduct ? (
+              <ProductOptionsEditor
+                productId={editingProduct.id}
+                onError={(mensaje) => setToast({ message: mensaje, type: "danger" })}
+              />
+            ) : (
+              <p className={styles.optionsHint}>
+                Guarda el producto primero para agregarle tamaños, extras u otras
+                opciones.
+              </p>
+            )}
           </div>
 
           <div className={styles.modalActions}>

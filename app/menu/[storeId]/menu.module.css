@@ -589,6 +589,135 @@
   color: #ff4d4f;
 }
 
+/* ---- Opciones y extras del producto ---- */
+.optionsHint {
+  font-size: 12.5px;
+  color: #9a9a9a;
+  margin: 0;
+}
+
+.optionsEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.optionGroupCard {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.optionGroupHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.optionGroupName {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.optionGroupMeta {
+  display: block;
+  font-size: 11.5px;
+  color: #9a9a9a;
+}
+
+.optionGroupActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  color: #ff7a00;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+.linkBtn:hover {
+  text-decoration: underline;
+}
+
+.optionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.optionList li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #1a1a1a;
+}
+
+.optionList li span:first-child {
+  flex: 1;
+  font-weight: 600;
+}
+
+.optionList li span:nth-child(2) {
+  color: #6b7280;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.newOptionRow,
+.newGroupRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.newGroupRow {
+  border-top: 1px dashed #eee;
+  padding-top: 12px;
+}
+
+.newOptionRow input,
+.newGroupRow input {
+  padding: 9px 11px;
+  color: black;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  font-family: inherit;
+  flex: 1;
+  min-width: 120px;
+}
+
+.newOptionRow input:focus,
+.newGroupRow input:focus {
+  outline: none;
+  border-color: #ff7a00;
+}
+
+.newOptionRow input[type="number"] {
+  flex: none;
+  width: 110px;
+  min-width: 0;
+}
+
 .modalActions {
   display: flex;
   justify-content: flex-end;
