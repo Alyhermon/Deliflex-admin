@@ -457,6 +457,45 @@
   margin-bottom: 0;
 }
 
+.rangePicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+.rangeDateWrap {
+  width: 128px;
+}
+
+.rangeSeparator {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.rangeClearBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #9ca3af;
+  font-size: 11px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.rangeClearBtn:hover {
+  background: #ffe3cc;
+  color: #ff7a00;
+}
+
 /* ---- Tabla de canjes ---- */
 .tableWrap {
   background: white;

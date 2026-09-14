@@ -11,6 +11,7 @@ import DFCheckbox from "../components/components-items/checkbox/checkbox";
 import DFRadio from "../components/components-items/radio/radio";
 import DFInput from "../components/components-items/input";
 import Dropdown from "../components/components-items/dropdown";
+import DatePicker from "../components/components-items/datepicker";
 import LoadingDots from "../components/components-items/loading-dots/loading-dots";
 import Skeleton, {
   SkeletonStatCards,
@@ -22,6 +23,7 @@ import {
   faTrash,
   faGift,
   faMagnifyingGlass,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import styles from "./delipuntos.module.css";
 
@@ -127,23 +129,12 @@ const normalizar = (texto: string) => texto.toLowerCase().trim();
 
 // Filtros de canjes: mismos en "a mano" y "desde la app".
 const TODOS_ESTADOS = "Todos los estados";
-const TODAS_FECHAS = "Todas las fechas";
-const FILTROS_FECHA = [TODAS_FECHAS, "Hoy", "Últimos 7 días", "Últimos 30 días"];
 
-const coincideFecha = (iso: string, filtro: string) => {
-  if (filtro === TODAS_FECHAS) return true;
-
-  const fecha = new Date(iso);
-  const ahora = new Date();
-
-  if (filtro === "Hoy") {
-    return fecha.toDateString() === ahora.toDateString();
-  }
-
-  const dias = filtro === "Últimos 7 días" ? 7 : 30;
-  const limite = new Date(ahora);
-  limite.setDate(limite.getDate() - dias);
-  return fecha >= limite;
+const coincideRangoFecha = (iso: string, desde: string, hasta: string) => {
+  const fecha = iso.slice(0, 10);
+  if (desde && fecha < desde) return false;
+  if (hasta && fecha > hasta) return false;
+  return true;
 };
 
 export default function DeliPuntosPage() {
@@ -246,7 +237,8 @@ export default function DeliPuntosPage() {
 
   const [manualBusqueda, setManualBusqueda] = useState("");
   const [manualEstado, setManualEstado] = useState(TODOS_ESTADOS);
-  const [manualFecha, setManualFecha] = useState(TODAS_FECHAS);
+  const [manualFechaDesde, setManualFechaDesde] = useState("");
+  const [manualFechaHasta, setManualFechaHasta] = useState("");
 
   const [redemptionModalOpen, setRedemptionModalOpen] = useState(false);
   const [busquedaCliente, setBusquedaCliente] = useState("");
@@ -432,7 +424,8 @@ export default function DeliPuntosPage() {
 
   const [appBusqueda, setAppBusqueda] = useState("");
   const [appEstado, setAppEstado] = useState(TODOS_ESTADOS);
-  const [appFecha, setAppFecha] = useState(TODAS_FECHAS);
+  const [appFechaDesde, setAppFechaDesde] = useState("");
+  const [appFechaHasta, setAppFechaHasta] = useState("");
 
   const cargarAppRedemptions = useCallback(async () => {
     try {
@@ -664,7 +657,7 @@ export default function DeliPuntosPage() {
       return false;
     }
 
-    return coincideFecha(r.created_at, manualFecha);
+    return coincideRangoFecha(r.created_at, manualFechaDesde, manualFechaHasta);
   });
 
   const APP_ESTADO_LABELS: Record<AppRedemption["status"], string> = {
@@ -688,7 +681,7 @@ export default function DeliPuntosPage() {
       return false;
     }
 
-    return coincideFecha(r.created_at, appFecha);
+    return coincideRangoFecha(r.created_at, appFechaDesde, appFechaHasta);
   });
 
   if (authLoading || loading || !esSuperAdmin) {
@@ -863,12 +856,38 @@ export default function DeliPuntosPage() {
               placeholder="Estado"
             />
 
-            <Dropdown
-              options={FILTROS_FECHA}
-              value={manualFecha}
-              onChange={setManualFecha}
-              placeholder="Fecha"
-            />
+            <div className={styles.rangePicker}>
+              <div className={styles.rangeDateWrap}>
+                <DatePicker
+                  value={manualFechaDesde}
+                  onChange={setManualFechaDesde}
+                  placeholder="Desde"
+                />
+              </div>
+              <span className={styles.rangeSeparator}>–</span>
+              <div className={styles.rangeDateWrap}>
+                <DatePicker
+                  value={manualFechaHasta}
+                  onChange={setManualFechaHasta}
+                  placeholder="Hasta"
+                />
+              </div>
+
+              {(manualFechaDesde || manualFechaHasta) && (
+                <button
+                  type="button"
+                  className={styles.rangeClearBtn}
+                  onClick={() => {
+                    setManualFechaDesde("");
+                    setManualFechaHasta("");
+                  }}
+                  aria-label="Quitar filtro de fechas"
+                  title="Quitar filtro de fechas"
+                >
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -991,12 +1010,38 @@ export default function DeliPuntosPage() {
               placeholder="Estado"
             />
 
-            <Dropdown
-              options={FILTROS_FECHA}
-              value={appFecha}
-              onChange={setAppFecha}
-              placeholder="Fecha"
-            />
+            <div className={styles.rangePicker}>
+              <div className={styles.rangeDateWrap}>
+                <DatePicker
+                  value={appFechaDesde}
+                  onChange={setAppFechaDesde}
+                  placeholder="Desde"
+                />
+              </div>
+              <span className={styles.rangeSeparator}>–</span>
+              <div className={styles.rangeDateWrap}>
+                <DatePicker
+                  value={appFechaHasta}
+                  onChange={setAppFechaHasta}
+                  placeholder="Hasta"
+                />
+              </div>
+
+              {(appFechaDesde || appFechaHasta) && (
+                <button
+                  type="button"
+                  className={styles.rangeClearBtn}
+                  onClick={() => {
+                    setAppFechaDesde("");
+                    setAppFechaHasta("");
+                  }}
+                  aria-label="Quitar filtro de fechas"
+                  title="Quitar filtro de fechas"
+                >
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              )}
+            </div>
           </div>
         )}
 
