@@ -58,6 +58,56 @@
   cursor: not-allowed;
 }
 
+/* ---- Tabs ---- */
+.tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 22px;
+}
+
+.tab {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 12px 4px;
+  font-size: 14px;
+  color: #777;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.tab:hover {
+  color: #ff6a00;
+}
+
+.active {
+  color: #ff6a00;
+  font-weight: 600;
+}
+
+.indicator {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: #ff6a00;
+  transition: width 0.3s ease;
+}
+
+.tab:hover .indicator {
+  width: 100%;
+}
+
+.active .indicator {
+  width: 100%;
+}
+
+.tabContent .header {
+  margin-top: 0;
+}
+
 /* ---- Grid de tarjetas ---- */
 .grid {
   display: grid;
@@ -385,6 +435,26 @@
   font-weight: 600;
   cursor: pointer;
   padding: 0;
+}
+
+/* ---- Filtros de canjes (busqueda + estado + fecha) ---- */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.searchWrap {
+  flex: 1;
+  min-width: 220px;
+}
+
+/* DFInput trae un margin-bottom pensado para formularios apilados; en una
+   barra de filtros en linea desalinea el input con los dropdowns de al lado. */
+.searchWrap > div {
+  margin-bottom: 0;
 }
 
 /* ---- Tabla de canjes ---- */

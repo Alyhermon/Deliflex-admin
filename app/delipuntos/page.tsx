@@ -9,13 +9,20 @@ import ConfirmDialog from "../components/components/modal/confirm-dialog";
 import Toast from "../components/components-items/toast/toast";
 import DFCheckbox from "../components/components-items/checkbox/checkbox";
 import DFRadio from "../components/components-items/radio/radio";
+import DFInput from "../components/components-items/input";
 import Dropdown from "../components/components-items/dropdown";
 import LoadingDots from "../components/components-items/loading-dots/loading-dots";
 import Skeleton, {
   SkeletonStatCards,
 } from "../components/components-items/skeleton/skeleton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faPen, faTrash, faGift } from "@fortawesome/free-solid-svg-icons";
+import {
+  faPlus,
+  faPen,
+  faTrash,
+  faGift,
+  faMagnifyingGlass,
+} from "@fortawesome/free-solid-svg-icons";
 import styles from "./delipuntos.module.css";
 
 const fechaHora = (iso: string) =>
@@ -27,6 +34,14 @@ const fechaHora = (iso: string) =>
   });
 
 const API = process.env.NEXT_PUBLIC_API_URL;
+
+type TabKey = "marketplace" | "manual" | "app";
+
+const TABS: { key: TabKey; label: string }[] = [
+  { key: "marketplace", label: "Marketplace Deliflex y tiendas" },
+  { key: "manual", label: "Canjes registrados a mano" },
+  { key: "app", label: "Canjes desde la app" },
+];
 
 type Reward = {
   id: string;
@@ -67,6 +82,10 @@ type Redemption = {
   reward_name: string;
   points_spent: number;
   status: "PENDING_PICKUP" | "DELIVERED";
+  delivery_method: "LOCAL" | "DELIVERY";
+  delivery_address: string | null;
+  delivery_fee: string | null;
+  redemption_code: string;
   created_at: string;
   delivered_at: string | null;
 };
@@ -101,11 +120,39 @@ const FORM_VACIO: RewardForm = {
 
 const numero = (valor: number) => valor.toLocaleString("es-DO");
 
+const dinero = (valor: number) =>
+  `RD$${valor.toLocaleString("es-DO", { maximumFractionDigits: 0 })}`;
+
+const normalizar = (texto: string) => texto.toLowerCase().trim();
+
+// Filtros de canjes: mismos en "a mano" y "desde la app".
+const TODOS_ESTADOS = "Todos los estados";
+const TODAS_FECHAS = "Todas las fechas";
+const FILTROS_FECHA = [TODAS_FECHAS, "Hoy", "Últimos 7 días", "Últimos 30 días"];
+
+const coincideFecha = (iso: string, filtro: string) => {
+  if (filtro === TODAS_FECHAS) return true;
+
+  const fecha = new Date(iso);
+  const ahora = new Date();
+
+  if (filtro === "Hoy") {
+    return fecha.toDateString() === ahora.toDateString();
+  }
+
+  const dias = filtro === "Últimos 7 días" ? 7 : 30;
+  const limite = new Date(ahora);
+  limite.setDate(limite.getDate() - dias);
+  return fecha >= limite;
+};
+
 export default function DeliPuntosPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
   const esSuperAdmin = Number(user?.global_role_id) >= 100;
+
+  const [activeTab, setActiveTab] = useState<TabKey>("marketplace");
 
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
@@ -197,12 +244,19 @@ export default function DeliPuntosPage() {
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [redemptionsLoading, setRedemptionsLoading] = useState(true);
 
+  const [manualBusqueda, setManualBusqueda] = useState("");
+  const [manualEstado, setManualEstado] = useState(TODOS_ESTADOS);
+  const [manualFecha, setManualFecha] = useState(TODAS_FECHAS);
+
   const [redemptionModalOpen, setRedemptionModalOpen] = useState(false);
   const [busquedaCliente, setBusquedaCliente] = useState("");
   const [resultadosCliente, setResultadosCliente] = useState<CustomerResult[]>([]);
   const [buscandoCliente, setBuscandoCliente] = useState(false);
   const [clienteElegido, setClienteElegido] = useState<CustomerResult | null>(null);
   const [rewardIdElegido, setRewardIdElegido] = useState("");
+  const [metodoEntrega, setMetodoEntrega] = useState<"LOCAL" | "DELIVERY">("LOCAL");
+  const [direccionDelivery, setDireccionDelivery] = useState("");
+  const [montoDelivery, setMontoDelivery] = useState("");
   const [savingRedemption, setSavingRedemption] = useState(false);
   const [redemptionError, setRedemptionError] = useState("");
   const [deliveringId, setDeliveringId] = useState<string | null>(null);
@@ -267,11 +321,25 @@ export default function DeliPuntosPage() {
     };
   }, [busquedaCliente, redemptionModalOpen]);
 
+  // Un producto con stock 0 no puede volver a canjearse: se saca de las
+  // opciones para que ni el admin lo pueda registrar a mano.
+  const rewardsDisponibles = rewards.filter(
+    (r) => r.stock === null || r.stock > 0,
+  );
+
+  const rewardElegida = rewards.find((r) => r.id === rewardIdElegido) ?? null;
+  // Solo una recompensa de una tienda de Deliflex se puede mandar por
+  // delivery (Deliflex mismo y las empresas externas no tienen quien reparta).
+  const permiteDelivery = rewardElegida?.business_id != null;
+
   const abrirNuevoRedemption = () => {
     setClienteElegido(null);
     setBusquedaCliente("");
     setResultadosCliente([]);
     setRewardIdElegido("");
+    setMetodoEntrega("LOCAL");
+    setDireccionDelivery("");
+    setMontoDelivery("");
     setRedemptionError("");
     setRedemptionModalOpen(true);
   };
@@ -286,6 +354,19 @@ export default function DeliPuntosPage() {
       return;
     }
 
+    const esDelivery = permiteDelivery && metodoEntrega === "DELIVERY";
+
+    if (esDelivery && !direccionDelivery.trim()) {
+      setRedemptionError("Escribe la dirección de entrega");
+      return;
+    }
+
+    const monto = Number(montoDelivery);
+    if (esDelivery && (!montoDelivery.trim() || !Number.isFinite(monto) || monto <= 0)) {
+      setRedemptionError("Escribe el monto del delivery");
+      return;
+    }
+
     setSavingRedemption(true);
     setRedemptionError("");
 
@@ -297,14 +378,20 @@ export default function DeliPuntosPage() {
         body: JSON.stringify({
           customerId: clienteElegido.id,
           rewardId: rewardIdElegido,
+          deliveryMethod: esDelivery ? "DELIVERY" : "LOCAL",
+          deliveryAddress: esDelivery ? direccionDelivery.trim() : undefined,
+          deliveryFee: esDelivery ? monto : undefined,
         }),
       });
 
-      if (!res.ok) throw new Error("No se pudo registrar el canje");
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.message || "No se pudo registrar el canje");
+      }
 
       setRedemptionModalOpen(false);
       setToast({ message: "Canje registrado", type: "success" });
-      await cargarRedemptions();
+      await Promise.all([cargarRedemptions(), cargarRewards()]);
     } catch (error) {
       setRedemptionError(
         error instanceof Error ? error.message : "No se pudo registrar el canje",
@@ -342,6 +429,10 @@ export default function DeliPuntosPage() {
   const [appRedemptions, setAppRedemptions] = useState<AppRedemption[]>([]);
   const [appRedemptionsLoading, setAppRedemptionsLoading] = useState(true);
   const [markingAppId, setMarkingAppId] = useState<string | null>(null);
+
+  const [appBusqueda, setAppBusqueda] = useState("");
+  const [appEstado, setAppEstado] = useState(TODOS_ESTADOS);
+  const [appFecha, setAppFecha] = useState(TODAS_FECHAS);
 
   const cargarAppRedemptions = useCallback(async () => {
     try {
@@ -550,6 +641,56 @@ export default function DeliPuntosPage() {
     }
   };
 
+  const MANUAL_ESTADO_LABELS: Record<Redemption["status"], string> = {
+    PENDING_PICKUP: "Por recoger",
+    DELIVERED: "Entregado",
+  };
+  const MANUAL_ESTADOS_FILTRO = [
+    TODOS_ESTADOS,
+    ...Object.values(MANUAL_ESTADO_LABELS),
+  ];
+
+  const redemptionsFiltradas = redemptions.filter((r) => {
+    const busqueda = normalizar(manualBusqueda);
+    if (
+      busqueda &&
+      !normalizar(r.customer_name).includes(busqueda) &&
+      !normalizar(r.redemption_code).includes(busqueda)
+    ) {
+      return false;
+    }
+
+    if (manualEstado !== TODOS_ESTADOS && MANUAL_ESTADO_LABELS[r.status] !== manualEstado) {
+      return false;
+    }
+
+    return coincideFecha(r.created_at, manualFecha);
+  });
+
+  const APP_ESTADO_LABELS: Record<AppRedemption["status"], string> = {
+    PENDING: "Por recoger",
+    FULFILLED: "Entregado",
+    CANCELLED: "Cancelado",
+  };
+  const APP_ESTADOS_FILTRO = [TODOS_ESTADOS, ...Object.values(APP_ESTADO_LABELS)];
+
+  const appRedemptionsFiltradas = appRedemptions.filter((r) => {
+    const busqueda = normalizar(appBusqueda);
+    if (
+      busqueda &&
+      !normalizar(r.customer_name).includes(busqueda) &&
+      !normalizar(r.redemption_code).includes(busqueda)
+    ) {
+      return false;
+    }
+
+    if (appEstado !== TODOS_ESTADOS && APP_ESTADO_LABELS[r.status] !== appEstado) {
+      return false;
+    }
+
+    return coincideFecha(r.created_at, appFecha);
+  });
+
   if (authLoading || loading || !esSuperAdmin) {
     return (
       <AdminLayout>
@@ -572,6 +713,34 @@ export default function DeliPuntosPage() {
         <div className={styles.header}>
           <div>
             <h1>DeliPuntos</h1>
+            <p>
+              Catálogo de recompensas y canjes que los clientes hacen con sus
+              DeliPuntos.
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.tabs}>
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`${styles.tab} ${
+                activeTab === tab.key ? styles.active : ""
+              }`}
+            >
+              {tab.label}
+              <span className={styles.indicator} />
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.tabContent}>
+        {activeTab === "marketplace" && (
+          <>
+        <div className={styles.header}>
+          <div>
+            <h2 className={styles.subHeading}>Marketplace Deliflex y tiendas</h2>
             <p>
               Catálogo de recompensas que los clientes pueden canjear con sus
               DeliPuntos, sin importar en qué negocio pidan.
@@ -658,8 +827,12 @@ export default function DeliPuntosPage() {
             ))}
           </div>
         )}
+          </>
+        )}
 
-        <div className={styles.header} style={{ marginTop: 32 }}>
+        {activeTab === "manual" && (
+          <>
+        <div className={styles.header}>
           <div>
             <h2 className={styles.subHeading}>Canjes registrados a mano</h2>
             <p>
@@ -672,26 +845,62 @@ export default function DeliPuntosPage() {
           </button>
         </div>
 
+        {redemptions.length > 0 && (
+          <div className={styles.filters}>
+            <div className={styles.searchWrap}>
+              <DFInput
+                value={manualBusqueda}
+                onChange={(e) => setManualBusqueda(e.target.value)}
+                placeholder="Buscar por cliente o código..."
+                icon={<FontAwesomeIcon color="#ed7b17" icon={faMagnifyingGlass} />}
+              />
+            </div>
+
+            <Dropdown
+              options={MANUAL_ESTADOS_FILTRO}
+              value={manualEstado}
+              onChange={setManualEstado}
+              placeholder="Estado"
+            />
+
+            <Dropdown
+              options={FILTROS_FECHA}
+              value={manualFecha}
+              onChange={setManualFecha}
+              placeholder="Fecha"
+            />
+          </div>
+        )}
+
         {redemptionsLoading ? (
           <p className={styles.hint}>Cargando...</p>
         ) : redemptions.length === 0 ? (
           <div className={styles.emptyState}>Todavía no hay canjes registrados.</div>
+        ) : redemptionsFiltradas.length === 0 ? (
+          <div className={styles.emptyState}>
+            Ningún canje coincide con el filtro.
+          </div>
         ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead>
                 <tr>
+                  <th>Código</th>
                   <th>Cliente</th>
                   <th>Recompensa</th>
                   <th>Puntos</th>
+                  <th>Entrega</th>
                   <th>Estado</th>
                   <th>Fecha</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                {redemptions.map((r) => (
+                {redemptionsFiltradas.map((r) => (
                   <tr key={r.id}>
+                    <td>
+                      <span className={styles.listName}>{r.redemption_code}</span>
+                    </td>
                     <td>
                       <span className={styles.listName}>{r.customer_name}</span>
                       {r.customer_phone && (
@@ -700,6 +909,20 @@ export default function DeliPuntosPage() {
                     </td>
                     <td>{r.reward_name}</td>
                     <td>{numero(r.points_spent)}</td>
+                    <td>
+                      {r.delivery_method === "DELIVERY" ? (
+                        <>
+                          <span className={styles.listName}>
+                            Delivery · {dinero(Number(r.delivery_fee ?? 0))}
+                          </span>
+                          {r.delivery_address && (
+                            <span className={styles.listMeta}>{r.delivery_address}</span>
+                          )}
+                        </>
+                      ) : (
+                        <span className={styles.listMeta}>Recoger en el local</span>
+                      )}
+                    </td>
                     <td>
                       <span
                         className={`${styles.statusPill} ${
@@ -735,8 +958,12 @@ export default function DeliPuntosPage() {
             </table>
           </div>
         )}
+          </>
+        )}
 
-        <div className={styles.header} style={{ marginTop: 32 }}>
+        {activeTab === "app" && (
+          <>
+        <div className={styles.header}>
           <div>
             <h2 className={styles.subHeading}>Canjes desde la app</h2>
             <p>
@@ -746,10 +973,41 @@ export default function DeliPuntosPage() {
           </div>
         </div>
 
+        {appRedemptions.length > 0 && (
+          <div className={styles.filters}>
+            <div className={styles.searchWrap}>
+              <DFInput
+                value={appBusqueda}
+                onChange={(e) => setAppBusqueda(e.target.value)}
+                placeholder="Buscar por cliente o código..."
+                icon={<FontAwesomeIcon color="#ed7b17" icon={faMagnifyingGlass} />}
+              />
+            </div>
+
+            <Dropdown
+              options={APP_ESTADOS_FILTRO}
+              value={appEstado}
+              onChange={setAppEstado}
+              placeholder="Estado"
+            />
+
+            <Dropdown
+              options={FILTROS_FECHA}
+              value={appFecha}
+              onChange={setAppFecha}
+              placeholder="Fecha"
+            />
+          </div>
+        )}
+
         {appRedemptionsLoading ? (
           <p className={styles.hint}>Cargando...</p>
         ) : appRedemptions.length === 0 ? (
           <div className={styles.emptyState}>Todavía no hay canjes desde la app.</div>
+        ) : appRedemptionsFiltradas.length === 0 ? (
+          <div className={styles.emptyState}>
+            Ningún canje coincide con el filtro.
+          </div>
         ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
@@ -765,7 +1023,7 @@ export default function DeliPuntosPage() {
                 </tr>
               </thead>
               <tbody>
-                {appRedemptions.map((r) => (
+                {appRedemptionsFiltradas.map((r) => (
                   <tr key={r.id}>
                     <td>
                       <span className={styles.listName}>{r.customer_name}</span>
@@ -817,6 +1075,9 @@ export default function DeliPuntosPage() {
             </table>
           </div>
         )}
+          </>
+        )}
+        </div>
       </div>
 
       <Modal
@@ -1101,12 +1362,17 @@ export default function DeliPuntosPage() {
             <label className={styles.label}>Recompensa</label>
             <Dropdown
               fullWidth
-              options={rewards.map((r) => r.name)}
-              value={rewards.find((r) => r.id === rewardIdElegido)?.name ?? ""}
+              options={rewardsDisponibles.map((r) => r.name)}
+              value={
+                rewardsDisponibles.find((r) => r.id === rewardIdElegido)?.name ?? ""
+              }
               placeholder="Selecciona una recompensa"
               onChange={(nombre) => {
-                const encontrada = rewards.find((r) => r.name === nombre);
+                const encontrada = rewardsDisponibles.find((r) => r.name === nombre);
                 setRewardIdElegido(encontrada?.id ?? "");
+                setMetodoEntrega("LOCAL");
+                setDireccionDelivery("");
+                setMontoDelivery("");
               }}
             />
             {rewardIdElegido && (
@@ -1117,6 +1383,55 @@ export default function DeliPuntosPage() {
               </span>
             )}
           </div>
+
+          {permiteDelivery && (
+            <div className={styles.field}>
+              <label className={styles.label}>Entrega</label>
+              <div className={styles.radioRow}>
+                <DFRadio
+                  label="Recoger en el local"
+                  name="metodoEntrega"
+                  checked={metodoEntrega === "LOCAL"}
+                  onChange={() => setMetodoEntrega("LOCAL")}
+                />
+                <DFRadio
+                  label="Delivery"
+                  name="metodoEntrega"
+                  checked={metodoEntrega === "DELIVERY"}
+                  onChange={() => setMetodoEntrega("DELIVERY")}
+                />
+              </div>
+
+              {metodoEntrega === "DELIVERY" && (
+                <div className={styles.formRow} style={{ marginTop: 8 }}>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Dirección de entrega</label>
+                    <input
+                      value={direccionDelivery}
+                      placeholder="Calle, sector, referencia..."
+                      onChange={(e) => setDireccionDelivery(e.target.value)}
+                    />
+                  </div>
+
+                  <div className={styles.field}>
+                    <label className={styles.label}>Monto del delivery</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={montoDelivery}
+                      placeholder="Ej. 150"
+                      onChange={(e) => setMontoDelivery(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <span className={styles.hint}>
+                El delivery se cobra aparte, en efectivo o tarjeta al entregar
+                (el canje ya se pagó con DeliPuntos).
+              </span>
+            </div>
+          )}
 
           {redemptionError && (
             <span className={styles.errorText}>{redemptionError}</span>
