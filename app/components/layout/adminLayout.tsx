@@ -2,6 +2,7 @@
 
 import Sidebar from "./sidebar";
 import Footer from "./footer";
+import InactivityGuard from "./inactivity-guard";
 import { ReactNode, useEffect } from "react";
 import { usePathname, useRouter, useParams } from "next/navigation";
 import { useAuth, getRoleForStore } from "../../hooks/useAuth";
@@ -53,6 +54,8 @@ export default function AdminLayout({ children }: Props) {
 
         <Footer />
       </div>
+
+      {user && <InactivityGuard />}
     </div>
   );
 }

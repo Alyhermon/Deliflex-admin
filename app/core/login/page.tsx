@@ -6,11 +6,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faKey } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import Toast from "@/app/components/components-items/toast/toast";
+import DFCheckbox from "@/app/components/components-items/checkbox/checkbox";
 import { ACTIVE_STORE_STORAGE_KEY } from "@/app/hooks/useActiveStore";
 
 export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [toast, setToast] = useState<{
@@ -28,7 +30,7 @@ export default function DashboardPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, rememberMe }),
       });
 
       const data = await response.json();
@@ -60,7 +62,10 @@ export default function DashboardPage() {
       const cookieRes = await fetch("/api/auth/set-cookie", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: data.access_token }),
+        body: JSON.stringify({
+          token: data.access_token,
+          maxAge: data.max_age_seconds,
+        }),
       });
 
       console.log("Cookie status:", cookieRes.status);
@@ -132,6 +137,12 @@ export default function DashboardPage() {
             type="password"
             icon={<FontAwesomeIcon color="#ed7b17" icon={faKey} />}
             error={loginError}
+          />
+
+          <DFCheckbox
+            label="Mantener sesión iniciada"
+            checked={rememberMe}
+            onChange={setRememberMe}
           />
 
           <button
