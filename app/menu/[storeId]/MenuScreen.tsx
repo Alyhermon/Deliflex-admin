@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import DFInput from "../../components/components-items/input";
 import DFDropdown from "../../components/components-items/dropdown";
 import Modal from "../../components/components/modal/modal";
+import SidePanel from "../../components/components/side-panel/side-panel";
 import ConfirmDialog from "../../components/components/modal/confirm-dialog";
 import Toast from "../../components/components-items/toast/toast";
 import {
@@ -25,6 +26,8 @@ import {
   faBoxOpen,
   faCamera,
   faTrash,
+  faSliders,
+  faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import DFCheckbox from "../../components/components-items/checkbox/checkbox";
 import LoadingDots from "../../components/components-items/loading-dots/loading-dots";
@@ -518,6 +521,7 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
   const [page, setPage] = useState(1);
 
   const [showModal, setShowModal] = useState(false);
+  const [optionsPanelOpen, setOptionsPanelOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductForm>(FORM_VACIO);
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ProductForm, string>>>({});
@@ -1132,7 +1136,10 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
       {/* Modal crear/editar producto */}
       <Modal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={() => {
+          setShowModal(false);
+          setOptionsPanelOpen(false);
+        }}
         title={editingProduct ? "Editar producto" : "Nuevo producto"}
         width="480px"
       >
@@ -1316,10 +1323,15 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
           <div className={styles.field}>
             <label className={styles.label}>Opciones y extras (opcional)</label>
             {editingProduct ? (
-              <ProductOptionsEditor
-                productId={editingProduct.id}
-                onError={(mensaje) => setToast({ message: mensaje, type: "danger" })}
-              />
+              <button
+                type="button"
+                className={styles.optionsPanelTrigger}
+                onClick={() => setOptionsPanelOpen(true)}
+              >
+                <FontAwesomeIcon icon={faSliders} />
+                Tamaños, extras y otras opciones
+                <FontAwesomeIcon icon={faChevronRight} className={styles.optionsPanelChevron} />
+              </button>
             ) : (
               <p className={styles.optionsHint}>
                 Guarda el producto primero para agregarle tamaños, extras u otras
@@ -1332,7 +1344,10 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
             <button
               type="button"
               className={styles.cancelBtn}
-              onClick={() => setShowModal(false)}
+              onClick={() => {
+                setShowModal(false);
+                setOptionsPanelOpen(false);
+              }}
               disabled={saving}
             >
               Cancelar
@@ -1364,6 +1379,24 @@ export default function MenuScreen({ storeId, onStoreNameLoaded }: Props) {
         onConfirm={eliminarProducto}
         onCancel={() => setProductToDelete(null)}
       />
+
+      <SidePanel
+        open={optionsPanelOpen}
+        onClose={() => setOptionsPanelOpen(false)}
+        title={
+          editingProduct
+            ? `Opciones de ${editingProduct.product_name}`
+            : "Opciones"
+        }
+        width="420px"
+      >
+        {editingProduct && (
+          <ProductOptionsEditor
+            productId={editingProduct.id}
+            onError={(mensaje) => setToast({ message: mensaje, type: "danger" })}
+          />
+        )}
+      </SidePanel>
 
       {toast && (
         <Toast
