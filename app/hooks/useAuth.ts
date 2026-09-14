@@ -75,14 +75,34 @@ export function tieneAlgunRolDeGestion(user: User | null): boolean {
   return (user.staff_businesses ?? []).some((sb) => sb.role_id >= 70);
 }
 
-// Dueno o Gerente General (rol >= 80) en AL MENOS un negocio, o super
-// admin. "Negocios Destacados" (pagar para aparecer resaltado en la app)
-// es una decision de quien dirige el negocio, no de un Supervisor/Cajero/
-// Staff - por eso el umbral es mas alto que tieneAlgunRolDeGestion.
+// Id de rol del Mercadologo: se encarga de promociones y del catalogo de
+// DeliPuntos para su negocio. Va entre Supervisor (70) y Gerente General
+// (80) - solo el dueno o el Gerente General de la tienda lo puede asignar.
+export const MERCADOLOGO_ROLE_ID = 75;
+
+// Dueno, Gerente General o Mercadologo (rol >= 75) en AL MENOS un negocio,
+// o super admin. "Negocios Destacados" (pagar para aparecer resaltado en
+// la app) es una decision de quien dirige el negocio o del Mercadologo,
+// no de un Supervisor/Cajero/Staff - por eso el umbral es mas alto que
+// tieneAlgunRolDeGestion.
 export function tieneRolGerencial(user: User | null): boolean {
   if (!user) return false;
   if (Number(user.global_role_id ?? 0) >= 100) return true;
   if ((user.owned_stores ?? []).length > 0) return true;
 
-  return (user.staff_businesses ?? []).some((sb) => sb.role_id >= 80);
+  return (user.staff_businesses ?? []).some(
+    (sb) => sb.role_id >= MERCADOLOGO_ROLE_ID,
+  );
+}
+
+// Mercadologo en AL MENOS un negocio. A diferencia de tieneRolGerencial,
+// esto es un chequeo EXACTO (no ">="): DeliPuntos es exclusivo del super
+// admin y el Mercadologo - ni siquiera el Gerente General (rol mas alto)
+// deberia entrar ahi, asi que un umbral ">=" no sirve para esta pantalla.
+export function esMercadologoEnAlgunNegocio(user: User | null): boolean {
+  if (!user) return false;
+
+  return (user.staff_businesses ?? []).some(
+    (sb) => sb.role_id === MERCADOLOGO_ROLE_ID,
+  );
 }

@@ -52,12 +52,20 @@ type StaffMember = {
 const ROLE_BADGE: Record<number, string> = {
   90: "roleAdministrador",
   80: "roleGerente",
+  75: "roleMercadologo",
   70: "roleSupervisor",
   60: "roleCajero",
   50: "roleStaff",
 };
 
-const ROLE_FILTROS = ["Administrador", "Gerente General", "Supervisor", "Cajero", "Staff"];
+const ROLE_FILTROS = [
+  "Administrador",
+  "Gerente General",
+  "Mercadólogo",
+  "Supervisor",
+  "Cajero",
+  "Staff",
+];
 const ESTADO_FILTROS = ["Activo", "Inactivo"];
 
 // Sin foto de perfil todavia en el backend: las iniciales del nombre

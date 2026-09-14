@@ -25,6 +25,7 @@ import {
   getRoleForStore,
   tieneAlgunRolDeGestion,
   tieneRolGerencial,
+  esMercadologoEnAlgunNegocio,
 } from "../../hooks/useAuth";
 import { useActiveStore, ALL_STORES_ID } from "../../hooks/useActiveStore";
 import Skeleton from "../components-items/skeleton/skeleton";
@@ -141,6 +142,7 @@ const ROLE_LABELS: Record<number, string> = {
   100: "Super Administrador",
   90: "Administrador",
   80: "Gerente General",
+  75: "Mercadólogo",
   70: "Supervisor",
   60: "Cajero",
   50: "Staff",
@@ -251,6 +253,10 @@ export default function Sidebar() {
   // "Mi Roadmap" es una lista privada de la super admin sobre la app en
   // general - ni siquiera un Administrador dueno de negocios la ve.
   const esSuperAdmin = Number(user?.global_role_id ?? 0) >= 100;
+  // DeliPuntos es exclusivo del super admin y del Mercadologo (chequeo
+  // EXACTO, no ">="): ni el dueno ni el Gerente General de la tienda
+  // deberian verlo solo por tener un rol mas alto.
+  const puedeVerDelipuntos = esSuperAdmin || esMercadologoEnAlgunNegocio(user);
 
   const menuItems = buildMenuItems(realStoreId);
 
@@ -287,7 +293,9 @@ export default function Sidebar() {
   );
   items = items.filter((item) => item.path !== "/roadmap" || esSuperAdmin);
   items = items.filter((item) => item.path !== "/soporte" || esSuperAdmin);
-  items = items.filter((item) => item.path !== "/delipuntos" || esSuperAdmin);
+  items = items.filter(
+    (item) => item.path !== "/delipuntos" || puedeVerDelipuntos,
+  );
 
   // Con que rol y en que negocio entraste: para alguien que es staff en
   // varios negocios a la vez, esto le aclara donde tiene cual sombrero.

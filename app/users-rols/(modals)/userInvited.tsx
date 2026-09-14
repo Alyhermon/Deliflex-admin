@@ -10,6 +10,7 @@ import {
   faShield,
   faStore,
   faUser,
+  faBullhorn,
   faMagnifyingGlass,
 } from "@fortawesome/free-solid-svg-icons";
 import Toast from "../../components/components-items/toast/toast";
@@ -41,6 +42,12 @@ const ROLES = [
     value: 80,
     icon: faShield,
     description: "Gestiona una sucursal completa",
+  },
+  {
+    label: "Mercadólogo",
+    value: 75,
+    icon: faBullhorn,
+    description: "Promociones y catálogo de DeliPuntos del negocio",
   },
   {
     label: "Supervisor",
