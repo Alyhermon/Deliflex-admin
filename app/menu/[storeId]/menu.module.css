@@ -617,10 +617,6 @@
   gap: 8px;
 }
 
-.optionGroupHead .dragHandle {
-  padding-top: 2px;
-}
-
 .optionGroupActions {
   margin-left: auto;
 }
