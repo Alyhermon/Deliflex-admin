@@ -30,8 +30,10 @@ import {
   faPen,
   faCheck,
   faXmark,
+  faEye,
 } from "@fortawesome/free-solid-svg-icons";
 import DFCheckbox from "../../components/components-items/checkbox/checkbox";
+import DFRadio from "../../components/components-items/radio/radio";
 import LoadingDots from "../../components/components-items/loading-dots/loading-dots";
 
 type Product = {
@@ -69,6 +71,9 @@ type OptionGroup = {
   selection_type: "SINGLE" | "MULTIPLE";
   is_required: boolean;
   display_order: number;
+  min_selection: number | null;
+  max_selection: number | null;
+  allow_repeated: boolean;
   options: ProductOption[];
 };
 
@@ -232,6 +237,9 @@ function ProductOptionsEditor({
   const [nombreGrupo, setNombreGrupo] = useState("");
   const [tipoGrupo, setTipoGrupo] = useState(TIPO_SELECCION_UNICA);
   const [requerido, setRequerido] = useState(false);
+  const [minGrupo, setMinGrupo] = useState("");
+  const [maxGrupo, setMaxGrupo] = useState("");
+  const [permiteRepetidos, setPermiteRepetidos] = useState(false);
   const [creandoGrupo, setCreandoGrupo] = useState(false);
 
   const [nuevaOpcion, setNuevaOpcion] = useState<
@@ -243,6 +251,8 @@ function ProductOptionsEditor({
 
   const [editandoGrupoId, setEditandoGrupoId] = useState<string | null>(null);
   const [nombreGrupoEditado, setNombreGrupoEditado] = useState("");
+  const [minGrupoEditado, setMinGrupoEditado] = useState("");
+  const [maxGrupoEditado, setMaxGrupoEditado] = useState("");
   const [guardandoGrupoId, setGuardandoGrupoId] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
@@ -269,6 +279,8 @@ function ProductOptionsEditor({
 
     setCreandoGrupo(true);
     try {
+      const esMultiple = tipoGrupo === TIPO_SELECCION_MULTIPLE;
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups`,
         {
@@ -277,9 +289,16 @@ function ProductOptionsEditor({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: nombreGrupo.trim(),
-            selectionType:
-              tipoGrupo === TIPO_SELECCION_MULTIPLE ? "MULTIPLE" : "SINGLE",
+            selectionType: esMultiple ? "MULTIPLE" : "SINGLE",
             isRequired: requerido,
+            // El minimo/maximo de selecciones solo tiene sentido cuando se
+            // puede elegir mas de una opcion (ej. "escoge entre 1 y 3
+            // sabores"); en SINGLE siempre es una sola, asi que no se manda.
+            minSelection: esMultiple && minGrupo.trim() ? Number(minGrupo) : undefined,
+            maxSelection: esMultiple && maxGrupo.trim() ? Number(maxGrupo) : undefined,
+            // Heladeria: "2 bolas del mismo sabor" - solo aplica si se
+            // puede elegir mas de una opcion.
+            allowRepeated: esMultiple ? permiteRepetidos : undefined,
           }),
         },
       );
@@ -289,6 +308,9 @@ function ProductOptionsEditor({
       setNombreGrupo("");
       setTipoGrupo(TIPO_SELECCION_UNICA);
       setRequerido(false);
+      setMinGrupo("");
+      setMaxGrupo("");
+      setPermiteRepetidos(false);
       await cargar();
     } catch (error) {
       onError(
@@ -338,23 +360,60 @@ function ProductOptionsEditor({
     }
   };
 
-  const abrirEdicionGrupo = (group: OptionGroup) => {
-    setEditandoGrupoId(group.id);
-    setNombreGrupoEditado(group.name);
-  };
-
-  const guardarNombreGrupo = async (groupId: string) => {
-    if (!nombreGrupoEditado.trim()) return;
-
-    setGuardandoGrupoId(groupId);
+  const alternarPermiteRepetidos = async (group: OptionGroup) => {
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups/${groupId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups/${group.id}`,
         {
           method: "PATCH",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: nombreGrupoEditado.trim() }),
+          body: JSON.stringify({ allowRepeated: !group.allow_repeated }),
+        },
+      );
+
+      if (!res.ok) throw new Error("No se pudo actualizar el grupo");
+
+      await cargar();
+    } catch (error) {
+      onError(
+        error instanceof Error ? error.message : "No se pudo actualizar el grupo",
+      );
+    }
+  };
+
+  const abrirEdicionGrupo = (group: OptionGroup) => {
+    setEditandoGrupoId(group.id);
+    setNombreGrupoEditado(group.name);
+    setMinGrupoEditado(group.min_selection != null ? String(group.min_selection) : "");
+    setMaxGrupoEditado(group.max_selection != null ? String(group.max_selection) : "");
+  };
+
+  const guardarNombreGrupo = async (group: OptionGroup) => {
+    if (!nombreGrupoEditado.trim()) return;
+
+    const min = minGrupoEditado.trim() ? Number(minGrupoEditado) : undefined;
+    const max = maxGrupoEditado.trim() ? Number(maxGrupoEditado) : undefined;
+
+    if (min != null && max != null && max < min) {
+      onError("El máximo no puede ser menor que el mínimo");
+      return;
+    }
+
+    setGuardandoGrupoId(group.id);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/option-groups/${group.id}`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: nombreGrupoEditado.trim(),
+            ...(group.selection_type === "MULTIPLE"
+              ? { minSelection: min, maxSelection: max }
+              : {}),
+          }),
         },
       );
 
@@ -466,8 +525,87 @@ function ProductOptionsEditor({
 
   return (
     <div className={styles.optionsEditor}>
+      <div className={styles.newGroupCard}>
+        <p className={styles.newGroupTitle}>Agregar grupo de opciones</p>
+
+        <div className={styles.newGroupFormRow}>
+          <div className={styles.field}>
+            <label className={styles.label}>Nombre del grupo</label>
+            <input
+              placeholder="Ej. Tamaño"
+              value={nombreGrupo}
+              onChange={(e) => setNombreGrupo(e.target.value)}
+            />
+          </div>
+          <div className={styles.fieldNarrow}>
+            <label className={styles.label}>Tipo de selección</label>
+            <DFDropdown
+              options={[TIPO_SELECCION_UNICA, TIPO_SELECCION_MULTIPLE]}
+              value={tipoGrupo}
+              onChange={setTipoGrupo}
+            />
+          </div>
+        </div>
+
+        {tipoGrupo === TIPO_SELECCION_MULTIPLE && (
+          <div className={styles.newGroupFormRow}>
+            <div className={styles.fieldNarrow}>
+              <label className={styles.label}>Mínimo a elegir</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="Sin límite"
+                value={minGrupo}
+                onChange={(e) => setMinGrupo(e.target.value)}
+              />
+            </div>
+            <div className={styles.fieldNarrow}>
+              <label className={styles.label}>Máximo a elegir</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="Sin límite"
+                value={maxGrupo}
+                onChange={(e) => setMaxGrupo(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className={styles.newGroupChecks}>
+          <DFCheckbox label="Obligatorio" checked={requerido} onChange={setRequerido} />
+          {tipoGrupo === TIPO_SELECCION_MULTIPLE && (
+            <DFCheckbox
+              label="Permitir repetir opción (ej. 2 bolas del mismo sabor)"
+              checked={permiteRepetidos}
+              onChange={setPermiteRepetidos}
+            />
+          )}
+        </div>
+
+        <div className={styles.newGroupFooter}>
+          <button
+            type="button"
+            className={styles.addCategoryBtn}
+            onClick={crearGrupo}
+            disabled={creandoGrupo || !nombreGrupo.trim()}
+          >
+            {creandoGrupo ? "..." : "+ Agregar grupo"}
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.groupsList}>
       {groups.map((group) => (
         <div key={group.id} className={styles.optionGroupCard}>
+          <button
+            type="button"
+            className={styles.deleteGroupBtn}
+            title="Eliminar grupo"
+            onClick={() => eliminarGrupo(group.id)}
+          >
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
           <div className={styles.optionGroupHead}>
             <div>
               {editandoGrupoId === group.id ? (
@@ -478,16 +616,38 @@ function ProductOptionsEditor({
                     autoFocus
                     onChange={(e) => setNombreGrupoEditado(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") guardarNombreGrupo(group.id);
+                      if (e.key === "Enter") guardarNombreGrupo(group);
                       if (e.key === "Escape") setEditandoGrupoId(null);
                     }}
                   />
+                  {group.selection_type === "MULTIPLE" && (
+                    <>
+                      <input
+                        className={styles.inlineEditLimitInput}
+                        type="number"
+                        min="0"
+                        placeholder="Mín."
+                        title="Mínimo de opciones a elegir"
+                        value={minGrupoEditado}
+                        onChange={(e) => setMinGrupoEditado(e.target.value)}
+                      />
+                      <input
+                        className={styles.inlineEditLimitInput}
+                        type="number"
+                        min="0"
+                        placeholder="Máx."
+                        title="Máximo de opciones a elegir"
+                        value={maxGrupoEditado}
+                        onChange={(e) => setMaxGrupoEditado(e.target.value)}
+                      />
+                    </>
+                  )}
                   <button
                     type="button"
                     className={styles.iconBtn}
                     title="Guardar"
                     disabled={guardandoGrupoId === group.id}
-                    onClick={() => guardarNombreGrupo(group.id)}
+                    onClick={() => guardarNombreGrupo(group)}
                   >
                     <FontAwesomeIcon icon={faCheck} />
                   </button>
@@ -519,23 +679,40 @@ function ProductOptionsEditor({
                   : TIPO_SELECCION_UNICA}
                 {" · "}
                 {group.is_required ? "Obligatorio" : "Opcional"}
+                {group.selection_type === "MULTIPLE" &&
+                  (group.min_selection != null || group.max_selection != null) && (
+                    <>
+                      {" · "}
+                      {group.min_selection != null && group.max_selection != null
+                        ? group.min_selection === group.max_selection
+                          ? `Elegir ${group.min_selection}`
+                          : `Elegir de ${group.min_selection} a ${group.max_selection}`
+                        : group.min_selection != null
+                          ? `Mínimo ${group.min_selection}`
+                          : `Máximo ${group.max_selection}`}
+                    </>
+                  )}
+                {group.selection_type === "MULTIPLE" && group.allow_repeated && (
+                  <>{" · "}Permite repetir opción</>
+                )}
               </span>
             </div>
             <div className={styles.optionGroupActions}>
+              {group.selection_type === "MULTIPLE" && (
+                <button
+                  type="button"
+                  className={styles.linkBtn}
+                  onClick={() => alternarPermiteRepetidos(group)}
+                >
+                  {group.allow_repeated ? "No repetir opción" : "Permitir repetir opción"}
+                </button>
+              )}
               <button
                 type="button"
                 className={styles.linkBtn}
                 onClick={() => alternarRequerido(group)}
               >
                 {group.is_required ? "Hacer opcional" : "Hacer obligatorio"}
-              </button>
-              <button
-                type="button"
-                className={styles.iconBtn}
-                title="Eliminar grupo"
-                onClick={() => eliminarGrupo(group.id)}
-              >
-                <FontAwesomeIcon icon={faTrash} />
               </button>
             </div>
           </div>
@@ -616,28 +793,145 @@ function ProductOptionsEditor({
           </div>
         </div>
       ))}
-
-      <div className={styles.newGroupRow}>
-        <input
-          placeholder="Nombre del grupo (ej. Tamaño)"
-          value={nombreGrupo}
-          onChange={(e) => setNombreGrupo(e.target.value)}
-        />
-        <DFDropdown
-          options={[TIPO_SELECCION_UNICA, TIPO_SELECCION_MULTIPLE]}
-          value={tipoGrupo}
-          onChange={setTipoGrupo}
-        />
-        <DFCheckbox label="Obligatorio" checked={requerido} onChange={setRequerido} />
-        <button
-          type="button"
-          className={styles.addCategoryBtn}
-          onClick={crearGrupo}
-          disabled={creandoGrupo || !nombreGrupo.trim()}
-        >
-          {creandoGrupo ? "..." : "+ Grupo"}
-        </button>
       </div>
+
+      {groups.length > 0 && <OptionsPreview groups={groups} />}
+    </div>
+  );
+}
+
+// Simulacro de como el cliente veria y marcaria las opciones al pedir -
+// nada de esto se guarda ni afecta pedidos reales, es solo para que el
+// negocio pruebe sus limites (min/max, repetir sabor) antes de publicar.
+function OptionsPreview({ groups }: { groups: OptionGroup[] }) {
+  const [mostrar, setMostrar] = useState(false);
+  const [seleccionUnica, setSeleccionUnica] = useState<Record<string, string>>({});
+  const [cantidades, setCantidades] = useState<Record<string, Record<string, number>>>({});
+
+  const totalGrupo = (groupId: string) =>
+    Object.values(cantidades[groupId] ?? {}).reduce((suma, n) => suma + n, 0);
+
+  const alternarOpcion = (group: OptionGroup, optionId: string) => {
+    setCantidades((prev) => {
+      const actual = prev[group.id]?.[optionId] ?? 0;
+      return { ...prev, [group.id]: { ...prev[group.id], [optionId]: actual > 0 ? 0 : 1 } };
+    });
+  };
+
+  const cambiarCantidad = (group: OptionGroup, optionId: string, delta: number) => {
+    setCantidades((prev) => {
+      const actual = prev[group.id]?.[optionId] ?? 0;
+      const total = totalGrupo(group.id);
+      if (delta > 0 && group.max_selection != null && total >= group.max_selection) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [group.id]: { ...prev[group.id], [optionId]: Math.max(0, actual + delta) },
+      };
+    });
+  };
+
+  return (
+    <div className={styles.optionsPreview}>
+      <button
+        type="button"
+        className={styles.previewToggle}
+        onClick={() => setMostrar(true)}
+      >
+        <FontAwesomeIcon icon={faEye} />
+        Vista previa: así elegiría el cliente estas opciones al pedir
+      </button>
+
+      <Modal
+        isOpen={mostrar}
+        onClose={() => setMostrar(false)}
+        title="Vista previa para el cliente"
+        width="440px"
+      >
+        <div className={styles.previewModalBody}>
+          {groups.map((group) => {
+        const total = totalGrupo(group.id);
+        const alcanzoMax = group.max_selection != null && total >= group.max_selection;
+        const faltaMinimo = group.min_selection != null && total < group.min_selection;
+
+        return (
+          <div key={group.id} className={styles.previewGroup}>
+            <div className={styles.previewGroupHead}>
+              <span className={styles.previewGroupName}>{group.name}</span>
+              {group.selection_type === "MULTIPLE" && (
+                <span className={faltaMinimo ? styles.previewWarning : styles.previewCounter}>
+                  Elegidos: {total}
+                  {group.max_selection != null ? ` de ${group.max_selection}` : ""}
+                  {faltaMinimo ? ` · elige al menos ${group.min_selection}` : ""}
+                </span>
+              )}
+            </div>
+
+            {group.selection_type === "SINGLE" ? (
+              <div className={styles.previewOptions}>
+                {group.options.map((option) => (
+                  <DFRadio
+                    key={option.id}
+                    name={`preview-${group.id}`}
+                    label={option.name}
+                    checked={seleccionUnica[group.id] === option.id}
+                    onChange={() =>
+                      setSeleccionUnica((prev) => ({ ...prev, [group.id]: option.id }))
+                    }
+                  />
+                ))}
+              </div>
+            ) : group.allow_repeated ? (
+              <div className={styles.previewOptions}>
+                {group.options.map((option) => {
+                  const cantidad = cantidades[group.id]?.[option.id] ?? 0;
+                  return (
+                    <div key={option.id} className={styles.previewStepperRow}>
+                      <span>{option.name}</span>
+                      <div className={styles.previewStepper}>
+                        <button
+                          type="button"
+                          onClick={() => cambiarCantidad(group, option.id, -1)}
+                          disabled={cantidad === 0}
+                        >
+                          −
+                        </button>
+                        <span>{cantidad}</span>
+                        <button
+                          type="button"
+                          onClick={() => cambiarCantidad(group, option.id, 1)}
+                          disabled={alcanzoMax}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className={styles.previewOptions}>
+                {group.options.map((option) => {
+                  const marcado = (cantidades[group.id]?.[option.id] ?? 0) > 0;
+                  const bloqueado = !marcado && alcanzoMax;
+                  return (
+                    <DFCheckbox
+                      key={option.id}
+                      label={option.name}
+                      checked={marcado}
+                      disabled={bloqueado}
+                      onChange={() => alternarOpcion(group, option.id)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+            );
+          })}
+        </div>
+      </Modal>
     </div>
   );
 }
