@@ -1,117 +1,182 @@
-.container {
-  position: relative;
+.page {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  padding: 24px;
 }
 
-.background {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-
-.backgroundImg {
-  object-fit: cover;
-  object-position: center;
-}
-
-.contentRow {
-  position: relative;
-  z-index: 2;
+.formPanel {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 32px;
+  background: #fff;
+  padding: 40px;
 }
 
-.card {
-  position: relative;
-  z-index: 2;
+.formInner {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  background-color: #fff;
-  border-radius: 2rem;
   width: 100%;
   max-width: 420px;
-  padding: 48px 36px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
-  flex-shrink: 0;
 }
 
-.logo {
-  position: relative;
-  width: 200px;
-  height: 68px;
-  margin-bottom: 28px;
-  flex-shrink: 0;
+.heading {
+  font-size: 38px;
+  font-weight: 800;
+  color: #e8432c;
+  margin-bottom: 32px;
 }
 
-.logoImg {
-  object-fit: contain;
-}
-
-.input {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  width: 100%;
-}
-
-.loginButton {
-  background-color: #d81212;
-  color: #fff;
-  border: none;
-  padding: 0.9rem;
-  width: 100%;
-  border-radius: 1rem;
+.label {
   font-size: 15px;
   font-weight: 600;
+  color: #e8432c;
+  margin-bottom: 8px;
+}
+
+.field {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 15px 16px;
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 22px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.field::placeholder {
+  color: #bbb;
+}
+
+.field:focus {
+  border-color: #e8432c;
+}
+
+.passwordWrapper {
+  position: relative;
+}
+
+.passwordWrapper .field {
+  padding-right: 40px;
+}
+
+.togglePassword {
+  position: absolute;
+  top: 0;
+  bottom: 22px;
+  right: 0;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: #9a9a9a;
   cursor: pointer;
 }
 
-.loginButton:disabled {
+.togglePassword:hover {
+  color: #e8432c;
+}
+
+.errorText {
+  margin: -14px 0 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ff4d4f;
+}
+
+.rememberRow {
+  margin-bottom: 20px;
+}
+
+.submitButton {
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  width: 100%;
+  background: linear-gradient(90deg, #e8432c, #ff9840);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.submitButton:hover {
+  opacity: 0.92;
+}
+
+.submitButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-/* Ilustracion decorativa: ahora vive al lado de la tarjeta, dentro del
-   mismo flex row, en vez de flotar sola en una esquina de la pantalla. */
-.illustration {
-  position: relative;
-  z-index: 1;
-  width: 480px;
-  max-width: 42vw;
-  height: 640px;
-  max-height: 85vh;
-  flex-shrink: 0;
-  pointer-events: none;
+.continueWith {
+  text-align: center;
+  font-size: 14px;
+  color: #888;
+  margin: 26px 0 18px;
 }
 
-.illustrationImg {
-  object-fit: contain;
-  object-position: center;
+.socialRow {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+
+.socialButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid #eee;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.socialButton:hover {
+  transform: translateY(-2px);
+}
+
+.appleIcon {
+  color: #111;
+  font-size: 20px;
+}
+
+.facebookIcon {
+  color: #1877f2;
+  font-size: 20px;
+}
+
+.illustrationPanel {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ef4136 0%, #ff9a44 100%);
+}
+
+.illustrationPanel::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -100px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateY(-50%);
 }
 
 @media (max-width: 900px) {
-  .illustration {
+  .illustrationPanel {
     display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .card {
-    padding: 32px 22px;
-    border-radius: 1.5rem;
-  }
-
-  .logo {
-    width: 160px;
-    height: 54px;
-    margin-bottom: 20px;
   }
 }

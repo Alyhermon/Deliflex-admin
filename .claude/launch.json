@@ -17,6 +17,20 @@
         "start:dev"
       ],
       "port": 3001
+    },
+    {
+      "name": "deliflex-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "C:/Users/Alina/Desktop/DELIFLEX-WEB/deliflex-web",
+        "run",
+        "dev",
+        "--",
+        "-p",
+        "3100"
+      ],
+      "port": 3100
     }
   ]
 }

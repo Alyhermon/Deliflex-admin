@@ -1,17 +1,18 @@
 "use client";
-import Image from "next/image";
-import styles from "./login.module.css";
-import DFInput from "../../components/components-items/input";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faKey } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faApple, faFacebookF } from "@fortawesome/free-brands-svg-icons";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import styles from "./login.module.css";
 import Toast from "@/app/components/components-items/toast/toast";
 import DFCheckbox from "@/app/components/components-items/checkbox/checkbox";
+import GoogleIcon from "@/app/components/components-items/google-icon";
 import { ACTIVE_STORE_STORAGE_KEY } from "@/app/hooks/useActiveStore";
 
 export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
@@ -20,7 +21,8 @@ export default function DashboardPage() {
     type: "error" | "success" | "warning";
   } | null>(null);
 
-  const login = async () => {
+  const login = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setLoginError("");
     try {
@@ -59,7 +61,7 @@ export default function DashboardPage() {
         return;
       }
 
-      const cookieRes = await fetch("/api/auth/set-cookie", {
+      await fetch("/api/auth/set-cookie", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -67,9 +69,6 @@ export default function DashboardPage() {
           maxAge: data.max_age_seconds,
         }),
       });
-
-      console.log("Cookie status:", cookieRes.status);
-      console.log("Token que se envía:", data.access_token);
 
       // El negocio activo elegido por la sesion anterior puede ni
       // siquiera ser de este usuario: sin esto, quedaria seleccionado
@@ -94,76 +93,86 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.background}>
-        <Image
-          src="/assets/fondo.png"
-          alt=""
-          fill
-          priority
-          className={styles.backgroundImg}
-        />
-      </div>
+    <div className={styles.page}>
+      <div className={styles.formPanel}>
+        <form className={styles.formInner} onSubmit={login}>
+          <h1 className={styles.heading}>Bienvenido</h1>
 
-      <div className={styles.contentRow}>
-      <div className={styles.card}>
-        <div className={styles.logo}>
-          <Image
-            src="/assets/logo.png"
-            alt="Deliflex"
-            fill
-            className={styles.logoImg}
-          />
-        </div>
-
-        <div className={styles.input}>
-          <DFInput
+          <label className={styles.label} htmlFor="email">
+            Email
+          </label>
+          <input
+            id="email"
+            className={styles.field}
+            type="email"
+            placeholder="username@gmail.com"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
               setLoginError("");
             }}
-            placeholder="ejemplo@email.com"
-            icon={<FontAwesomeIcon color="#ed7b17" icon={faEnvelope} />}
+            required
           />
 
-          <DFInput
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setLoginError("");
-            }}
-            placeholder="Contraseña"
-            type="password"
-            icon={<FontAwesomeIcon color="#ed7b17" icon={faKey} />}
-            error={loginError}
-          />
+          <label className={styles.label} htmlFor="password">
+            Contraseña
+          </label>
+          <div className={styles.passwordWrapper}>
+            <input
+              id="password"
+              className={styles.field}
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setLoginError("");
+              }}
+              required
+            />
+            <button
+              type="button"
+              className={styles.togglePassword}
+              onClick={() => setShowPassword((v) => !v)}
+              tabIndex={-1}
+              aria-label={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+            >
+              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+            </button>
+          </div>
 
-          <DFCheckbox
-            label="Mantener sesión iniciada"
-            checked={rememberMe}
-            onChange={setRememberMe}
-          />
+          {loginError && <p className={styles.errorText}>{loginError}</p>}
 
-          <button
-            className={styles.loginButton}
-            onClick={login}
-            disabled={loading}
-          >
+          <div className={styles.rememberRow}>
+            <DFCheckbox
+              label="Mantener sesión iniciada"
+              checked={rememberMe}
+              onChange={setRememberMe}
+            />
+          </div>
+
+          <button type="submit" className={styles.submitButton} disabled={loading}>
             {loading ? "Cargando..." : "Iniciar sesión"}
           </button>
-        </div>
+
+          <p className={styles.continueWith}>Continuar con</p>
+
+          <div className={styles.socialRow}>
+            <button type="button" className={styles.socialButton} aria-label="Continuar con Google">
+              <GoogleIcon size={20} />
+            </button>
+            <button type="button" className={styles.socialButton} aria-label="Continuar con Apple">
+              <FontAwesomeIcon icon={faApple} className={styles.appleIcon} />
+            </button>
+            <button type="button" className={styles.socialButton} aria-label="Continuar con Facebook">
+              <FontAwesomeIcon icon={faFacebookF} className={styles.facebookIcon} />
+            </button>
+          </div>
+        </form>
       </div>
 
-      <div className={styles.illustration}>
-        <Image
-          src="/assets/imagen-logo.png"
-          alt=""
-          fill
-          className={styles.illustrationImg}
-        />
-      </div>
-      </div>
+      {/* El panel de la derecha se completa despues con la ilustracion. */}
+      <div className={styles.illustrationPanel} />
 
       {toast && (
         <Toast
