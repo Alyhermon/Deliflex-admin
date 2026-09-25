@@ -173,47 +173,91 @@ type UbicacionCampo =
   | "show_on_gifts"
   | "show_on_games";
 
+// Que campo de las capacidades del plan (GET .../promotion-capabilities)
+// habilita cada casilla. Mismo orden que en el plan de promoción del super
+// admin, para que ambas pantallas hablen de exactamente lo mismo.
+type CapacidadCampo =
+  | "allowShowOnHome"
+  | "allowShowOnMenu"
+  | "allowShowOnOffers"
+  | "allowShowOnCoupons"
+  | "allowShowOnGifts"
+  | "allowShowOnGames";
+
+type PromotionCapabilities = {
+  hasPlan: boolean;
+  planName: string | null;
+  allowShowOnHome: boolean;
+  allowShowOnMenu: boolean;
+  allowShowOnOffers: boolean;
+  allowShowOnCoupons: boolean;
+  allowShowOnGifts: boolean;
+  allowShowOnGames: boolean;
+  allowNotifyCustomers: boolean;
+};
+
+// Sin plan cargado todavia (o sin plan asignado) no se bloquea nada: la
+// restriccion es un extra que trae el plan, no un candado por defecto.
+const CAPACIDADES_SIN_RESTRICCION: PromotionCapabilities = {
+  hasPlan: false,
+  planName: null,
+  allowShowOnHome: true,
+  allowShowOnMenu: true,
+  allowShowOnOffers: true,
+  allowShowOnCoupons: true,
+  allowShowOnGifts: true,
+  allowShowOnGames: true,
+  allowNotifyCustomers: true,
+};
+
 // `id` es la llave del formulario (lo que mandamos al backend) y `campo`
 // la que devuelve la API al leer, que viene en snake_case.
 const UBICACIONES: {
   id: Ubicacion;
   campo: UbicacionCampo;
+  capacidad: CapacidadCampo;
   title: string;
   desc: string;
 }[] = [
   {
     id: "showOnHome",
     campo: "show_on_home",
+    capacidad: "allowShowOnHome",
     title: "Página principal",
     desc: "Banner destacado al abrir la app",
   },
   {
     id: "showOnMenu",
     campo: "show_on_menu",
+    capacidad: "allowShowOnMenu",
     title: "Menú",
     desc: "Junto a los productos del negocio",
   },
   {
     id: "showOnOffers",
     campo: "show_on_offers",
+    capacidad: "allowShowOnOffers",
     title: "Ofertas",
     desc: "Sección de descuentos y rebajas",
   },
   {
     id: "showOnCoupons",
     campo: "show_on_coupons",
+    capacidad: "allowShowOnCoupons",
     title: "Cupones",
     desc: "Sección de códigos para canjear",
   },
   {
     id: "showOnGifts",
     campo: "show_on_gifts",
+    capacidad: "allowShowOnGifts",
     title: "Regalos",
     desc: "Sección de premios y cortesías",
   },
   {
     id: "showOnGames",
     campo: "show_on_games",
+    capacidad: "allowShowOnGames",
     title: "Juegos",
     desc: "Sección de dinámicas y sorteos",
   },
@@ -273,6 +317,9 @@ export default function PromotionsPage({
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [capabilities, setCapabilities] = useState<PromotionCapabilities>(
+    CAPACIDADES_SIN_RESTRICCION,
+  );
 
   const [form, setForm] = useState<PromotionForm>(FORM_VACIO);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -295,6 +342,31 @@ export default function PromotionsPage({
   ) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
+
+  // Por si el negocio alcanza a marcar una casilla en el instante antes de
+  // que lleguen las capacidades del plan: en cuanto se sabe que esa seccion
+  // no esta permitida, se destilda sola (la casilla ya queda deshabilitada,
+  // pero sin esto se veria marcada aunque no se pueda enviar).
+  useEffect(() => {
+    setForm((prev) => {
+      const next = { ...prev };
+      let cambio = false;
+
+      UBICACIONES.forEach((ubicacion) => {
+        if (prev[ubicacion.id] && !capabilities[ubicacion.capacidad]) {
+          next[ubicacion.id] = false;
+          cambio = true;
+        }
+      });
+
+      if (prev.notifyCustomers && !capabilities.allowNotifyCustomers) {
+        next.notifyCustomers = false;
+        cambio = true;
+      }
+
+      return cambio ? next : prev;
+    });
+  }, [capabilities]);
 
   useEffect(() => {
     if (!id) return;
@@ -349,9 +421,25 @@ export default function PromotionsPage({
       }
     };
 
+    const loadCapabilities = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/boosts/mine/${id}/promotion-capabilities`,
+          { credentials: "include" },
+        );
+
+        if (!res.ok) return;
+
+        setCapabilities(await res.json());
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     loadStore();
     loadCategories();
     loadProducts();
+    loadCapabilities();
   }, [id]);
 
   const [promotionsError, setPromotionsError] = useState(false);
@@ -1347,19 +1435,35 @@ export default function PromotionsPage({
                 elegir más de una.
               </p>
 
+              {capabilities.hasPlan && (
+                <p className={styles.hint}>
+                  Tu plan actual es <strong>{capabilities.planName}</strong>.
+                  Las secciones bloqueadas no están incluidas en tu plan.
+                </p>
+              )}
+
               <div className={styles.checksGrid}>
-                {UBICACIONES.map((ubicacion) => (
-                  <div key={ubicacion.id} className={styles.checkItem}>
-                    <DFCheckbox
-                      label={ubicacion.title}
-                      checked={form[ubicacion.id]}
-                      onChange={(checked) =>
-                        handleChange(ubicacion.id, checked)
-                      }
-                    />
-                    <span className={styles.checkDesc}>{ubicacion.desc}</span>
-                  </div>
-                ))}
+                {UBICACIONES.map((ubicacion) => {
+                  const permitido = capabilities[ubicacion.capacidad];
+
+                  return (
+                    <div key={ubicacion.id} className={styles.checkItem}>
+                      <DFCheckbox
+                        label={ubicacion.title}
+                        checked={form[ubicacion.id]}
+                        disabled={!permitido}
+                        onChange={(checked) =>
+                          handleChange(ubicacion.id, checked)
+                        }
+                      />
+                      <span className={styles.checkDesc}>
+                        {permitido
+                          ? ubicacion.desc
+                          : "No incluido en tu plan actual"}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               <p className={styles.hint}>
@@ -1437,10 +1541,16 @@ export default function PromotionsPage({
                 <DFCheckbox
                   label="Notificar clientes"
                   checked={form.notifyCustomers}
+                  disabled={!capabilities.allowNotifyCustomers}
                   onChange={(checked) =>
                     handleChange("notifyCustomers", checked)
                   }
                 />
+                {!capabilities.allowNotifyCustomers && (
+                  <span className={styles.checkDesc}>
+                    No incluido en tu plan actual
+                  </span>
+                )}
               </div>
             </section>
 

@@ -378,6 +378,48 @@
   margin-top: 3px;
 }
 
+.planSeccionesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 12px;
+  margin: 8px 0 4px;
+}
+
+.planSecciones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.planSeccionesLabel {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #8a8a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.planSeccionesTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.listTag {
+  background: #fff4e8;
+  color: #ff7a00;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.hint {
+  font-size: 12.5px;
+  color: #8a8a8a;
+}
+
 .planFoot {
   margin-top: auto;
   padding-top: 12px;

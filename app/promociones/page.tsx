@@ -55,7 +55,44 @@ type BoostPlan = {
   is_highlighted: boolean;
   is_active: boolean;
   sort_order: number;
+  // Que puede marcar un negocio en el formulario de "Crear promoción" si
+  // esta suscrito a este plan. Solo aplican a type PROMOTION.
+  allow_show_on_home: boolean;
+  allow_show_on_menu: boolean;
+  allow_show_on_offers: boolean;
+  allow_show_on_coupons: boolean;
+  allow_show_on_gifts: boolean;
+  allow_show_on_games: boolean;
+  allow_notify_customers: boolean;
 };
+
+// Las mismas secciones y el mismo orden que la pantalla de "Crear
+// promoción" del negocio (paso 5), para que el super admin marque ahi
+// exactamente lo que el negocio despues va a poder elegir. `campo` es la
+// llave snake_case que devuelve la API al leer un plan, `apiField` la
+// camelCase que espera al crear/editar uno.
+const SECCIONES_PLAN: {
+  campo: keyof Pick<
+    BoostPlan,
+    | "allow_show_on_home"
+    | "allow_show_on_menu"
+    | "allow_show_on_offers"
+    | "allow_show_on_coupons"
+    | "allow_show_on_gifts"
+    | "allow_show_on_games"
+  >;
+  apiField: string;
+  title: string;
+}[] = [
+  { campo: "allow_show_on_home", apiField: "allowShowOnHome", title: "Página principal" },
+  { campo: "allow_show_on_menu", apiField: "allowShowOnMenu", title: "Menú" },
+  { campo: "allow_show_on_offers", apiField: "allowShowOnOffers", title: "Ofertas" },
+  { campo: "allow_show_on_coupons", apiField: "allowShowOnCoupons", title: "Cupones" },
+  { campo: "allow_show_on_gifts", apiField: "allowShowOnGifts", title: "Regalos" },
+  { campo: "allow_show_on_games", apiField: "allowShowOnGames", title: "Juegos" },
+];
+
+type SeccionCampo = (typeof SECCIONES_PLAN)[number]["campo"];
 
 // El banner lo sube el negocio y lo aprueba la plataforma: hasta que este
 // en APPROVED no deberia salir en la app de clientes.
@@ -555,6 +592,28 @@ function SuperAdminBoostsView() {
                 </li>
               ))}
             </ul>
+
+            {tipo === "PROMOTION" && (
+              <div className={styles.planSecciones}>
+                <span className={styles.planSeccionesLabel}>
+                  Secciones que puede marcar:
+                </span>
+                <div className={styles.planSeccionesTags}>
+                  {SECCIONES_PLAN.filter((s) => plan[s.campo]).map((s) => (
+                    <span key={s.campo} className={styles.listTag}>
+                      {s.title}
+                    </span>
+                  ))}
+                  {plan.allow_notify_customers && (
+                    <span className={styles.listTag}>Notificar clientes</span>
+                  )}
+                  {SECCIONES_PLAN.every((s) => !plan[s.campo]) &&
+                    !plan.allow_notify_customers && (
+                      <span className={styles.hint}>Ninguna</span>
+                    )}
+                </div>
+              </div>
+            )}
 
             <div className={styles.planFoot}>
               <span>{plan.is_active ? "Vigentes" : "Desactivado"}</span>
@@ -1385,8 +1444,18 @@ function PlanFormModal({
   const [billingCycle, setBillingCycle] = useState("Mensual");
   const [features, setFeatures] = useState("");
   const [isHighlighted, setIsHighlighted] = useState(false);
+  const [secciones, setSecciones] = useState<Record<SeccionCampo, boolean>>(
+    () =>
+      Object.fromEntries(SECCIONES_PLAN.map((s) => [s.campo, true])) as Record<
+        SeccionCampo,
+        boolean
+      >,
+  );
+  const [notifyCustomers, setNotifyCustomers] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const tipoEfectivo = plan?.type ?? type;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -1397,12 +1466,25 @@ function PlanFormModal({
       setBillingCycle(CICLO_LABEL[plan.billing_cycle] ?? "Mensual");
       setFeatures(plan.features.join("\n"));
       setIsHighlighted(plan.is_highlighted);
+      setSecciones(
+        Object.fromEntries(
+          SECCIONES_PLAN.map((s) => [s.campo, plan[s.campo]]),
+        ) as Record<SeccionCampo, boolean>,
+      );
+      setNotifyCustomers(plan.allow_notify_customers);
     } else {
       setName("");
       setPrice("");
       setBillingCycle("Mensual");
       setFeatures("");
       setIsHighlighted(false);
+      setSecciones(
+        Object.fromEntries(SECCIONES_PLAN.map((s) => [s.campo, true])) as Record<
+          SeccionCampo,
+          boolean
+        >,
+      );
+      setNotifyCustomers(true);
     }
     setError("");
   }, [isOpen, plan]);
@@ -1416,9 +1498,9 @@ function PlanFormModal({
     setSaving(true);
     setError("");
 
-    const body = {
+    const body: Record<string, unknown> = {
       name: name.trim(),
-      type: plan?.type ?? type,
+      type: tipoEfectivo,
       price: Number(price),
       billingCycle: CICLO_DESDE_LABEL[billingCycle] ?? "MONTHLY",
       features: features
@@ -1427,6 +1509,16 @@ function PlanFormModal({
         .filter(Boolean),
       isHighlighted,
     };
+
+    // Las casillas de secciones solo se muestran (y solo importan) para
+    // planes de promocion; en Premium se guardan sin tocar (quedan en
+    // "true" por defecto en el backend).
+    if (tipoEfectivo === "PROMOTION") {
+      SECCIONES_PLAN.forEach((s) => {
+        body[s.apiField] = secciones[s.campo];
+      });
+      body.allowNotifyCustomers = notifyCustomers;
+    }
 
     try {
       const res = await fetch(
@@ -1511,6 +1603,45 @@ function PlanFormModal({
           />
           Marcar como "Más elegido"
         </label>
+
+        {tipoEfectivo === "PROMOTION" && (
+          <div>
+            <label className={styles.label}>
+              ¿Dónde puede promocionar un negocio con este plan?
+            </label>
+            <span className={styles.fieldHint}>
+              Estas son las casillas que va a poder marcar el negocio al
+              crear una promoción.
+            </span>
+
+            <div className={styles.planSeccionesGrid}>
+              {SECCIONES_PLAN.map((s) => (
+                <label key={s.campo} className={styles.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    checked={secciones[s.campo]}
+                    onChange={(e) =>
+                      setSecciones((prev) => ({
+                        ...prev,
+                        [s.campo]: e.target.checked,
+                      }))
+                    }
+                  />
+                  {s.title}
+                </label>
+              ))}
+            </div>
+
+            <label className={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                checked={notifyCustomers}
+                onChange={(e) => setNotifyCustomers(e.target.checked)}
+              />
+              Notificar clientes
+            </label>
+          </div>
+        )}
 
         {error && (
           <span style={{ color: "#e53935", fontSize: 12.5 }}>{error}</span>
@@ -1796,6 +1927,24 @@ function MyBusinessBoostsView({ user }: { user: User }) {
                 </li>
               ))}
             </ul>
+
+            {tipo === "PROMOTION" && (
+              <div className={styles.planSecciones}>
+                <span className={styles.planSeccionesLabel}>
+                  Secciones donde puedes promocionar:
+                </span>
+                <div className={styles.planSeccionesTags}>
+                  {SECCIONES_PLAN.filter((s) => plan[s.campo]).map((s) => (
+                    <span key={s.campo} className={styles.listTag}>
+                      {s.title}
+                    </span>
+                  ))}
+                  {plan.allow_notify_customers && (
+                    <span className={styles.listTag}>Notificar clientes</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         ))}
     </div>
