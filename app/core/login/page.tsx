@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faApple, faFacebookF } from "@fortawesome/free-brands-svg-icons";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
@@ -171,8 +172,16 @@ export default function DashboardPage() {
         </form>
       </div>
 
-      {/* El panel de la derecha se completa despues con la ilustracion. */}
-      <div className={styles.illustrationPanel} />
+      <div className={styles.illustrationPanel}>
+        <Image
+          src="/assets/deliflex-icon-white.png"
+          alt="Deliflex"
+          width={526}
+          height={231}
+          className={styles.illustrationIcon}
+          priority
+        />
+      </div>
 
       {toast && (
         <Toast
